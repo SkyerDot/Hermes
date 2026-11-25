@@ -27,7 +27,7 @@ const DISCARDED_API_ROUTE_PREFIXES = [
   "mcp/",
   "a2a/",
   "conductor/",
-  "acp/",
+  "acp/agents/", // G4: /api/acp/agents only (not all acp/*)
   "services/",
   "plugins",
   "memory/",
@@ -40,7 +40,7 @@ const DISCARDED_API_ROUTE_PREFIXES = [
   "tools/agent-bridge/",
   "tools/traffic-inspector/",
   "cli-tools/runtime/",
-  "cli-tools/antigravity-mitm",
+  "cli-tools/antigravity-mitm", // G9/G10: CLI tools + antigravity-mitm
   "tunnels/",
   "sync/",
   "version-manager/",

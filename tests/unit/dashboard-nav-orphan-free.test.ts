@@ -44,9 +44,6 @@ const DISCARDED_NAV_IDS = [
   "agent-bridge",
 ];
 
-// FRONTEIRA — explicitly NOT included (per task brief)
-const FRONTEIRA_NAV_IDS = ["discovery", "settings-ai", "settings-modality-bridge"];
-
 const SIDEBAR_VISIBILITY_FILES = [
   "src/shared/constants/sidebarVisibility/sections.ts",
   "src/shared/constants/sidebarVisibility/types.ts",
@@ -62,23 +59,23 @@ function readFile(file: string): string {
   return fs.readFileSync(fullPath, "utf8");
 }
 
-function extractAllIdsFromSidebar(content: string): string[] {
-  const ids = new Set<string>();
-  // Match id: "value" or id: 'value' in object literals
-  const idRegex = /id:\s*["']([^"']+)["']/g;
-  let match;
-  while ((match = idRegex.exec(content)) !== null) {
-    ids.add(match[1]);
-  }
-  return Array.from(ids);
+function containsDiscardedId(content: string, discardedId: string): boolean {
+  // Check if discardedId appears as a string literal (double or single quoted)
+  // This catches: "mcp", 'mcp', id: "mcp", "mcp" in arrays/Sets, etc.
+  const doubleQuoted = `"${discardedId}"`;
+  const singleQuoted = `'${discardedId}'`;
+  return content.includes(doubleQuoted) || content.includes(singleQuoted);
+}
+
+function findDiscardedIdsInContent(content: string): string[] {
+  return DISCARDED_NAV_IDS.filter((id) => containsDiscardedId(content, id));
 }
 
 test("dashboard nav orphan-free — no discarded IDs in sidebarVisibility configs (RED baseline)", async (t) => {
   for (const file of SIDEBAR_VISIBILITY_FILES) {
     await t.test(`${file} contains no discarded nav IDs`, () => {
       const content = readFile(file);
-      const allIds = extractAllIdsFromSidebar(content);
-      const foundDiscarded = DISCARDED_NAV_IDS.filter((id) => allIds.includes(id));
+      const foundDiscarded = findDiscardedIdsInContent(content);
       assert.strictEqual(
         foundDiscarded.length,
         0,
@@ -86,25 +83,4 @@ test("dashboard nav orphan-free — no discarded IDs in sidebarVisibility config
       );
     });
   }
-});
-
-test("dashboard nav orphan-free — fronteira IDs are documented but NOT asserted absent", () => {
-  // This test documents which IDs are fronteira (decision pending) and should NOT be asserted.
-  // They appear in the configs currently; that is expected.
-  for (const file of SIDEBAR_VISIBILITY_FILES) {
-    const content = readFile(file);
-    const allIds = extractAllIdsFromSidebar(content);
-    const foundFronteira = FRONTEIRA_NAV_IDS.filter((id) => allIds.includes(id));
-    // Just log — no assertion. These are fronteira per task brief.
-    if (foundFronteira.length > 0) {
-      console.log(
-        `[FRONTEIRA] ${file} contains fronteira IDs (expected): ${foundFronteira.join(", ")}`
-      );
-    }
-  }
-  // Always passes — documents the fronteira
-  assert.ok(
-    true,
-    "Fronteira IDs documented (not asserted absent): discovery, settings-ai, settings-modality-bridge"
-  );
 });
