@@ -313,28 +313,11 @@ describe("API Routes — dashboard and tool consumers", () => {
     assert.doesNotMatch(requestLogger, /\/api\/logs\/active/);
   });
 
-  it("keeps usage quota wired through A2A and MCP tools", () => {
+  it("keeps usage quota wired through A2A skill and quota route", () => {
     const quotaSkill = readProjectFile("src/lib/a2a/skills/quotaManagement.ts");
-    const mcpAdvancedTools = readProjectFile("open-sse/mcp-server/tools/advancedTools.ts");
-    const mcpOpsTools = readProjectFile("open-sse/mcp-server/tools/opsTools.ts");
-    const mcpServer = readProjectFile("open-sse/mcp-server/server.ts");
 
     assert.ok(quotaSkill, "quotaManagement skill should exist");
-    assert.ok(mcpAdvancedTools, "advanced MCP tools should exist");
-    assert.ok(mcpOpsTools, "operational MCP tools should exist");
-    assert.ok(mcpServer, "MCP server should exist");
     assert.match(quotaSkill, /\/api\/usage\/quota/);
-    assert.match(mcpAdvancedTools, /\/api\/usage\/quota/);
-    // The quota handler moved out of the registration module in #15159.
-    assert.match(mcpOpsTools, /["']\/api\/usage\/quota["']/);
-    assert.match(
-      mcpServer,
-      /^import\s*\{[^}]*\bhandleCheckQuota\b[^}]*\}\s*from\s*"\.\/tools\/opsTools\.ts";/m
-    );
-    assert.match(
-      mcpServer,
-      /^\s+withScopeEnforcement\("omniroute_check_quota",\s*\(args\)\s*=>\s*handleCheckQuota\(checkQuotaInput\.parse\(args\)\)\s*\)/m
-    );
     assertRouteMethods("src/app/api/usage/quota/route.ts", ["GET"]);
   });
 

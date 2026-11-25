@@ -45,21 +45,10 @@ const FOREVER = new Set([
   "keyless",
 ]);
 
-// Every MCP tool collection the server registers, in the order the gate always used.
-const MCP_COLLECTIONS = [
-  ["MCP_TOOLS", "open-sse/mcp-server/schemas/tools.ts"],
-  ["memoryTools", "open-sse/mcp-server/tools/memoryTools.ts"],
-  ["skillTools", "open-sse/mcp-server/tools/skillTools.ts"],
-  ["agentSkillTools", "open-sse/mcp-server/tools/agentSkillTools.ts"],
-  ["githubSkillTools", "open-sse/mcp-server/tools/githubSkillTools.ts"],
-  ["poolTools", "open-sse/mcp-server/tools/poolTools.ts"],
-  ["gamificationTools", "open-sse/mcp-server/tools/gamificationTools.ts"],
-  ["pluginTools", "open-sse/mcp-server/tools/pluginTools.ts"],
-  ["notionTools", "open-sse/mcp-server/tools/notionTools.ts"],
-  ["obsidianTools", "open-sse/mcp-server/tools/obsidianTools.ts"],
-  ["localCorpusTools", "open-sse/mcp-server/tools/localCorpusTools.ts"],
-  ["compressionTools", "open-sse/mcp-server/tools/compressionTools.ts"],
-];
+// MCP server removed (Task 3). Keep the keys for facts output compatibility until
+// Task 13 removes mcpTools/mcpScopes from CODE_FACT_KEYS and docs claims.
+// These are now stubbed to 0 below.
+const MCP_COLLECTIONS = [];
 
 // The SAME provider collections gen-provider-reference.ts unions, so the doc-vs-live provider
 // check cannot drift from the generator's definition of "provider".
@@ -105,7 +94,6 @@ async function main() {
   const { MODE_PACKS } = await load("open-sse/services/autoCombo/modePacks.ts");
   const { ENGINE_IDS } = await load("open-sse/services/compression/engineCatalog.ts");
   const { CLI_TOOLS } = await load("src/shared/constants/cliTools.ts");
-  const { countUniqueMcpTools } = await load("open-sse/mcp-server/toolCount.ts");
   const cols = {};
   for (const [name, rel] of MCP_COLLECTIONS) cols[name] = (await load(rel))[name];
   const PROV = await load("src/shared/constants/providers.ts");
@@ -129,9 +117,6 @@ async function main() {
   }
 
   const scopes = new Set();
-  for (const col of Object.values(cols)) {
-    for (const t of Object.values(col)) for (const s of t?.scopes || []) scopes.add(s);
-  }
 
   const totals = computeFreeModelTotals();
   const cli = Object.values(CLI_TOOLS);
@@ -154,8 +139,8 @@ async function main() {
     cliTotal: cli.length,
     cliCode: byCategory("code"),
     cliAgent: byCategory("agent"),
-    mcpTools: countUniqueMcpTools(cols),
-    mcpScopes: scopes.size,
+    mcpTools: 0,
+    mcpScopes: 0,
     providers: providerIds.size,
     freeForever: freeForever.size,
     modePacks: Object.keys(MODE_PACKS),

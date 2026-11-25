@@ -745,9 +745,7 @@ export default function RequestTimeline({
             <div
               key={log.id}
               data-testid={`timeline-bar-${log.id}`}
-              className={`absolute rounded-sm transition-opacity duration-100 ${
-                log.kind === "mcp" ? "cursor-default" : "cursor-pointer"
-              }`}
+              className="absolute rounded-sm transition-opacity duration-100 cursor-pointer"
               style={{
                 left: `${leftPct}%`,
                 width: `${widthPct}%`,
@@ -865,9 +863,7 @@ export default function RequestTimeline({
               style={{ backgroundColor: getTimelineBarColor(hoveredLog) }}
             />
             <span className="text-2xs font-semibold text-text-main">
-              {hoveredLog.kind === "mcp"
-                ? hoveredLog.toolName || t("mcpTool")
-                : hoveredLog.model || t("unknownModel")}
+              {hoveredLog.toolName || hoveredLog.model || t("unknownModel")}
             </span>
             {hoveredLog.active && (
               <Badge
