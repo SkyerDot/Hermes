@@ -37,8 +37,6 @@ export interface UseLiveCompressionReturn {
   lastRun: CompressionRunModel | null;
   /** Quick lookup by requestId. */
   getRunById: (requestId: string) => CompressionRunModel | undefined;
-  isConnected: boolean;
-  reconnect: () => void;
 }
 
 /**
@@ -62,7 +60,5 @@ export function useLiveCompression(): UseLiveCompressionReturn {
     // falling back to the latest completed run.
     lastRun: inFlightRun ?? runs[0] ?? null,
     getRunById,
-    isConnected: false,
-    reconnect: () => {},
   };
 }

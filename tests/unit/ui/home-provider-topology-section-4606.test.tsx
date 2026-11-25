@@ -5,6 +5,7 @@
 // (`appearanceSettingsLoaded && showProviderTopologyOnHome`). This guards the
 // extracted section: it renders the topology card and feeds live active-requests
 // through selectActiveRequests into ProviderTopology (Rule #18 for the change).
+// Live WS removed; section uses local empty state.
 import React from "react";
 import { act } from "react";
 import { createRoot } from "react-dom/client";
@@ -22,10 +23,6 @@ vi.mock("next/dynamic", () => ({
 }));
 vi.mock("@/shared/components", () => ({
   Card: ({ children }: { children: React.ReactNode }) => <div data-testid="card">{children}</div>,
-}));
-const liveRequestsMock = vi.fn(() => ({ activeRequests: [] as unknown[] }));
-vi.mock("@/hooks/useLiveDashboard", () => ({
-  useLiveRequests: () => liveRequestsMock(),
 }));
 
 const { HomeProviderTopologySection } =

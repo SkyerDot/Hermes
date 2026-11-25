@@ -143,10 +143,10 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
   >([]);
 
   // The live in-flight request feed for the Provider Topology pulse animation is owned by
-  // <HomeProviderTopologySection>, which subscribes to it (gated by the `enabled` prop)
-  // only when the topology is actually shown. HomePageClient must NOT open its own
-  // unconditional live socket: the binding here was unused (ReferenceError in prod,
-  // #4759/#4745) and the socket opened even when topology was hidden (#4596).
+  // <HomeProviderTopologySection>. HomePageClient must NOT open its own unconditional
+  // live socket: the binding here was unused (ReferenceError in prod, #4759/#4745) and
+  // the socket opened even when topology was hidden (#4596). Live WS removed; section
+  // renders empty state until Task 12.
 
   const [versionInfo, setVersionInfo] = useState<VersionInfo | null>(null);
   const [updating, setUpdating] = useState(false);
@@ -1061,7 +1061,6 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
             providers={topologyProviders}
             lastProvider={lastProvider}
             errorProvider={errorProvider}
-            enabled={showProviderTopologyOnHome}
           />
           <HomeRecentRequests enabled={showProviderTopologyOnHome} />
         </div>

@@ -9,9 +9,9 @@
  * Design choices:
  * - `ComboEventInput` is a minimal structural type covering the fields we use
  *   (kind/type, provider, model, targetIndex, strategy, latencyMs, error). It is
- *   intentionally compatible with `LiveComboEvent` from `useLiveDashboard.ts`, but
+ *   intentionally compatible with `LiveComboEvent` (defined in this file), but
  *   adds the optional `strategy` field that the actual WS payload (`ComboTargetAttemptPayload`)
- *   carries. This avoids importing a "use client" hook file into a pure module.
+ *   carries.
  * - `classifyFailKind` checks `/circuit/i` first so a combined message like
  *   "circuit open after 429" maps to `circuit-open`, not `rate-limit`.
  * - Targets are kept sorted by `targetIndex`. A `Map<number, TargetNodeModel>` is
