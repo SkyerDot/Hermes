@@ -72,9 +72,9 @@ export interface ComboRunModel {
 }
 
 /**
- * Minimal structural type for combo WS events. Compatible with `LiveComboEvent`
- * from `useLiveDashboard.ts` but adds the optional `strategy` field that the
- * `combo.target.attempt` payload carries (not surfaced in LiveComboEvent itself).
+ * Minimal structural type for combo WS events. Used by the pure reducer and
+ * the Combo Studio UI. `LiveComboEvent` is re-exported from here for
+ * backwards compatibility with components that still import it.
  */
 export interface ComboEventInput {
   comboName: string;
@@ -88,6 +88,9 @@ export interface ComboEventInput {
   timestamp: number;
   connectionId?: string | null;
 }
+
+/** @deprecated Use `ComboEventInput` instead. Kept for backwards compatibility. */
+export type LiveComboEvent = ComboEventInput;
 
 // ── classifyFailKind ──────────────────────────────────────────────────────
 

@@ -221,9 +221,9 @@ export function getRequestPeerLocality(
   if (socketPeer) return classifyHostLocality(socketPeer);
 
   // A stamping server is in front (every supported runtime — run-next dev/start and
-  // standalone-server-ws for Docker, the npm CLI and Electron — calls
-  // ensurePeerStampToken() at boot) but neither trusted signal is on this request:
-  // fail closed. The Host header is never consulted in that process.
+  // the production standalone wrapper (server-ws.mjs) for Docker, the npm CLI and
+  // Electron — calls ensurePeerStampToken() at boot) but neither trusted signal is
+  // on this request: fail closed. The Host header is never consulted in that process.
   if (stampToken) return "remote";
 
   // No stamping server in this process at all: route handlers invoked directly (the

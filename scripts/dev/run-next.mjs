@@ -6,7 +6,6 @@ import path from "node:path";
 import next from "next";
 import { bootstrapEnv } from "../build/bootstrap-env.mjs";
 import { resolveRuntimePorts, withRuntimePortEnv } from "../build/runtime-env.mjs";
-import { createOmnirouteWsBridge } from "./v1-ws-bridge.mjs";
 import { createNextUpgradeRelay } from "./next-upgrade-relay.mjs";
 import { ensurePeerStampToken, stampPeerIp } from "./peer-stamp.mjs";
 import methodGuard from "./http-method-guard.cjs";
@@ -193,9 +192,6 @@ async function start() {
 
   const requestHandler = nextApp.getRequestHandler();
   const upgradeHandler = nextApp.getUpgradeHandler();
-  const wsBridge = createOmnirouteWsBridge({
-    baseUrl: `http://127.0.0.1:${dashboardPort}`,
-  });
 
   const server = http.createServer(
     wrapRequestListenerWithHeadResponseGuard((req, res) => {
@@ -228,8 +224,6 @@ async function start() {
     try {
       // Cleartext `Upgrade: h2c` (JDK HttpClient) is not a WebSocket upgrade: serve it as HTTP/1.1.
       if (handleH2cUpgrade(server, req, socket, head)) return;
-      const handled = await wsBridge.handleUpgrade(req, socket, head);
-      if (handled) return;
       // Next's router upgrade handler (dev HMR) — only for upgrades nothing above claimed.
       if (nextUpgradeRelay.forward(req, socket, head)) return;
       await upgradeHandler(req, socket, head);

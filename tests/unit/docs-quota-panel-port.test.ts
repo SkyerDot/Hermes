@@ -295,7 +295,7 @@ async function panelAnswer(path: string): Promise<{ status: number; body: string
   const { port } = front.address() as net.AddressInfo;
   try {
     return await new Promise((resolve, reject) => {
-      const req = http.request({ host: "127.0.1", port, path }, (res) => {
+      const req = http.request({ host: "127.0.0.1", port, path }, (res) => {
         let body = "";
         res.setEncoding("utf8");
         res.on("data", (chunk) => (body += chunk));

@@ -4,7 +4,6 @@ import { useTranslations } from "next-intl";
 import dynamic from "next/dynamic";
 
 import { Card } from "@/shared/components";
-import { useLiveRequests } from "@/hooks/useLiveDashboard";
 import { selectActiveRequests } from "../home/topologyUtils";
 
 const ProviderTopology = dynamic(() => import("../home/ProviderTopology"), { ssr: false });
@@ -21,17 +20,15 @@ export function HomeProviderTopologySection({
   providers,
   lastProvider,
   errorProvider,
-  enabled = true,
 }: {
   providers: TopologyProvider[];
   lastProvider: string;
   errorProvider: string;
-  enabled?: boolean;
 }) {
   const t = useTranslations("home");
-  // #4596: gate the live-WS connection so it only opens while the topology
-  // section is actually shown on the home page.
-  const { activeRequests: liveActiveRequests, completedRequests } = useLiveRequests({ enabled });
+  // Live WS removed; local empty state until Task 12
+  const liveActiveRequests: never[] = [];
+  const completedRequests: never[] = [];
   const activeRequests = selectActiveRequests(liveActiveRequests);
   const activeProviderCount = new Set(activeRequests.map(({ provider }) => provider)).size;
 

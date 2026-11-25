@@ -445,6 +445,7 @@ test("the panel listener has its own connection limit and timeouts", async () =>
     assert.equal(server.headersTimeout, panel.QUOTA_PANEL_HEADERS_TIMEOUT_MS);
     assert.equal(server.requestTimeout, panel.QUOTA_PANEL_REQUEST_TIMEOUT_MS);
     assert.equal(server.keepAliveTimeout, panel.QUOTA_PANEL_KEEP_ALIVE_TIMEOUT_MS);
+    assert.equal(server.timeout, panel.QUOTA_PANEL_SOCKET_TIMEOUT_MS);
     assert.equal(panel.QUOTA_PANEL_TIMEOUT_CHECK_INTERVAL_MS, 1_000);
     assert.equal(
       (server as http.Server & { connectionsCheckingInterval?: number })

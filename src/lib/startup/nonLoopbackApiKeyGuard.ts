@@ -1,6 +1,6 @@
 // Boot-time guard for issue #12568: docker-compose can be told to bind the
-// dashboard/API/live-WS ports to a non-loopback interface (APP_BIND_HOST,
-// API_HOST, LIVE_WS_HOST) while REQUIRE_API_KEY still defaults to `false`.
+// dashboard/API ports to a non-loopback interface (APP_BIND_HOST,
+// API_HOST) while REQUIRE_API_KEY still defaults to `false`.
 // That combination puts the anonymous /v1 LLM proxy on the LAN/WAN with no
 // key required. This never hard-fails the boot (a reverse proxy in front of
 // OmniRoute may already be doing its own auth) — it only logs a loud warning

@@ -3,7 +3,7 @@
  *
  * Extracted byte-identically from handleChatCore's prompt-compression pipeline: the per-engine
  * `compression.step` progress event (F3.3) and the `compression.completed` event (U5), both
- * emitted on the event bus and forwarded to the dashboard live socket. Best-effort — neither may
+ * emitted on the event bus. Live WS forwarding removed. Best-effort — neither may
  * ever fail the request; a throwing bus is swallowed for steps and debug-logged for completion.
  * The event-bus `emit` (src/lib/events) is injected by the handler so this engine leaf takes no
  * new open-sse → src import edge.
@@ -13,7 +13,6 @@ import { ensureEngineBreakdown } from "../../services/compression/engineBreakdow
 import type { AdaptiveTelemetry } from "../../services/compression/adaptiveCompression/types.ts";
 import type { StackedCompressionStep } from "../../services/compression/strategySelector.ts";
 import type { CompressionStats } from "../../services/compression/types.ts";
-import { forwardDashboardEventToLiveWs } from "./telemetryHelpers.ts";
 
 type LoggerLike = { debug?: (...args: unknown[]) => void } | null | undefined;
 /** Structural mirrors of src/lib/events CompressionStepPayload / CompressionCompletedPayload. */
@@ -71,7 +70,6 @@ export function emitCompressionStepEvent(
       timestamp: Date.now(),
     };
     emit("compression.step", stepPayload);
-    void forwardDashboardEventToLiveWs("compression.step", stepPayload);
   } catch (_stepErr) {
     // best-effort live event — never fail the request
   }
@@ -109,7 +107,6 @@ export function emitCompressionCompletedEvent({
       timestamp: Date.now(),
     };
     emit("compression.completed", compressionCompletedPayload);
-    void forwardDashboardEventToLiveWs("compression.completed", compressionCompletedPayload);
   } catch (_emitErr) {
     // never propagate into the hot path — but log like the sibling
     // fire-and-forget blocks so a throwing event bus isn't fully silent.

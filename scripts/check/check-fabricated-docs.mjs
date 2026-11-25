@@ -364,7 +364,6 @@ const ENDPOINT_ALLOWLIST = new Set([
   "/v1/chat/completions",
   "/v1/embeddings",
   "/v1/responses",
-  "/v1/ws", // WebSocket bridge, not standard route.ts
   "/a2a", // JSON-RPC 2.0 entry
   "/api/mcp/stream", // Streamable HTTP MCP transport
   "/api/mcp/sse", // SSE MCP transport

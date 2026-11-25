@@ -1,7 +1,7 @@
 "use client";
 import { ComboLiveStudio } from "@/app/(dashboard)/dashboard/combos/live/ComboLiveStudio";
 import type { ComboLiveStudioProps } from "@/app/(dashboard)/dashboard/combos/live/ComboLiveStudio";
-import type { LiveComboEvent } from "@/hooks/useLiveDashboard";
+import type { LiveComboEvent } from "@/app/(dashboard)/dashboard/combos/live/comboFlowModel";
 
 /**
  * RoutingTab — reuses `ComboLiveStudio` untouched inside the Orchestration

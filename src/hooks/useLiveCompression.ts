@@ -2,19 +2,12 @@
 
 import { useCallback, useState } from "react";
 import {
-  useLiveDashboard,
-  type UseLiveDashboardOptions,
-  type WsEventPayload,
-} from "./useLiveDashboard";
-import {
   compressionEventToModel,
   stepEventsToRunModel,
-  appendInFlightStep,
-  clearInFlightOnComplete,
   type CompressionRunModel,
   type InFlightCompressionRun,
 } from "@/app/(dashboard)/dashboard/compression/studio/compressionFlowModel";
-import type { CompressionCompletedPayload, CompressionStepPayload } from "@/lib/events/types";
+import type { CompressionCompletedPayload } from "@/lib/events/types";
 
 // ── Constants ─────────────────────────────────────────────────────────────
 
@@ -49,33 +42,11 @@ export interface UseLiveCompressionReturn {
 }
 
 /**
- * Subscribes to the `compression` WS channel and accumulates
- * `CompressionRunModel[]` (most-recent-first, capped at 100).
- *
- * Mirrors the pattern of `useLiveComboStatus` and `useLiveRequests`.
+ * Live WS removed; local empty state until Task 12.
  */
-export function useLiveCompression(options?: UseLiveDashboardOptions): UseLiveCompressionReturn {
-  const [runs, setRuns] = useState<CompressionRunModel[]>([]);
-  const [inFlight, setInFlight] = useState<InFlightCompressionRun | null>(null);
-
-  const handleEvent = useCallback((event: WsEventPayload) => {
-    if (event.channel !== "compression") return;
-    if (event.event === "compression.step") {
-      setInFlight((prev) => appendInFlightStep(prev, event.data as CompressionStepPayload));
-      return;
-    }
-    if (event.event === "compression.completed") {
-      const payload = event.data as CompressionCompletedPayload;
-      setInFlight((prev) => clearInFlightOnComplete(prev, payload.requestId));
-      setRuns((prev) => accumulateRun(prev, payload));
-    }
-  }, []);
-
-  const { connection, reconnect } = useLiveDashboard({
-    channels: ["compression"],
-    onEvent: handleEvent,
-    ...options,
-  });
+export function useLiveCompression(): UseLiveCompressionReturn {
+  const [runs] = useState<CompressionRunModel[]>([]);
+  const [inFlight] = useState<InFlightCompressionRun | null>(null);
 
   const getRunById = useCallback(
     (requestId: string) => runs.find((r) => r.requestId === requestId),
@@ -91,7 +62,7 @@ export function useLiveCompression(options?: UseLiveDashboardOptions): UseLiveCo
     // falling back to the latest completed run.
     lastRun: inFlightRun ?? runs[0] ?? null,
     getRunById,
-    isConnected: connection.isConnected,
-    reconnect,
+    isConnected: false,
+    reconnect: () => {},
   };
 }

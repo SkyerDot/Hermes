@@ -542,10 +542,9 @@ export async function registerNodejs(): Promise<void> {
   // with memory + in-flight counts, and the counter/maximum surface on the
   // monitoring health payload. Threshold via
   // OMNIROUTE_EVENT_LOOP_STALL_THRESHOLD_MS (default 5000, 0 disables).
-  // Same process as scripts/dev/standalone-server-ws.mjs (it imports
-  // ./server.js, which runs this instrumentation hook), so this covers that
-  // entry point without touching the .mjs. Dynamic import: no new static edge
-  // in the boot graph (requestDedup never imports healthzLag — 0d proof).
+  // This instrumentation hook runs in the main Next.js server process (./server.js
+  // imports it), covering the production entry point. Dynamic import: no new
+  // static edge in the boot graph (requestDedup never imports healthzLag — 0d proof).
   try {
     const { startEventLoopStallRecorder } = await import("@/lib/healthzLag");
     const { getInflightCount } = await import("@omniroute/open-sse/services/requestDedup.ts");

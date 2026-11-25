@@ -1,11 +1,8 @@
 "use client";
 /**
- * Polls the 3 agent sources (allSettled), listens to the `agents` WS channel as a refetch
- * trigger, and relaxes the poll interval from 5s to 30s while that WS connection is up (the
- * channel event still forces an immediate debounced refetch either way).
+ * Polls the 3 agent sources (allSettled). Live WS removed; uses fixed 5s poll interval.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useLiveDashboard } from "@/hooks/useLiveDashboard";
 import type { CloudAgentTask } from "@/lib/cloudAgent/types";
 import type { A2ATask } from "@/lib/a2a/taskManager";
 import type { FleetSnapshot } from "@/lib/conductor/hubProxy";
@@ -175,28 +172,11 @@ export function useOrchestrationSnapshot() {
     pollRef.current();
   }, []);
 
-  const { connection } = useLiveDashboard({
-    channels: ["agents"],
-    onEvent: (payload) => {
-      if (payload.channel !== "agents") return;
-      if (debounceRef.current) return; // debounce burst → one refetch
-      debounceRef.current = setTimeout(() => {
-        debounceRef.current = null;
-        refetch();
-      }, WS_REFETCH_DEBOUNCE_MS);
-    },
-  });
-
-  // Adaptive poll interval, separated from the mount effect above: a connected `agents` WS
-  // already pushes refetches on change, so the background poll only needs to be a slow safety
-  // net (30s) — it falls back to the tighter 5s cadence while the WS is down. Declared AFTER
-  // the mount effect so `pollRef.current` is already populated (its initial value is a safe
-  // no-op) by the time this effect's first tick can fire.
-  const wsConnected = connection.isConnected;
+  // Live WS removed; fixed 5s poll interval
   useEffect(() => {
-    const id = setInterval(() => pollRef.current(), wsConnected ? POLL_MS_WS_CONNECTED : POLL_MS);
+    const id = setInterval(() => pollRef.current(), POLL_MS);
     return () => clearInterval(id);
-  }, [wsConnected]);
+  }, []);
 
   const snapshot: OrchSnapshot = useMemo(
     () =>

@@ -4,7 +4,6 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { PageHeader } from "@omniroute/ui-kit/page-header";
 import { Tabs, TabsList, TabsTrigger } from "@omniroute/ui-kit/tabs";
-import { useLiveComboStatus } from "@/hooks/useLiveDashboard";
 import { useProviderBreakerHealth } from "@/hooks/useProviderBreakerHealth";
 import { useOrchestrationSnapshot } from "./hooks/useOrchestrationSnapshot";
 import { AgentsTab } from "./tabs/AgentsTab";
@@ -104,8 +103,12 @@ export default function OrchestrationPageClient() {
   const { tab, nodeId, filter, collapsed, setParams } = useOrchUrlState();
 
   const { snapshot, showCompleted, setShowCompleted, refetch } = useOrchestrationSnapshot();
-  const { comboEvents, activeCombos, isConnected } = useLiveComboStatus();
   const { providerHealth, connectionHealth } = useProviderBreakerHealth();
+
+  // Local empty state — live WS removed
+  const comboEvents: never[] = [];
+  const activeCombos = new Set<string>();
+  const isConnected = false;
 
   const filtered = useMemo(() => filterSnapshot(snapshot, filter), [snapshot, filter]);
   const providerKeys = useMemo(() => collectProviderKeys(snapshot), [snapshot]);

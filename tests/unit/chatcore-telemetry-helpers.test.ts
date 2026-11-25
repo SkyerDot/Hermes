@@ -9,105 +9,13 @@ import path from "node:path";
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-telemetry-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
-const {
-  forwardDashboardEventToLiveWs,
-  maybeSyncClaudeExtraUsageState,
-  __resetLiveWsForwardingState,
-} = await import("../../open-sse/handlers/chatCore/telemetryHelpers.ts");
+const { maybeSyncClaudeExtraUsageState } =
+  await import("../../open-sse/handlers/chatCore/telemetryHelpers.ts");
 const core = await import("../../src/lib/db/core.ts");
 
-const originalFetch = globalThis.fetch;
-const originalLiveWsPort = process.env.LIVE_WS_PORT;
-
-test.afterEach(() => {
-  globalThis.fetch = originalFetch;
-  if (originalLiveWsPort === undefined) {
-    delete process.env.LIVE_WS_PORT;
-  } else {
-    process.env.LIVE_WS_PORT = originalLiveWsPort;
-  }
-  __resetLiveWsForwardingState();
-});
-
 test.after(() => {
-  globalThis.fetch = originalFetch;
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
-});
-
-// ─── forwardDashboardEventToLiveWs ───────────────────────────────────────────
-
-test("forwardDashboardEventToLiveWs POSTs event+payload+timestamp as JSON to the default port", async () => {
-  delete process.env.LIVE_WS_PORT;
-  let capturedUrl: string | undefined;
-  let capturedInit: RequestInit | undefined;
-  globalThis.fetch = (async (url: string, init: RequestInit) => {
-    capturedUrl = url;
-    capturedInit = init;
-    return new Response("ok", { status: 200 });
-  }) as typeof fetch;
-
-  const before = Date.now();
-  await forwardDashboardEventToLiveWs("my-event", { foo: "bar" });
-  const after = Date.now();
-
-  // Default port is 20132 when LIVE_WS_PORT is unset.
-  assert.equal(capturedUrl, "http://127.0.0.1:20132/__omniroute_event");
-  assert.equal(capturedInit?.method, "POST");
-  assert.equal(
-    (capturedInit?.headers as Record<string, string>)["content-type"],
-    "application/json"
-  );
-  assert.ok(capturedInit?.signal, "an AbortSignal is attached for the 1.5s timeout");
-
-  const parsed = JSON.parse(capturedInit?.body as string);
-  assert.equal(parsed.event, "my-event");
-  assert.deepEqual(parsed.payload, { foo: "bar" });
-  assert.equal(typeof parsed.timestamp, "number");
-  assert.ok(
-    parsed.timestamp >= before && parsed.timestamp <= after,
-    "timestamp is Date.now() captured at call time"
-  );
-});
-
-test("forwardDashboardEventToLiveWs honors LIVE_WS_PORT override", async () => {
-  process.env.LIVE_WS_PORT = "31337";
-  let capturedUrl: string | undefined;
-  globalThis.fetch = (async (url: string) => {
-    capturedUrl = url;
-    return new Response("ok", { status: 200 });
-  }) as typeof fetch;
-
-  await forwardDashboardEventToLiveWs("e", null);
-
-  assert.equal(capturedUrl, "http://127.0.0.1:31337/__omniroute_event");
-});
-
-test("forwardDashboardEventToLiveWs swallows fetch rejection and still resolves", async () => {
-  globalThis.fetch = (async () => {
-    throw new Error("sidecar down");
-  }) as typeof fetch;
-
-  // Must not throw — best-effort sidecar bridge; the catch swallows.
-  await assert.doesNotReject(forwardDashboardEventToLiveWs("e", { a: 1 }));
-});
-
-test("forwardDashboardEventToLiveWs enters backoff after repeated failures", async () => {
-  let attempt = 0;
-  globalThis.fetch = (async () => {
-    attempt += 1;
-    throw new Error("sidecar down");
-  }) as typeof fetch;
-
-  // First 3 attempts should fail and be swallowed
-  for (let i = 0; i < 3; i++) {
-    await assert.doesNotReject(forwardDashboardEventToLiveWs("e", { a: 1 }));
-  }
-  assert.equal(attempt, 3);
-
-  // 4th attempt should be skipped due to backoff (no fetch call)
-  await forwardDashboardEventToLiveWs("e", { a: 1 });
-  assert.equal(attempt, 3, "no fetch call during backoff window");
 });
 
 // ─── maybeSyncClaudeExtraUsageState ──────────────────────────────────────────
