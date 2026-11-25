@@ -9,8 +9,11 @@ import path from "node:path";
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-telemetry-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
-const { forwardDashboardEventToLiveWs, maybeSyncClaudeExtraUsageState } =
-  await import("../../open-sse/handlers/chatCore/telemetryHelpers.ts");
+const {
+  forwardDashboardEventToLiveWs,
+  maybeSyncClaudeExtraUsageState,
+  __resetLiveWsForwardingState,
+} = await import("../../open-sse/handlers/chatCore/telemetryHelpers.ts");
 const core = await import("../../src/lib/db/core.ts");
 
 const originalFetch = globalThis.fetch;
@@ -23,6 +26,7 @@ test.afterEach(() => {
   } else {
     process.env.LIVE_WS_PORT = originalLiveWsPort;
   }
+  __resetLiveWsForwardingState();
 });
 
 test.after(() => {
@@ -86,6 +90,24 @@ test("forwardDashboardEventToLiveWs swallows fetch rejection and still resolves"
 
   // Must not throw — best-effort sidecar bridge; the catch swallows.
   await assert.doesNotReject(forwardDashboardEventToLiveWs("e", { a: 1 }));
+});
+
+test("forwardDashboardEventToLiveWs enters backoff after repeated failures", async () => {
+  let attempt = 0;
+  globalThis.fetch = (async () => {
+    attempt += 1;
+    throw new Error("sidecar down");
+  }) as typeof fetch;
+
+  // First 3 attempts should fail and be swallowed
+  for (let i = 0; i < 3; i++) {
+    await assert.doesNotReject(forwardDashboardEventToLiveWs("e", { a: 1 }));
+  }
+  assert.equal(attempt, 3);
+
+  // 4th attempt should be skipped due to backoff (no fetch call)
+  await forwardDashboardEventToLiveWs("e", { a: 1 });
+  assert.equal(attempt, 3, "no fetch call during backoff window");
 });
 
 // ─── maybeSyncClaudeExtraUsageState ──────────────────────────────────────────

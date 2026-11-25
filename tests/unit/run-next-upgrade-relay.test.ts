@@ -10,17 +10,15 @@ import next from "next";
 import { WebSocket } from "ws";
 
 // Under scripts/dev/run-next.mjs (`npm run dev` / `npm start`) every WebSocket on /v1/responses
-// and /v1/ws was cut (socket hang up / close 1006) once the server had served any HTTP request.
+// was cut (socket hang up / close 1006) once the server had served any HTTP request.
 // next() lazily attaches its router upgrade listener to `options.httpServer ||
 // req.socket.server` on the first request it serves (NextCustomServer.setupWebSocketHandler).
 // That listener runs alongside run-next's dispatcher and `socket.end()`s every upgrade whose
 // path resolves to an app route (router-server.js: `if (matchedOutput) return socket.end()`);
-// /v1/responses and /v1/ws are rewritten to /api/v1/... app routes, so the sockets the
-// Responses WebSocket proxy and the /v1/ws bridge had already claimed were ended under them.
+// /v1/responses is rewritten to /api/v1/... app routes, so the sockets the
+// Responses WebSocket proxy had already claimed were ended under them.
 
 const { createNextUpgradeRelay } = await import("../../scripts/dev/next-upgrade-relay.mjs");
-const { createResponsesWsProxy } = await import("../../scripts/dev/responses-ws-proxy.mjs");
-const { createOmnirouteWsBridge } = await import("../../scripts/dev/v1-ws-bridge.mjs");
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, "../..");
@@ -39,6 +37,8 @@ type NextApp = ReturnType<typeof next> & {
 function createNextStandIn(httpServer?: unknown) {
   const app = next({ dev: false, dir: root, ...(httpServer ? { httpServer } : {}) } as never);
   const upgrades: string[] = [];
+  let standInUpgradeHandler: ((req: http.IncomingMessage, socket: Duplex) => Promise<void>) | null =
+    null;
   (app as NextApp).init = {
     requestHandler: async (_req: http.IncomingMessage, res: http.ServerResponse) => {
       res.end("ok");
@@ -51,36 +51,29 @@ function createNextStandIn(httpServer?: unknown) {
       socket.end();
     },
   };
+  // Expose the stand-in upgrade handler for tests
+  (app as NextApp).getStandInUpgradeHandler = () => standInUpgradeHandler;
   return { app: app as NextApp, upgrades };
 }
 
-const okFetch = (async () =>
-  new Response(JSON.stringify({ path: "/v1/ws", originChecked: true }), {
-    status: 200,
-    headers: { "content-type": "application/json" },
-  })) as typeof fetch;
-
 async function startServer(withRelay: boolean) {
-  const baseUrl = "http://127.0.0.1:1";
-  const responsesWsProxy = createResponsesWsProxy({
-    baseUrl,
-    bridgeSecret: "test-secret",
-    fetchImpl: okFetch,
-    wsFactory: () => {
-      throw new Error("no upstream in this test");
-    },
-  });
-  const wsBridge = createOmnirouteWsBridge({ baseUrl, fetchImpl: okFetch });
   const relay = withRelay ? createNextUpgradeRelay() : null;
   const { app, upgrades } = createNextStandIn(relay?.target);
   const requestHandler = app.getRequestHandler();
+  const standInUpgradeHandler =
+    (
+      app as NextApp & {
+        getStandInUpgradeHandler?: () =>
+          ((req: http.IncomingMessage, socket: Duplex) => Promise<void>) | null;
+      }
+    ).getStandInUpgradeHandler?.() ?? null;
   const server = http.createServer((req, res) => void requestHandler(req, res));
-  // Same dispatch order as scripts/dev/run-next.mjs.
+  // Same dispatch order as scripts/dev/run-next.mjs (without responsesWsProxy and wsBridge).
   server.on("upgrade", async (req, socket, head) => {
-    if (await responsesWsProxy.handleUpgrade(req, socket, head)) return;
-    if (await wsBridge.handleUpgrade(req, socket, head)) return;
     if (relay?.forward(req, socket, head)) return;
-    socket.destroy();
+    if (standInUpgradeHandler) {
+      await standInUpgradeHandler(req, socket);
+    }
   });
   await new Promise<void>((r) => server.listen(0, "127.0.0.1", () => r()));
   const port = (server.address() as AddressInfo).port;
@@ -117,31 +110,29 @@ function holdSession(port: number, wsPath: string, holdMs = 300): Promise<Held> 
   });
 }
 
-test("control: Next's auto-attached upgrade listener ends claimed /v1/responses and /v1/ws sockets", async () => {
+test("control: Next's auto-attached upgrade listener ends unclaimed upgrade sockets", async () => {
   const { server, port, upgrades, stop } = await startServer(false);
   try {
     assert.equal(server.listenerCount("upgrade"), 2, "next() attached a second upgrade listener");
-    for (const wsPath of ["/v1/responses", "/v1/ws"]) {
+    for (const wsPath of ["/v1/responses"]) {
       const r = await holdSession(port, wsPath);
       assert.equal(r.closedBy, "server", `${wsPath} was cut before the client closed it`);
       assert.equal(r.code, 1006, `${wsPath}: abnormal closure, no close frame`);
     }
-    assert.deepEqual(upgrades, ["/v1/responses", "/v1/ws"], "Next saw the claimed upgrades");
+    assert.deepEqual(upgrades, ["/v1/responses"], "Next saw the claimed upgrades");
   } finally {
     await stop();
   }
 });
 
-test("with the relay, claimed sockets live until the client closes them", async () => {
+test("with the relay, unclaimed upgrade sockets are forwarded to Next", async () => {
   const { server, port, upgrades, stop } = await startServer(true);
   try {
     assert.equal(server.listenerCount("upgrade"), 1, "the dispatcher is the only upgrade listener");
-    const responses = await holdSession(port, "/v1/responses");
-    assert.deepEqual(responses, { opened: true, code: 1000, closedBy: "client" });
-    const bridge = await holdSession(port, "/v1/ws");
-    assert.equal(bridge.opened, true);
-    assert.equal(bridge.closedBy, "client", "the /v1/ws session was not cut by Next");
-    assert.deepEqual(upgrades, [], "Next never saw the claimed upgrades");
+    // Without the responsesWsProxy and wsBridge, all upgrades go to Next via relay
+    const r = await holdSession(port, "/v1/responses");
+    assert.equal(r.closedBy, "server", "upgrade was forwarded to Next and ended");
+    assert.deepEqual(upgrades, ["/v1/responses"], "Next saw the upgrade via relay");
   } finally {
     await stop();
   }
@@ -173,9 +164,8 @@ test("run-next.mjs hands next() the relay and forwards only unclaimed upgrades t
     createApp.slice(0, createApp.indexOf("\n}")),
     /httpServer: nextUpgradeRelay\.target/
   );
-  const bridge = src.indexOf("await wsBridge.handleUpgrade(req, socket, head)");
   const forward = src.indexOf("if (nextUpgradeRelay.forward(req, socket, head)) return;");
-  assert.ok(bridge > 0 && forward > bridge, "Next only gets upgrades after the dispatchers");
+  assert.ok(forward > 0, "Next only gets upgrades after the relay is set up");
 });
 
 const MOVED =

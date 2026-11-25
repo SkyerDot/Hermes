@@ -9,19 +9,6 @@ import type { AuthOutcome, PolicyContext, RoutePolicy } from "../context";
 import { allow, reject } from "../context";
 import { isViaProxyRequest, requestPeerAddress } from "../peerContext";
 
-const HANDSHAKE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
-
-function isWsHandshake(ctx: PolicyContext): boolean {
-  if (ctx.classification.normalizedPath !== "/api/v1/ws") return false;
-  if (!HANDSHAKE_METHODS.has(ctx.request.method.toUpperCase())) return false;
-
-  try {
-    return new URL(ctx.request.url, "http://localhost").searchParams.get("handshake") === "1";
-  } catch {
-    return false;
-  }
-}
-
 /** `/a2a` accepts header credentials only (#19832): never a URL-borne token. */
 function isA2aPath(normalizedPath: string): boolean {
   return normalizedPath === "/a2a" || normalizedPath.startsWith("/a2a/");
@@ -118,13 +105,6 @@ export const clientApiPolicy: RoutePolicy = {
     const allowUrl = !isA2aPath(ctx.classification.normalizedPath);
     const credentials = extractApiKeyCandidates(ctx.request as Request, { allowUrl });
     if (credentials.length === 0) {
-      // The WS descriptor handshake is a metadata read; the route handler
-      // performs the actual wsAuth/dashboard/API-key decision and returns the
-      // protocol details the browser needs before opening the socket.
-      if (isWsHandshake(ctx)) {
-        return allow({ kind: "anonymous", id: "ws-handshake" });
-      }
-
       if (await isDashboardSessionAuthenticated(ctx.request)) {
         return allow({ kind: "dashboard_session", id: "dashboard" });
       }

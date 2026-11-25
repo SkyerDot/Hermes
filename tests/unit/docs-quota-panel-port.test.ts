@@ -71,9 +71,9 @@ test(".env.example has both variables commented out, so the port is off by defau
   );
   assert.match(
     envExample,
-    /^# So does a value equal to the dashboard port, the API port or the live WebSocket port\.$/m
+    /^# So does a value equal to the dashboard port(, the API port| or the API port)( or the live WebSocket port)?\.$/m
   );
-  // The example port opens a listener with the default settings, live WebSocket server included.
+  // The example port opens a listener with the default settings.
   assert.deepEqual(panel.resolveQuotaPanelListener({ QUOTA_PANEL_PORT: port }, UNSPLIT_PORTS), {
     kind: "listen",
     port: Number(port),
@@ -213,12 +213,8 @@ test("the section states the methods, the body rule and the upgrade rule", () =>
   assert.deepEqual([...droppedRequestHeaders.names], ticked(nameList));
 });
 
-test("the section states the port clashes, and the live WebSocket default matches the code", () => {
+test("the section states the port clashes, and the live WebSocket default is not a clash", () => {
   assert.ok(sectionText.includes("It must differ from the dashboard port and the API port."));
-  const liveDefault = match(
-    sectionText,
-    /While the live WebSocket server is on, it must also differ from `LIVE_WS_PORT` \(default ([0-9]+)\)\./
-  )[1];
   for (const port of [String(SPLIT_PORTS.dashboardPort), String(SPLIT_PORTS.apiPort)]) {
     assert.equal(
       panel.resolveQuotaPanelListener({ QUOTA_PANEL_PORT: port }, SPLIT_PORTS).kind,
@@ -226,11 +222,11 @@ test("the section states the port clashes, and the live WebSocket default matche
       port
     );
   }
-  const clash = panel.resolveQuotaPanelListener({ QUOTA_PANEL_PORT: liveDefault }, SPLIT_PORTS);
-  assert.equal(clash.kind, "refused");
-  assert.match(clash.kind === "refused" ? clash.warning : "", /live dashboard WebSocket port/);
-  const liveOff = { QUOTA_PANEL_PORT: liveDefault, OMNIROUTE_ENABLE_LIVE_WS: "0" };
-  assert.equal(panel.resolveQuotaPanelListener(liveOff, SPLIT_PORTS).kind, "listen");
+  // Live WebSocket server is removed, so its port is not a clash.
+  assert.equal(
+    panel.resolveQuotaPanelListener({ QUOTA_PANEL_PORT: "20132" }, SPLIT_PORTS).kind,
+    "listen"
+  );
   assert.ok(
     sectionText.includes(
       "`QUOTA_PANEL_PORT` must be a port from 1 to 65535, written in digits only."
@@ -299,7 +295,7 @@ async function panelAnswer(path: string): Promise<{ status: number; body: string
   const { port } = front.address() as net.AddressInfo;
   try {
     return await new Promise((resolve, reject) => {
-      const req = http.request({ host: "127.0.0.1", port, path }, (res) => {
+      const req = http.request({ host: "127.0.1", port, path }, (res) => {
         let body = "";
         res.setEncoding("utf8");
         res.on("data", (chunk) => (body += chunk));

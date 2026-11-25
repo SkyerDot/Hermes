@@ -7,7 +7,6 @@ import next from "next";
 import { bootstrapEnv } from "../build/bootstrap-env.mjs";
 import { resolveRuntimePorts, withRuntimePortEnv } from "../build/runtime-env.mjs";
 import { createOmnirouteWsBridge } from "./v1-ws-bridge.mjs";
-import { createResponsesWsProxy } from "./responses-ws-proxy.mjs";
 import { createNextUpgradeRelay } from "./next-upgrade-relay.mjs";
 import { ensurePeerStampToken, stampPeerIp } from "./peer-stamp.mjs";
 import methodGuard from "./http-method-guard.cjs";
@@ -134,7 +133,7 @@ if (!useTurbopack) {
   delete process.env.TURBOPACK;
 }
 // Next attaches its own upgrade listener to `httpServer` (default: the server of the first
-// request), which would end upgrades the dispatcher below already owns (/v1/responses, /v1/ws).
+// request), which would end upgrades the dispatcher below already owns (/v1/responses).
 // See next-upgrade-relay.mjs.
 const nextUpgradeRelay = createNextUpgradeRelay();
 function createNextApp() {
@@ -194,10 +193,6 @@ async function start() {
 
   const requestHandler = nextApp.getRequestHandler();
   const upgradeHandler = nextApp.getUpgradeHandler();
-  const responsesWsProxy = createResponsesWsProxy({
-    baseUrl: `http://127.0.0.1:${dashboardPort}`,
-    bridgeSecret: process.env.OMNIROUTE_WS_BRIDGE_SECRET,
-  });
   const wsBridge = createOmnirouteWsBridge({
     baseUrl: `http://127.0.0.1:${dashboardPort}`,
   });
@@ -233,8 +228,6 @@ async function start() {
     try {
       // Cleartext `Upgrade: h2c` (JDK HttpClient) is not a WebSocket upgrade: serve it as HTTP/1.1.
       if (handleH2cUpgrade(server, req, socket, head)) return;
-      const responsesWsHandled = await responsesWsProxy.handleUpgrade(req, socket, head);
-      if (responsesWsHandled) return;
       const handled = await wsBridge.handleUpgrade(req, socket, head);
       if (handled) return;
       // Next's router upgrade handler (dev HMR) — only for upgrades nothing above claimed.

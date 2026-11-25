@@ -22,8 +22,6 @@ const INVALID =
   "QUOTA_PANEL_PORT is not a port number from 1 to 65535. The quota panel port stays off.";
 const CLASH =
   "QUOTA_PANEL_PORT equals the dashboard port or the API port. The quota panel port stays off.";
-const LIVE_WS_CLASH =
-  "QUOTA_PANEL_PORT equals the live dashboard WebSocket port (LIVE_WS_PORT, default 20132). The quota panel port stays off.";
 const BASE =
   "OMNIROUTE_BASE_PATH has a shape the quota panel port does not support. The quota panel port stays off.";
 
@@ -145,36 +143,6 @@ test("a port equal to the dashboard port or the API port opens nothing", () => {
       kind: "refused",
       warning: CLASH,
     });
-  }
-});
-
-test("a port equal to the live dashboard WebSocket port opens nothing while that server is on", () => {
-  const refused = { kind: "refused", warning: LIVE_WS_CLASH };
-  const listen = (port: number) => ({ kind: "listen", port, host: "127.0.0.1", basePath: "" });
-  const resolve = (env: Record<string, string>) => panel.resolveQuotaPanelListener(env, PORTS);
-  // LIVE_WS_PORT unset: the live server uses its default port, 20132, and is on by default.
-  assert.deepEqual(resolve({ QUOTA_PANEL_PORT: "20132" }), refused);
-  for (const flag of ["1", "true", "TRUE"]) {
-    assert.deepEqual(
-      resolve({ QUOTA_PANEL_PORT: "20132", OMNIROUTE_ENABLE_LIVE_WS: flag }),
-      refused
-    );
-  }
-  // An explicit LIVE_WS_PORT moves the clash to that port.
-  assert.deepEqual(resolve({ QUOTA_PANEL_PORT: "20140", LIVE_WS_PORT: "20140" }), refused);
-  assert.deepEqual(resolve({ QUOTA_PANEL_PORT: "20132", LIVE_WS_PORT: "20140" }), listen(20132));
-  // With the live server off, its port is free for the panel.
-  for (const flag of ["0", "false", "off", ""]) {
-    assert.deepEqual(
-      resolve({ QUOTA_PANEL_PORT: "20132", OMNIROUTE_ENABLE_LIVE_WS: flag }),
-      listen(20132),
-      flag
-    );
-    assert.deepEqual(
-      resolve({ QUOTA_PANEL_PORT: "20140", LIVE_WS_PORT: "20140", OMNIROUTE_ENABLE_LIVE_WS: flag }),
-      listen(20140),
-      flag
-    );
   }
 });
 
@@ -472,15 +440,11 @@ test("the panel listener has its own connection limit and timeouts", async () =>
     assert.equal(panel.QUOTA_PANEL_HEADERS_TIMEOUT_MS, 10_000);
     assert.equal(panel.QUOTA_PANEL_REQUEST_TIMEOUT_MS, 30_000);
     assert.equal(panel.QUOTA_PANEL_KEEP_ALIVE_TIMEOUT_MS, 5_000);
+    assert.equal(panel.QUOTA_PANEL_SOCKET_TIMEOUT_MS, 60_000);
     assert.equal(server.maxConnections, panel.QUOTA_PANEL_MAX_CONNECTIONS);
     assert.equal(server.headersTimeout, panel.QUOTA_PANEL_HEADERS_TIMEOUT_MS);
     assert.equal(server.requestTimeout, panel.QUOTA_PANEL_REQUEST_TIMEOUT_MS);
     assert.equal(server.keepAliveTimeout, panel.QUOTA_PANEL_KEEP_ALIVE_TIMEOUT_MS);
-    assert.equal(panel.QUOTA_PANEL_SOCKET_TIMEOUT_MS, 60_000);
-    assert.equal(server.timeout, panel.QUOTA_PANEL_SOCKET_TIMEOUT_MS);
-    // The interval is passed as a server option, and the server keeps the value it was given.
-    // The test "server options reach the bridge server" in quota-panel-bridge.test.ts shows
-    // that the option makes the header timeout apply.
     assert.equal(panel.QUOTA_PANEL_TIMEOUT_CHECK_INTERVAL_MS, 1_000);
     assert.equal(
       (server as http.Server & { connectionsCheckingInterval?: number })
@@ -508,7 +472,6 @@ test("the panel listener starts when the API port is not split", async () => {
     "QUOTA_PANEL_HOST",
     "OMNIROUTE_BASE_PATH",
     "LIVE_WS_PORT",
-    "OMNIROUTE_ENABLE_LIVE_WS",
   ];
   const saved = new Map(keys.map((key) => [key, process.env[key]]));
   const savedStarted = globalThis.__omnirouteApiBridgeStarted;

@@ -7,8 +7,8 @@ import { EventEmitter } from "node:events";
  * first request it serves, to `options.httpServer || req.socket.server`. On the run-next.mjs
  * server that listener runs *alongside* the custom dispatcher, sees every upgrade, and
  * `socket.end()`s any whose path resolves to an app route (router-server.js: `if (matchedOutput)
- * return socket.end()`). `/v1/responses` and `/v1/ws` resolve to `/api/v1/...` app routes, so the
- * sockets the Responses WebSocket proxy and the /v1/ws bridge had already claimed were cut.
+ * return socket.end()`). `/v1/responses` resolves to `/api/v1/...` app routes, so the sockets
+ * the Responses WebSocket proxy had already claimed were cut.
  *
  * Pass `target` as next()'s `httpServer`: Next then attaches to this relay instead, and the
  * dispatcher calls `forward()` only for upgrades nothing else claimed (e.g. dev HMR). Note that

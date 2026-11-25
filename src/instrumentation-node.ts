@@ -384,16 +384,6 @@ export const OPTIONAL_BOOT_SUBSYSTEMS: ReadonlyArray<OptionalBootSubsystem> = [
           console.warn("[STARTUP] Embedded services bootstrap failed (non-fatal):", msg);
         }),
   },
-  {
-    name: "embed-ws-proxy",
-    start: () =>
-      import("@/lib/services/embedWsProxy")
-        .then((m) => m.initEmbedWsProxy())
-        .catch((err: unknown) => {
-          const msg = err instanceof Error ? err.message : String(err);
-          console.warn("[STARTUP] Embed WS proxy failed to start (non-fatal):", msg);
-        }),
-  },
   // Conductor bridge (PRD Conductor RF1): mirrors OmniConductor hub tasks into the
   // A2A TaskManager via the hub SSE. Opt-in — self-gated on CONDUCTOR_HUB_URL.
   {
@@ -496,24 +486,6 @@ export const OPTIONAL_BOOT_SUBSYSTEMS: ReadonlyArray<OptionalBootSubsystem> = [
         .catch((err: unknown) => {
           const msg = err instanceof Error ? err.message : String(err);
           console.warn("[STARTUP] OpenCode free relay failed to start (non-fatal):", msg);
-        }),
-  },
-  // Real-time dashboard WebSocket daemon (port 20132): powers Combo Studio Live,
-  // the Home live-pulse, and Live Compression. Side-effect import triggers the
-  // flag-gated auto-start (OMNIROUTE_ENABLE_LIVE_WS, default ON).
-  {
-    name: "live-dashboard-ws",
-    start: () =>
-      import("@/server/ws/liveServer")
-        .then(() => {
-          console.log("[STARTUP] Live dashboard WebSocket daemon bootstrap invoked");
-        })
-        .catch((err: unknown) => {
-          const msg = err instanceof Error ? err.message : String(err);
-          console.warn(
-            "[STARTUP] Live dashboard WebSocket daemon failed to start (non-fatal):",
-            msg
-          );
         }),
   },
   // Host wake recovery: opt-in (OMNIROUTE_WAKE_RECOVERY=1). Flushes pooled upstream sockets once

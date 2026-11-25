@@ -147,9 +147,6 @@ type ListenerEnv = Record<string, string | undefined>;
 const STAYS_OFF = "The quota panel port stays off.";
 const INVALID_PORT_WARNING = `QUOTA_PANEL_PORT is not a port number from 1 to 65535. ${STAYS_OFF}`;
 const PORT_CLASH_WARNING = `QUOTA_PANEL_PORT equals the dashboard port or the API port. ${STAYS_OFF}`;
-const LIVE_WS_CLASH_WARNING =
-  "QUOTA_PANEL_PORT equals the live dashboard WebSocket port (LIVE_WS_PORT, default 20132). " +
-  STAYS_OFF;
 const BASE_PATH_WARNING = `OMNIROUTE_BASE_PATH has a shape the quota panel port does not support. ${STAYS_OFF}`;
 
 const PORT_DIGITS = /^[0-9]{1,5}$/;
@@ -160,21 +157,11 @@ const LOOPBACK_BIND_HOSTS: ReadonlySet<string> = new Set(["::1", "localhost"]);
 // 127.0.0.0/8, written as four decimal octets, alone or in its IPv4-mapped IPv6 form.
 const LOOPBACK_IPV4 = /^(?:::ffff:)?127(?:\.(?:25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])){3}$/;
 const BRACKETED = /^\[(.+)\]$/;
-// Same default and same reading as the live dashboard WebSocket server
-// (src/server/ws/liveServer.ts). That module starts its server on import, so it is not imported.
-const LIVE_WS_DEFAULT_PORT = 20132;
 
 function parsePanelPort(value: string): number | null {
   if (!PORT_DIGITS.test(value)) return null;
   const port = Number(value);
   return port >= 1 && port <= 65535 ? port : null;
-}
-
-/** The port of the live dashboard WebSocket server, or null while that server is off. */
-function liveWsPort(env: ListenerEnv): number | null {
-  const flag = env.OMNIROUTE_ENABLE_LIVE_WS;
-  const enabled = flag === undefined || flag === "1" || flag.toLowerCase() === "true";
-  return enabled ? Number.parseInt(env.LIVE_WS_PORT || String(LIVE_WS_DEFAULT_PORT), 10) : null;
 }
 
 /** The base path, "" for none, or null for an unsupported shape. */
@@ -218,7 +205,6 @@ export function resolveQuotaPanelListener(
   if (port === ports.dashboardPort || port === ports.apiPort) {
     return { kind: "refused", warning: PORT_CLASH_WARNING };
   }
-  if (port === liveWsPort(env)) return { kind: "refused", warning: LIVE_WS_CLASH_WARNING };
   const basePath = resolvePanelBasePath(env.OMNIROUTE_BASE_PATH);
   if (basePath === null) return { kind: "refused", warning: BASE_PATH_WARNING };
   return { kind: "listen", port, host: resolvePanelHost(env.QUOTA_PANEL_HOST), basePath };

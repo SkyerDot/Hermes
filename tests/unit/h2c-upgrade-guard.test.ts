@@ -293,7 +293,7 @@ describe("h2c upgrade guard — real sockets", () => {
     const read = createReader(socket);
     socket.write(
       [
-        "GET /v1/ws HTTP/1.1",
+        "GET /v1/responses HTTP/1.1",
         "Host: 127.0.0.1",
         "Connection: Upgrade",
         "Upgrade: websocket",
@@ -330,16 +330,6 @@ describe("h2c upgrade guard — real sockets", () => {
 describe("h2c upgrade guard — wiring", () => {
   const here = path.dirname(fileURLToPath(import.meta.url));
   const read = (rel: string) => fs.readFileSync(path.resolve(here, "../..", rel), "utf8");
-
-  it("standalone-server-ws.mjs consults the guard first in its upgrade wrapper", () => {
-    const source = read("scripts/dev/standalone-server-ws.mjs");
-    assert.match(source, /from\s+["']\.\/h2c-upgrade-guard\.cjs["']/);
-    const wrapper = source.slice(source.indexOf("function wrapUpgradeListener"));
-    const guardAt = wrapper.indexOf("handleH2cUpgrade(");
-    const liveWsAt = wrapper.indexOf("LIVE_WS_PORT");
-    assert.ok(guardAt > 0, "wrapUpgradeListener must call handleH2cUpgrade");
-    assert.ok(guardAt < liveWsAt, "the h2c guard must run before any WebSocket routing");
-  });
 
   it("run-next.mjs (npm start / dev) consults the same guard", () => {
     const source = read("scripts/dev/run-next.mjs");
