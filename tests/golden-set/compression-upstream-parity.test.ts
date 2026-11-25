@@ -8,7 +8,7 @@ import {
   compressDescriptionsInPlace,
   getMcpDescriptionCompressionStats,
   resetMcpDescriptionCompressionStats,
-} from "../../open-sse/mcp-server/descriptionCompressor.ts";
+} from "@omniroute/open-sse/services/compression/mcpDescriptionCompressor.ts";
 
 const require = createRequire(import.meta.url);
 const upstreamFixtureDir = path.resolve("_references/_outros/caveman/tests/caveman-compress");

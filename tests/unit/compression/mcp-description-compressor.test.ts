@@ -8,7 +8,7 @@ import {
   getMcpDescriptionCompressionStats,
   maybeCompressMcpDescription,
   resetMcpDescriptionCompressionStats,
-} from "../../../open-sse/mcp-server/descriptionCompressor.ts";
+} from "@omniroute/open-sse/services/compression/mcpDescriptionCompressor.ts";
 
 describe("MCP description compression", () => {
   it("compresses MCP-style descriptions while preserving substance", () => {

@@ -252,7 +252,6 @@ export async function getSettings() {
     entraDefaultKeyGroupId: null, // null = users matching no mapping are denied
     entraGraphFallbackEnabled: false,
     entraGraphClientSecret: "",
-    mcpEnabled: false,
     a2aEnabled: false,
     hiddenSidebarItems: [],
     hiddenSidebarGroupLabels: [],

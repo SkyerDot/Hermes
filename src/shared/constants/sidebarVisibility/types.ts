@@ -75,7 +75,6 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "radar-admin",
   // Monitoring > Audit
   "audit",
-  "audit-mcp",
   "audit-a2a",
   // Dev Tools
   "translator",
@@ -86,7 +85,6 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "skills",
   "agent-skills",
   "chaos-config",
-  "mcp",
   "a2a",
   "plugins",
   // Gamification

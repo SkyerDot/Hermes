@@ -549,13 +549,6 @@ const AUDIT_GROUP: SidebarItemGroup = {
       icon: "policy",
     },
     {
-      id: "audit-mcp",
-      href: "/dashboard/audit/mcp",
-      i18nKey: "auditMcp",
-      subtitleKey: "auditMcpSubtitle",
-      icon: "security",
-    },
-    {
       id: "audit-a2a",
       href: "/dashboard/audit/a2a",
       i18nKey: "auditA2a",
@@ -589,14 +582,6 @@ const DEVTOOLS_ITEMS: readonly SidebarItemDefinition[] = [
   },
 ];
 
-const MCP_ITEM: SidebarItemDefinition = {
-  id: "mcp",
-  href: "/dashboard/mcp",
-  i18nKey: "mcp",
-  subtitleKey: "mcpSubtitle",
-  icon: "hub",
-};
-
 const AGENTIC_FEATURES_ITEMS: readonly SidebarSectionChild[] = [
   {
     id: "memory",
@@ -628,7 +613,6 @@ const AGENTIC_FEATURES_ITEMS: readonly SidebarSectionChild[] = [
     subtitleKey: "omniSkillsSubtitle",
     icon: "auto_fix_high",
   },
-  MCP_ITEM,
   {
     id: "a2a",
     href: "/dashboard/a2a",

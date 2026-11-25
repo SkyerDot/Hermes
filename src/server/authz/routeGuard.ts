@@ -32,7 +32,6 @@ import { VNC_ROUTE_PREFIX } from "@/lib/vncSession/manifest";
 const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1", "::1"]);
 
 export const LOCAL_ONLY_API_PREFIXES: ReadonlyArray<string> = [
-  "/api/mcp/",
   "/api/cli-tools/runtime/",
   "/api/cli-tools/omp-settings", // spawns `which omp` to detect the CLI install (Hard Rules #15 + #17, #6318)
   "/api/cli-tools/letta-settings", // spawns `which letta` to detect the CLI install (Hard Rules #15 + #17, #6318)
@@ -173,7 +172,6 @@ export { SPAWN_CAPABLE_PREFIXES, SPAWN_CAPABLE_PATTERNS };
  * which is hot-reloaded on every settings PATCH.
  */
 export const LOCAL_ONLY_MANAGE_SCOPE_BYPASS_PREFIXES: ReadonlyArray<string> = [
-  "/api/mcp/",
   // Read-only JSON behind Resilience > Connections. Without it the page can never
   // load on a remote dashboard (managed instance, tunnel, reverse proxy): KEA-9357.
   "/api/resilience/connections",
@@ -405,12 +403,6 @@ export const LOCAL_ONLY_API_GET_EXEMPTIONS: ReadonlySet<string> = new Set([
   "/api/version-manager/status",
   "/api/version-manager/check-update",
   "/api/tunnels/cloudflared",
-  // GET /api/mcp/audit and /stats are read-only SQLite queries behind
-  // requireManagementAuth. The rest of /api/mcp/* stays local-only because
-  // SSE/stream can spawn. Without this exemption a tunnel-served dashboard
-  // 403s the timeline MCP poll forever (#13941).
-  "/api/mcp/audit",
-  "/api/mcp/audit/stats",
   "/api/services/cliproxy/status",
   "/api/skills/executions",
 ]);
