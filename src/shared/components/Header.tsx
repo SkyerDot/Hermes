@@ -108,7 +108,6 @@ const HEADER_DESCRIPTIONS: Partial<
   proxy: "proxyDescription",
   changelog: "changelogDescription",
   // Protocols
-  mcp: "mcpDescription",
   a2a: "a2aDescription",
   "api-endpoints": "apiEndpointsDescription",
   // Agents & AI sub-pages
@@ -126,8 +125,6 @@ const HEADER_DESCRIPTIONS: Partial<
   "logs-proxy": "logsProxyDescription",
   "logs-console": "logsConsoleDescription",
   "logs-activity": "logsActivityDescription",
-  // Audit sub-pages
-  "audit-mcp": "auditMcpDescription",
   // Settings sub-pages
   "settings-general": "settingsGeneralDescription",
   "settings-appearance": "settingsAppearanceDescription",

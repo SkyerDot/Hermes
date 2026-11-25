@@ -14,7 +14,6 @@ import { cn } from "@/shared/utils/cn";
 import { matchesSearch } from "@/shared/utils/turkishText";
 import { useConfirmDialog } from "@/shared/hooks/useConfirmDialog";
 import { CoverageBar } from "./components/CoverageBar";
-import { McpA2aLinksBar } from "./components/McpA2aLinksBar";
 import { SkillCard } from "./components/SkillCard";
 import { SkillPreviewPane } from "./components/SkillPreviewPane";
 import type { AgentSkill, SkillCoverage } from "@/lib/agentSkills/types";
@@ -251,9 +250,6 @@ export function AgentSkillsPageClient(): JSX.Element {
           </div>
           {coverage ? <CoverageBar coverage={coverage} /> : <CoverageBarSkeleton />}
         </div>
-
-        {/* MCP + A2A links */}
-        <McpA2aLinksBar />
       </Card>
 
       {/* Search + filters */}

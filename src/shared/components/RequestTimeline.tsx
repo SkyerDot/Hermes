@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { copyToClipboard } from "@/shared/utils/clipboard";
 import { formatApiKeyLabel } from "@/shared/utils/formatting";
-import { MCP_TOOL_SCOPES } from "@/shared/constants/mcpScopes";
 import RequestLoggerDetail from "@/shared/components/RequestLoggerDetail";
 import Badge from "@/shared/components/Badge";
 import Button from "@/shared/components/Button";
@@ -39,7 +38,6 @@ import {
   rememberApiKeysFromPoll,
   nextTimelineLogs,
   getTimelineBarColor,
-  MCP_BAR_COLOR,
   TIMELINE_BAR_COLORS,
 } from "@/shared/components/RequestTimeline.utils";
 
@@ -114,13 +112,14 @@ export default function RequestTimeline({
 
   useEffect(() => {
     let cancelled = false;
-    const refresh = () => {
-      void loadTimelineLogs(
-        fetch,
-        selectedApiKey,
-        (tool) => MCP_TOOL_SCOPES[tool],
-        knownApiKeyIdsRef.current
-      ).then((data) => {
+    const doRefresh = async () => {
+      try {
+        const data = await loadTimelineLogs(
+          fetch,
+          selectedApiKey,
+          undefined,
+          knownApiKeyIdsRef.current
+        );
         if (cancelled) return;
         const remembered = rememberApiKeysFromPoll(
           knownApiKeyIdsRef.current,
@@ -132,12 +131,12 @@ export default function RequestTimeline({
         seenApiKeyOptionsRef.current = remembered.seenOptions;
         setSeenApiKeyOptions(remembered.seenOptions);
         setLogs((current) => nextTimelineLogs(current, data));
-      });
+      } catch {}
     };
-    refresh();
+    void doRefresh();
     const id = setInterval(() => {
       if (document.visibilityState !== "visible") return;
-      refresh();
+      void doRefresh();
     }, listPollSeconds * 1000);
     return () => {
       cancelled = true;
@@ -335,7 +334,6 @@ export default function RequestTimeline({
 
   const handleBarClick = useCallback(
     (log: TimelineLog) => {
-      if (log.kind === "mcp") return;
       initialOpenedRef.current = true;
       setSelectedLog(log);
       setDetailData(null);
@@ -918,34 +916,18 @@ export default function RequestTimeline({
               <span>{t("status")}</span>
               <span>{hoveredLog.status || t("pending")}</span>
             </div>
-            {hoveredLog.kind === "mcp" ? (
-              <>
-                <div className="flex justify-between gap-4">
-                  <span>{t("scope")}</span>
-                  <span>{hoveredLog.scopes?.length ? hoveredLog.scopes.join(", ") : "—"}</span>
-                </div>
-                <div className="flex justify-between gap-4">
-                  <span>{t("apiKey")}</span>
-                  <span>{formatApiKeyLabel(hoveredLog.apiKeyName, hoveredLog.apiKeyId)}</span>
-                </div>
-              </>
-            ) : (
-              <>
-                {hoveredLog.provider && (
-                  <div className="flex justify-between gap-4">
-                    <span>{t("provider")}</span>
-                    <span>{hoveredLog.provider}</span>
-                  </div>
-                )}
-                <div className="flex justify-between gap-4">
-                  <span>{t("tokens")}</span>
-                  <span>
-                    {hoveredLog.tokens.in.toLocaleString()} /{" "}
-                    {hoveredLog.tokens.out.toLocaleString()}
-                  </span>
-                </div>
-              </>
+            {hoveredLog.provider && (
+              <div className="flex justify-between gap-4">
+                <span>{t("provider")}</span>
+                <span>{hoveredLog.provider}</span>
+              </div>
             )}
+            <div className="flex justify-between gap-4">
+              <span>{t("tokens")}</span>
+              <span>
+                {hoveredLog.tokens.in.toLocaleString()} / {hoveredLog.tokens.out.toLocaleString()}
+              </span>
+            </div>
             {hoveredLog.error && (
               <div className="mt-1 text-error text-3xs break-all">{hoveredLog.error}</div>
             )}
@@ -989,10 +971,6 @@ export default function RequestTimeline({
             style={{ backgroundColor: TIMELINE_BAR_COLORS.other }}
           />
           <span className="text-text-muted">{t("other")}</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: MCP_BAR_COLOR }} />
-          <span className="text-text-muted">{t("mcp")}</span>
         </div>
         <div className="ml-4 flex items-center gap-1.5 text-text-muted">
           <div className="w-3 border-t border-dashed border-text-muted/40" />

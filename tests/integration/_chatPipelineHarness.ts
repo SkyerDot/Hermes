@@ -26,7 +26,6 @@ export async function createChatPipelineHarness(prefix) {
   const modelComboMappingsDb = await import("../../src/lib/db/modelComboMappings.ts");
   const readCacheDb = await import("../../src/lib/db/readCache.ts");
   const memoryStore = await import("../../src/lib/memory/store.ts");
-  const memoryToolsModule = await import("../../open-sse/mcp-server/tools/memoryTools.ts");
   const { invalidateMemorySettingsCache } = await import("../../src/lib/memory/settings.ts");
   const { skillRegistry } = await import("../../src/lib/skills/registry.ts");
   const { skillExecutor } = await import("../../src/lib/skills/executor.ts");
@@ -376,7 +375,6 @@ export async function createChatPipelineHarness(prefix) {
     core,
     handleChat,
     memoryStore,
-    memoryTools: memoryToolsModule.memoryTools,
     modelComboMappingsDb,
     originalRetryDelayMs,
     getLatestCallLog,

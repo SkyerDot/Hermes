@@ -6,10 +6,6 @@ import { allow, reject } from "../context";
 import { extractApiKey, isValidApiKey } from "../../../sse/services/auth";
 import { getApiKeyMetadata } from "../../../lib/db/apiKeys";
 import { hasManageScope } from "../../../lib/api/requireManagementAuth";
-import {
-  hasMcpConnectOrManageScope,
-  MCP_CONNECT_SCOPE,
-} from "../../../shared/constants/managementScopes";
 import { evaluateAccessTokenAuth } from "../accessTokenAuth";
 import { isInternalServiceRequest } from "../../../lib/api/internalServiceAuth";
 import {
@@ -84,11 +80,7 @@ export const managementPolicy: RoutePolicy = {
     // Carve-out: a small allow-list of LOCAL_ONLY paths (see
     // LOCAL_ONLY_MANAGE_SCOPE_BYPASS_PREFIXES) is reachable from non-loopback
     // when the caller presents EITHER (a) a valid API key with the `manage`
-    // scope, or (b) an authenticated dashboard session. This lets:
-    //   - headless / remote MCP clients drive the management surface with a
-    //     manage-scope Bearer key, and
-    //   - the Dashboard UI itself (cookie session) render its MCP pages
-    //     (/api/mcp/status, /api/mcp/tools) from a public hostname.
+    // scope, or (b) an authenticated dashboard session.
     //
     // The strict-loopback default still applies to everything else (notably
     // the subprocess-spawning /api/cli-tools/runtime/* surface, which is NOT
@@ -109,26 +101,8 @@ export const managementPolicy: RoutePolicy = {
           try {
             if (await isValidApiKey(apiKey)) {
               const meta = await getApiKeyMetadata(apiKey);
-              // #7895: the `/api/mcp/` carve-out ALSO accepts the narrow
-              // `mcp:connect` scope, so remote MCP-only callers don't need
-              // broad `manage`/`admin` just to reach the transport routes.
-              // Scoped to `/api/mcp/` ONLY — every other LOCAL_ONLY bypass
-              // prefix still requires full `hasManageScope` (below).
-              const scopeGranted =
-                path.startsWith("/api/mcp/") && meta
-                  ? hasMcpConnectOrManageScope(meta.scopes)
-                  : Boolean(meta && hasManageScope(meta.scopes));
-              if (meta && scopeGranted) {
-                // Distinguish admin vs manage vs the narrow mcp:connect scope in
-                // the audit label so log review can tell which privilege
-                // actually granted the bypass.
-                const grantedBy = meta.scopes.includes("admin")
-                  ? "admin"
-                  : meta.scopes.includes("manage")
-                    ? "manage"
-                    : meta.scopes.includes(MCP_CONNECT_SCOPE)
-                      ? "mcp-connect"
-                      : "manage";
+              if (meta && hasManageScope(meta.scopes)) {
+                const grantedBy = meta.scopes.includes("admin") ? "admin" : "manage";
                 return allow({
                   kind: "management_key",
                   id: meta.id,
@@ -137,19 +111,13 @@ export const managementPolicy: RoutePolicy = {
               }
             }
           } catch (err) {
-            // Auth backend (DB / file store) failure: surface as 503 so the
-            // caller can retry. Anything else (TypeError / ReferenceError /
-            // programmer error) is logged so it's not silently swallowed —
-            // the policy still degrades closed (503) to avoid leaking the
-            // route, but we leave a breadcrumb for ops.
             console.error("[managementPolicy] manage-scope bypass auth check failed", err);
             return reject(503, "AUTH_BACKEND_UNAVAILABLE", "Service temporarily unavailable");
           }
         }
         // Dashboard session bypass: the Dashboard UI itself needs to render
-        // /api/mcp/status, /api/mcp/tools, etc. from a public hostname. Cookie
-        // auth is already proof of an authenticated admin — same trust level
-        // as a manage-scope Bearer for the surface in scope here.
+        // management pages from a public hostname. Cookie auth is already proof
+        // of an authenticated admin — same trust level as a manage-scope Bearer.
         try {
           if (await isDashboardSessionAuthenticated(ctx.request)) {
             return allow({
@@ -159,10 +127,6 @@ export const managementPolicy: RoutePolicy = {
             });
           }
         } catch (err) {
-          // Mirror the manage-scope branch above: degrade closed (503) rather
-          // than leaking the route through an unhandled 500, but log a
-          // breadcrumb for ops. Session-store DB failure / cookie parsing
-          // error / JWT decode throw all land here.
           console.error("[managementPolicy] dashboard-session bypass auth check failed", err);
           return reject(503, "AUTH_BACKEND_UNAVAILABLE", "Service temporarily unavailable");
         }
