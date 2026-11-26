@@ -22,6 +22,7 @@ const REMOVED_FILES = [
   "src/lib/obsidian/api.ts",
   "src/lib/localCorpus/index.ts",
   "src/lib/localCorpus/configured.ts",
+  "src/lib/db/localCorpus.ts",
   "src/lib/db/notion.ts",
   "src/lib/db/obsidian.ts",
   "src/lib/obsidianSync.ts",
