@@ -36,7 +36,7 @@ export type QuotaAutoPingProviderConfig = {
   // outlives its vendor lifecycle (`gpt-5.1-codex-mini` was shut down 2026-07-23
   // while still hardcoded here). It is resolved per tick from the live provider
   // catalog + lifecycle registry — see resolveQuotaAutoPingModel in
-  // src/lib/services/quotaAutoPing.ts.
+  // src/lib/quota/quotaAutoPing.ts.
   pingText: string;
   pingInstructions: string;
   pingReasoningEffort: string;

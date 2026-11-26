@@ -2,7 +2,7 @@
  * #6977 — opt-in Codex quota auto-ping scheduler.
  *
  * Ported (Codex half) from the shipped 9router
- * src/shared/services/quotaAutoPing.js + its 351-line vitest suite. All
+ * src/shared/quota/quotaAutoPing.js + its 351-line vitest suite. All
  * effects (settings, DB reads/writes, credential refresh, usage fetch, the
  * Codex executor, circuit breaker gate) are injected via `deps`, and time is
  * injected via `now()`, so every test is fully deterministic — no real
@@ -22,7 +22,7 @@ import path from "node:path";
 process.env.DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-quota-autoping-"));
 
 const { runQuotaAutoPingTick, createQuotaAutoPingState, resolveQuotaAutoPingModel } =
-  await import("../../src/lib/services/quotaAutoPing.ts");
+  await import("../../src/lib/quota/quotaAutoPing.ts");
 const { resetDbInstance } = await import("../../src/lib/db/core.ts");
 const { getProviderModels } = await import("../../open-sse/config/providerModels.ts");
 const { isModelSelectable } = await import("../../open-sse/services/modelLifecycle.ts");

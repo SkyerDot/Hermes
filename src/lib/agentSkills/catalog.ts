@@ -38,7 +38,6 @@ export const API_SKILL_IDS: readonly string[] = [
   "omni-webhooks",
   "omni-mcp",
   "omni-agents-a2a",
-  "omni-version-manager",
   "omni-inference",
   "omni-github-skills",
 ] as const;

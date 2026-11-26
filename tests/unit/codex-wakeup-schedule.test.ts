@@ -7,7 +7,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { nextWakeupAt } = await import("../../src/lib/services/codexWakeupSchedule.ts");
+const { nextWakeupAt } = await import("../../src/lib/quota/codexWakeupSchedule.ts");
 const { codexWakeupActionSchema, codexWakeupTaskInputSchema } =
   await import("../../src/shared/validation/codexWakeupSchemas.ts");
 

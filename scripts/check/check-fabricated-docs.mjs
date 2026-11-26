@@ -695,7 +695,7 @@ export function scanDocFile(absPath, index, root = ROOT) {
       index.apiRoutes.has(candidate + "/")
     )
       continue;
-    // Prefix-with-subroutes: a documented prefix like /api/cloud/ or /api/services/{name}/
+    // Prefix-with-subroutes: a documented prefix like /api/cloud/ or /api/cli-tools/runtime/{toolId}/
     // is valid when some src/app/api/<prefix>/**/route.ts exists. Accept when the
     // documented path is (or is an ancestor of) a real route prefix, or vice-versa.
     let isPrefix = false;

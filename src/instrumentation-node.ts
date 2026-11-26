@@ -371,19 +371,6 @@ export interface OptionalBootSubsystem {
  * `registerNodejs()` and runs in both modes.
  */
 export const OPTIONAL_BOOT_SUBSYSTEMS: ReadonlyArray<OptionalBootSubsystem> = [
-  {
-    name: "embedded-services",
-    start: () =>
-      import("@/lib/services/bootstrap")
-        .then(async (m) => {
-          await m.bootstrapEmbeddedServices();
-          console.log("[STARTUP] Embedded services bootstrap complete");
-        })
-        .catch((err: unknown) => {
-          const msg = err instanceof Error ? err.message : String(err);
-          console.warn("[STARTUP] Embedded services bootstrap failed (non-fatal):", msg);
-        }),
-  },
   // Arena ELO sync: model intelligence from the Arena AI leaderboard, powering the
   // Free Provider Rankings page. On by default; non-blocking, never fatal.
   {
@@ -694,19 +681,19 @@ export async function registerNodejs(): Promise<void> {
     const { startQuotaSessionRecovery } = await import("@/lib/quota/quotaSessionRecovery");
     startQuotaSessionRecovery();
     console.log("[STARTUP] Quota session recovery scheduler started (opt-in)");
-    const { startQuotaAutoPing } = await import("@/lib/services/quotaAutoPing");
+    const { startQuotaAutoPing } = await import("@/lib/quota/quotaAutoPing");
     startQuotaAutoPing();
     console.log("[STARTUP] Quota auto-ping scheduler started (opt-in, no-op until enabled)");
-    const { startBankedResetAutoApply } = await import("@/lib/services/bankedResetAutoApply");
+    const { startBankedResetAutoApply } = await import("@/lib/quota/bankedResetAutoApply");
     startBankedResetAutoApply();
     console.log(
       "[STARTUP] Banked-reset auto-apply scheduler started (opt-in, no-op until enabled)"
     );
-    const { startCodexWakeups } = await import("@/lib/services/codexWakeups");
+    const { startCodexWakeups } = await import("@/lib/quota/codexWakeups");
     startCodexWakeups();
     console.log("[STARTUP] Codex wakeup scheduler started (no-op until a task is created)");
     const { startCodexResetCreditAutospend } =
-      await import("@/lib/services/codexResetCreditAutospend");
+      await import("@/lib/quota/codexResetCreditAutospend");
     startCodexResetCreditAutospend();
     console.log(
       "[STARTUP] Codex reset-credit auto-spend scheduler started (opt-in, no-op until enabled)"

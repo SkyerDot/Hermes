@@ -81,46 +81,23 @@ test("#5128B: extractRelayAuth decrypts the encrypted relayAuthEnc form (encrypt
 // C) Cloudflare Worker upload uses an accepted script MIME type
 // --------------------------------------------------------------------------
 test("#5128C: Cloudflare worker upload sends an accepted script Content-Type", async () => {
-  const realFetch = globalThis.fetch;
-  let requestContentType: string | undefined;
-  let scriptPartContentType: string | undefined;
-  globalThis.fetch = (async (input: unknown, init: RequestInit = {}) => {
-    const url = String(input);
-    if (init.method === "PUT" && url.includes("/workers/scripts/")) {
-      // #6416: the upload body is a raw multipart Buffer (not a FormData
-      // instance — see cloudflareWorkerScript.ts::buildCloudflareWorkerUploadRequest),
-      // so assert directly on the request Content-Type header and the
-      // embedded part header instead of reading FormData.get().
-      const headers = new Headers(init.headers);
-      requestContentType = headers.get("content-type") ?? undefined;
-      const bodyText = Buffer.isBuffer(init.body)
-        ? (init.body as Buffer).toString("utf8")
-        : String(init.body);
-      const match = bodyText.match(/name="index\.js"[^]*?Content-Type: ([^\r\n]+)/);
-      scriptPartContentType = match?.[1];
-      // Simulate the CF API rejecting the upload so the route short-circuits
-      // without making the follow-up subdomain calls.
-      return Response.json({ errors: [{ message: "stubbed" }] }, { status: 400 });
+  // Task 8 removed /api/settings/proxy/cloudflare-deploy; the retained upload
+  // helper is the authority for the wire contract and is tested directly.
+  const { buildCloudflareWorkerScript, buildCloudflareWorkerUploadRequest } =
+    await import("../../src/lib/proxyRelay/cloudflareWorkerScript.ts");
+  const { headers, body } = buildCloudflareWorkerUploadRequest(
+    buildCloudflareWorkerScript("cf-token-aaaaaaaaaaaaaaaaaaaaaa"),
+    {
+      body_part: "index.js",
+      compatibility_date: "2026-03-20",
+      observability: { enabled: true },
     }
-    return Response.json({ result: {} });
-  }) as unknown as typeof globalThis.fetch;
-
-  try {
-    const route = await import("../../src/app/api/settings/proxy/cloudflare-deploy/route.ts");
-    await route.POST(
-      new Request("http://localhost/api/settings/proxy/cloudflare-deploy", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          accountId: "abcdef0123456789",
-          apiToken: "cf-token-aaaaaaaaaaaaaaaaaaaaaa",
-          projectName: "omniroute-relay",
-        }),
-      })
-    );
-  } finally {
-    globalThis.fetch = realFetch;
-  }
+  );
+  const bodyText = body.toString("utf8");
+  const requestContentType = headers["Content-Type"];
+  const scriptPartContentType = bodyText.match(
+    /name="index\.js"[^]*?Content-Type: ([^\r\n]+)/
+  )?.[1];
 
   // #6416: the overall request Content-Type must itself be one CF accepts —
   // a FormData body auto-negotiated through undici's patched fetch degraded
@@ -141,46 +118,29 @@ test("#5128C: Cloudflare worker upload sends an accepted script Content-Type", a
 // E) Cloudflare worker script uses Service Worker syntax with body_part (#6416)
 // --------------------------------------------------------------------------
 test("#6416: Cloudflare worker script body is Service Worker syntax (no top-level export) + metadata uses body_part", async () => {
-  const realFetch = globalThis.fetch;
-  let capturedScriptBody = "";
-  let capturedMetadata: Record<string, unknown> | undefined;
-  globalThis.fetch = (async (input: unknown, init: RequestInit = {}) => {
-    const url = String(input);
-    if (init.method === "PUT" && url.includes("/workers/scripts/") && !url.includes("/subdomain")) {
-      const bodyText = Buffer.isBuffer(init.body)
-        ? (init.body as Buffer).toString("utf8")
-        : String(init.body);
-      const scriptMatch = bodyText.match(
-        /name="index\.js"[^]*?Content-Type: [^\r\n]+\r\n\r\n([^]*?)\r\n--/
-      );
-      const metadataMatch = bodyText.match(
-        /name="metadata"[^]*?Content-Type: application\/json\r\n\r\n([^]*?)\r\n--/
-      );
-      capturedScriptBody = scriptMatch?.[1] ?? "";
-      capturedMetadata = metadataMatch?.[1]
-        ? (JSON.parse(metadataMatch[1]) as Record<string, unknown>)
-        : undefined;
-      return Response.json({ errors: [{ message: "stubbed" }] }, { status: 400 });
+  // The removed deploy route used these same retained builders; assert on their
+  // output instead of importing a route Task 8 intentionally deleted.
+  const { buildCloudflareWorkerScript, buildCloudflareWorkerUploadRequest } =
+    await import("../../src/lib/proxyRelay/cloudflareWorkerScript.ts");
+  const { body } = buildCloudflareWorkerUploadRequest(
+    buildCloudflareWorkerScript("cf-token-aaaaaaaaaaaaaaaaaaaaaa"),
+    {
+      body_part: "index.js",
+      compatibility_date: "2026-03-20",
+      observability: { enabled: true },
     }
-    return Response.json({ result: {} });
-  }) as unknown as typeof globalThis.fetch;
-
-  try {
-    const route = await import("../../src/app/api/settings/proxy/cloudflare-deploy/route.ts");
-    await route.POST(
-      new Request("http://localhost/api/settings/proxy/cloudflare-deploy", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          accountId: "abcdef0123456789",
-          apiToken: "cf-token-aaaaaaaaaaaaaaaaaaaaaa",
-          projectName: "omniroute-relay",
-        }),
-      })
-    );
-  } finally {
-    globalThis.fetch = realFetch;
-  }
+  );
+  const bodyText = body.toString("utf8");
+  const scriptMatch = bodyText.match(
+    /name="index\.js"[^]*?Content-Type: [^\r\n]+\r\n\r\n([^]*?)\r\n--/
+  );
+  const metadataMatch = bodyText.match(
+    /name="metadata"[^]*?Content-Type: application\/json\r\n\r\n([^]*?)\r\n--/
+  );
+  const capturedScriptBody = scriptMatch?.[1] ?? "";
+  const capturedMetadata = metadataMatch?.[1]
+    ? (JSON.parse(metadataMatch[1]) as Record<string, unknown>)
+    : undefined;
 
   // The Cloudflare multipart upload API parses `application/javascript` script
   // parts as Service Workers, so the body must NOT use ES-module syntax

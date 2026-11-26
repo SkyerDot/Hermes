@@ -6,7 +6,6 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "endpoints",
   "providers",
   "model-catalog",
-  "embedded-services",
   "combos",
   "combos-live",
   "quota",
@@ -77,7 +76,6 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "skills",
   "agent-skills",
   "chaos-config",
-  "plugins",
   // Other Features — flat
   "media",
   // Other Features > Batch

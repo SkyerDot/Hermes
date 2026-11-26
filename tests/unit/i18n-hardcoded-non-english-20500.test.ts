@@ -34,7 +34,6 @@ const MARKERS: Record<string, string[]> = {
   "src/app/(dashboard)/dashboard/translator/components/advanced/PipelineView.tsx": [
     "Envie um request",
   ],
-  "src/lib/services/installers/utils.ts": ["não está disponível"],
 };
 
 for (const [rel, markers] of Object.entries(MARKERS)) {

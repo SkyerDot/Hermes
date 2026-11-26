@@ -49,7 +49,6 @@ function assertNoStaleEntries(
 // prefixes documented in routeGuard.ts (SPAWN_CAPABLE_PREFIXES) and CLAUDE.md
 // Hard Rules #15/#17 for the dirs that physically exist under src/app/api/.
 export const SPAWN_CAPABLE_ROUTE_ROOTS: ReadonlyArray<string> = [
-  "src/app/api/services",
   "src/app/api/mcp",
   "src/app/api/cli-tools/runtime",
   "src/app/api/local", // T-12: 1-click local service launchers (Redis today) — every child here spawns podman/docker (Hard Rules #15 + #17)
@@ -78,9 +77,6 @@ export const SPAWN_CAPABLE_ROUTE_ROOTS: ReadonlyArray<string> = [
   // (executor.ts -> builtins.ts -> sandbox.ts) — invisible to the source-scan subcheck.
   "src/app/api/skills/install", // POST stores handlerCode verbatim; a built-in name aliases execute_command / eval_code (Hard Rules #15 + #17, GHSA-jx89-f37j-pq89)
   "src/app/api/skills/executions", // POST runs skillExecutor.execute() -> sandbox container spawn (Hard Rules #15 + #17, GHSA-jx89-f37j-pq89)
-  // install / start / restart / stop reach the CLIProxyAPI download + ServiceSupervisor spawn
-  // transitively, which the source-scan subcheck cannot see.
-  "src/app/api/version-manager", // downloads, unpacks and runs the CLIProxyAPI binary (Hard Rules #15 + #17)
 ];
 
 // Frozen pre-existing exceptions: spawn-capable routes NOT yet classified
@@ -95,8 +91,8 @@ export const KNOWN_UNCLASSIFIED: Record<string, string> = {};
  * serves, in the exact shape `isLocalOnlyPath()` expects (a plain `/api/...`
  * path). Dynamic `[param]` segments become a concrete `_param_` placeholder —
  * `isLocalOnlyPath` matches prefixes via `startsWith`, so any non-empty segment
- * satisfies the classification (e.g. `/api/services/_name_/logs` still starts
- * with `/api/services/`).
+ * satisfies the classification (e.g. `/api/cli-tools/runtime/_toolId_` still
+ * starts with `/api/cli-tools/runtime/`).
  */
 export function routeFileToApiPath(routeFile: string): string {
   return routeFile
@@ -287,7 +283,6 @@ export const KNOWN_TRANSITIVE_SPAWN_SINKS: Record<string, string> = {
   "src/lib/headroom/detect.ts": `${G09_BASELINE} (child_process)`,
   "src/lib/headroom/process.ts": `${G09_BASELINE} (child_process)`,
   "src/lib/logExport/childRunner.ts": `${G09_BASELINE} (child_process)`,
-  "src/lib/plugins/loader.ts": `${G09_BASELINE} (child_process + worker_threads)`,
   "src/lib/providerModels/cursorAgent.ts": `${G09_BASELINE} (child_process)`,
   "src/lib/providers/validation/webProvidersB.ts": `${G09_BASELINE} (child_process)`,
   "src/lib/proxySubscription/coreConfig/apply.ts": `${G09_BASELINE} (child_process)`,
@@ -295,7 +290,6 @@ export const KNOWN_TRANSITIVE_SPAWN_SINKS: Record<string, string> = {
   "src/lib/skills/containerProvider.ts": `${G09_BASELINE} (child_process)`,
   "src/lib/skills/sandbox.ts": `${G09_BASELINE} (child_process)`,
   "src/lib/tailscaleTunnel.ts": `${G09_BASELINE} (child_process)`,
-  "src/lib/versionManager/binaryManager.ts": `${G09_BASELINE} (child_process)`,
   "src/lib/vncSession/service.ts": `${G09_BASELINE} (child_process)`,
   "src/mitm/cert/install.ts": `${G09_BASELINE} (child_process)`,
   "src/mitm/dns/dnsConfig.ts": `${G09_BASELINE} (child_process)`,

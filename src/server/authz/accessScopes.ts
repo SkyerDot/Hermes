@@ -27,7 +27,6 @@ export const ADMIN_SCOPE_PREFIXES: readonly string[] = [
   "/api/oauth", // OAuth authorization flows
   "/api/auth", // login / logout / session
   "/api/policy", // policy engine
-  "/api/services", // embedded-service lifecycle (also loopback-blocked)
   "/api/mcp", // MCP process surface (also loopback-blocked)
 ];
 

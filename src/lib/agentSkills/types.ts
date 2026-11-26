@@ -22,7 +22,6 @@ export type SkillArea =
   | "webhooks"
   | "mcp"
   | "agents-a2a"
-  | "version-manager"
   | "inference"
   // GitHub skills
   | "github-skills"

@@ -8,12 +8,7 @@ import React from "react";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import NewApiAggregatorFields from "@/app/(dashboard)/dashboard/providers/[id]/components/modals/NewApiAggregatorFields";
-import { NinerouterInstallWizard } from "@/app/(dashboard)/dashboard/providers/services/components/NinerouterInstallWizard";
 import { numberToText, textToNumber } from "@/app/(dashboard)/dashboard/providers/numberFieldText";
-
-vi.mock("@/app/(dashboard)/dashboard/providers/services/hooks/useServiceStatus", () => ({
-  useServiceStatus: () => ({ mutate: () => {} }),
-}));
 
 afterEach(cleanup);
 
@@ -75,17 +70,5 @@ describe("NewApiAggregatorFields — quota per unit", () => {
     fireEvent.change(input, { target: { value: "-5" } });
     expect(onChange).not.toHaveBeenCalled();
     expect(input.value).toBe("");
-  });
-});
-
-describe("NinerouterInstallWizard — service port", () => {
-  it("brings the port into 1024-65535 when the edit ends", () => {
-    render(<NinerouterInstallWizard />);
-    const input = document.getElementById("ninerouter-port") as HTMLInputElement;
-    expect(input.type).toBe("text");
-    fireEvent.change(input, { target: { value: "80" } });
-    expect(input.value).toBe("80");
-    fireEvent.blur(input);
-    expect(input.value).toBe("1024");
   });
 });

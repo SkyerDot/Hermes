@@ -12,7 +12,6 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
 const { isLocalOnlyPath } = await import("../../src/server/authz/routeGuard.ts");
-const { classifyRoute } = await import("../../src/server/authz/classify.ts");
 const launcher = await import("../../open-sse/services/opencodeServerLauncher.ts");
 const { clearOpencodeServerSettingsCache } =
   await import("../../open-sse/services/opencodeServerSettings.ts");
@@ -22,28 +21,27 @@ test.after(() => {
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
-const LIFECYCLE_PATHS = [
+const REMOVED_LIFECYCLE_PATHS = [
   "/api/services/opencode-server/status",
   "/api/services/opencode-server/start",
   "/api/services/opencode-server/stop",
 ];
 
-test("opencode-server lifecycle routes are loopback-only (Hard Rules #15/#17)", () => {
-  for (const route of LIFECYCLE_PATHS) {
+test("Task 8 removed opencode-server lifecycle routes leave no local-only classification", () => {
+  for (const route of REMOVED_LIFECYCLE_PATHS) {
     for (const method of ["GET", "POST"]) {
-      assert.equal(isLocalOnlyPath(route, method), true, `${method} ${route}`);
-      assert.notEqual(classifyRoute(route, method).routeClass, "PUBLIC", `${method} ${route}`);
+      assert.equal(isLocalOnlyPath(route, method), false, `${method} ${route}`);
     }
   }
   // The inference surface stays remote-reachable: it no longer spawns anything.
   assert.equal(isLocalOnlyPath("/api/v1/chat/completions", "POST"), false);
 });
 
-test("opencode-server lifecycle route files exist where the classification expects them", () => {
+test("removed opencode-server lifecycle route files no longer exist", () => {
   const root = path.resolve(import.meta.dirname, "../..");
-  for (const route of LIFECYCLE_PATHS) {
+  for (const route of REMOVED_LIFECYCLE_PATHS) {
     const file = path.join(root, "src/app", route, "route.ts");
-    assert.ok(fs.existsSync(file), file);
+    assert.equal(fs.existsSync(file), false, file);
   }
 });
 

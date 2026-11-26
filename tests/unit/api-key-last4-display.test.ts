@@ -2,7 +2,6 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { formatApiKeyLast4, maskStoredApiKey } from "@/shared/utils/apiKeyMask";
 import { formatApiKeyLast4 as formatApiKeyLast4ReExport } from "@/lib/apiKeyExposure";
-import { maskApiKey } from "@/lib/services/apiKey";
 
 describe("API Key Last 4 Masking and Display (#19982)", () => {
   describe("formatApiKeyLast4", () => {
@@ -52,21 +51,6 @@ describe("API Key Last 4 Masking and Display (#19982)", () => {
     it("is re-exported from apiKeyExposure", () => {
       assert.equal(typeof formatApiKeyLast4ReExport, "function");
       assert.equal(formatApiKeyLast4ReExport("sk-test12345678a82f"), "sk-••••••••a82f");
-    });
-  });
-
-  describe("maskApiKey (services)", () => {
-    it("dynamically respects key prefix instead of hardcoding nr_", () => {
-      assert.equal(maskApiKey("nr_abcdef1234a82f"), "nr_••••••••a82f");
-      assert.equal(maskApiKey("mx_abcdef12349b1c"), "mx_••••••••9b1c");
-      assert.equal(maskApiKey("da_abcdef12347788"), "da_••••••••7788");
-      assert.equal(maskApiKey("cp_abcdef12343322"), "cp_••••••••3322");
-      assert.equal(maskApiKey("sk-abcdef12345566"), "sk-••••••••5566");
-    });
-
-    it("handles bare or empty keys safely", () => {
-      assert.equal(maskApiKey(""), "");
-      assert.equal(maskApiKey("abcdef1234"), "••••••••1234");
     });
   });
 });

@@ -1,6 +1,6 @@
 /**
  * Regression: when OMNIROUTE_BUILD_PROFILE=minimal is the resolved build
- * profile, the four stub modules throw FeatureDisabledError instead of
+ * profile, the remaining stub modules throw FeatureDisabledError instead of
  * performing their privileged operations.
  * See docs/security/SOCKET_DEV_FINDINGS.md.
  */
@@ -40,16 +40,4 @@ test("cloudSync.stub.ts: syncToCloud soft-fails with feature-disabled message", 
   });
   assert.equal(stub.CLOUD_SYNC_SECRETS_ENABLED, false);
   await assert.rejects(() => stub.fetchWithTimeout(), /cloud-sync/);
-});
-
-test("ninerouter.stub.ts: install / resolveSpawnArgs throw FeatureDisabledError", async () => {
-  const stub = await import("../../../src/lib/services/installers/ninerouter.stub.ts");
-  // #12810 renamed the stub's `installNinerouter` to `install` (the real module's export
-  // name) and added the remaining real exports; every one of them must stay disabled.
-  await assert.rejects(() => stub.install(), /9router-installer/);
-  await assert.rejects(() => stub.update(), /9router-installer/);
-  await assert.rejects(() => stub.uninstall(), /9router-installer/);
-  await assert.rejects(() => stub.getInstalledVersion(), /9router-installer/);
-  await assert.rejects(() => stub.getLatestVersion(), /9router-installer/);
-  assert.throws(() => stub.resolveSpawnArgs("api-key", 20130), /9router-installer/);
 });

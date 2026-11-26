@@ -33,10 +33,13 @@ test("RED reproduction: a native FormData body loses its shape through undici's 
     "index.js"
   );
 
-  const req = new UndiciRequest("https://api.cloudflare.com/client/v4/accounts/x/workers/scripts/y", {
-    method: "PUT",
-    body: fd,
-  });
+  const req = new UndiciRequest(
+    "https://api.cloudflare.com/client/v4/accounts/x/workers/scripts/y",
+    {
+      method: "PUT",
+      body: fd,
+    }
+  );
 
   // This is the exact Content-Type Cloudflare's API rejects — proves *why*
   // relying on FormData + fetch-derived headers broke on self-hosted Docker.
@@ -76,23 +79,29 @@ test("buildCloudflareWorkerUploadRequest body is a well-formed multipart Buffer 
   );
   assert.ok(text.includes(workerScript), "body must embed the actual worker script source");
   assert.ok(text.includes(JSON.stringify(metadata)), "body must embed the JSON metadata");
-  assert.ok(!text.includes("[object FormData]"), "body must never degrade to the FormData stringification bug");
+  assert.ok(
+    !text.includes("[object FormData]"),
+    "body must never degrade to the FormData stringification bug"
+  );
 });
 
 test("the request undici's fetch/Request builds from our headers+body keeps the accepted Content-Type", () => {
   // Simulates exactly what open-sse/utils/proxyFetch.ts's patchedFetch does in
   // production (self-hosted, non-cloud): constructing a Request/fetch call
-  // via the pinned `undici` package. This is the regression guard for the
-  // actual upload path used by the cloudflare-deploy route.
+  // via the pinned `undici` package. This guards the retained Cloudflare
+  // worker upload helper after Task 8 removed the deploy route that used it.
   const { headers, body } = buildCloudflareWorkerUploadRequest("export default {};", {
     main_module: "index.js",
   });
 
-  const req = new UndiciRequest("https://api.cloudflare.com/client/v4/accounts/x/workers/scripts/y", {
-    method: "PUT",
-    headers,
-    body,
-  });
+  const req = new UndiciRequest(
+    "https://api.cloudflare.com/client/v4/accounts/x/workers/scripts/y",
+    {
+      method: "PUT",
+      headers,
+      body,
+    }
+  );
 
   const contentType = req.headers.get("content-type");
   assert.ok(contentType?.startsWith("multipart/form-data; boundary="));

@@ -4,7 +4,7 @@ import path from "node:path";
 import test from "node:test";
 
 const instrumentationPath = path.join(process.cwd(), "src/instrumentation-node.ts");
-const quotaAutoPingPath = path.join(process.cwd(), "src/lib/services/quotaAutoPing.ts");
+const quotaAutoPingPath = path.join(process.cwd(), "src/lib/quota/quotaAutoPing.ts");
 const credentialRefreshPath = path.join(
   process.cwd(),
   "src/lib/usage/providerLimits/credentialRefresh.ts"

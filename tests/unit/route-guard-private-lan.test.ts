@@ -80,8 +80,7 @@ test("classifyHostLocality: loopback / lan / remote, with fail-closed null", () 
   assert.equal(classifyHostLocality(null), "remote", "unknown peer must fail closed");
 });
 
-test("services + traffic-inspector remain LOCAL_ONLY paths", () => {
-  assert.equal(isLocalOnlyPath("/api/services/9router/status"), true);
+test("traffic-inspector remains a LOCAL_ONLY path", () => {
   assert.equal(isLocalOnlyPath("/api/tools/traffic-inspector/sessions"), true);
 });
 

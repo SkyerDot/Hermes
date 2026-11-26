@@ -16,7 +16,8 @@
  * so no new table is warranted.
  *
  * Every write is best-effort: a DB hiccup here must never break the request
- * it is instrumenting (mirrors src/lib/db/pluginMetrics.ts).
+ * it is instrumenting (the same best-effort pattern used by the retained
+ * aggregate counters in this module).
  */
 import { getDbInstance } from "./core";
 

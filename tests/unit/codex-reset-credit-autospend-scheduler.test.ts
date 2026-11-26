@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const scheduler = await import("../../src/lib/services/codexResetCreditAutospend.ts");
+const scheduler = await import("../../src/lib/quota/codexResetCreditAutospend.ts");
 
 function makeDeps(options: {
   settings?: Record<string, unknown>;

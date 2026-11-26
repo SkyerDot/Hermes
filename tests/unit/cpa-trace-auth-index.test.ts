@@ -5,8 +5,6 @@ import {
   readCpaAuthIndex,
   rememberCpaAuthIndex,
 } from "../../open-sse/handlers/chatCore/cpaTraceAuthIndex.ts";
-import { labelForCliproxyAuthIndex } from "../../src/lib/services/cliproxyAccountHealth.ts";
-import type { CliproxyAccountHealth } from "../../src/lib/services/cliproxyAccountHealth.ts";
 
 test("parseCpaTraceAuthIndex keeps an opaque auth index", () => {
   assert.equal(parseCpaTraceAuthIndex("acct-1"), "acct-1");
@@ -35,16 +33,4 @@ test("rememberCpaAuthIndex survives a header rebuild and the latest response win
   rememberCpaAuthIndex(second);
   assert.equal(readCpaAuthIndex(second), "second-index");
   assert.equal(readCpaAuthIndex(new Response(null)), null);
-});
-
-test("labelForCliproxyAuthIndex joins the sanitized label and hides emails", () => {
-  const accounts = [
-    { authIndex: "acct-1", label: "work" },
-    { authIndex: "acct-2", label: "person@example.com" },
-    { authIndex: "acct-3", label: "C:\\keys\\auth.json" },
-  ] as CliproxyAccountHealth[];
-  assert.equal(labelForCliproxyAuthIndex("acct-1", accounts), "work");
-  assert.equal(labelForCliproxyAuthIndex("acct-2", accounts), null);
-  assert.equal(labelForCliproxyAuthIndex("acct-3", accounts), null);
-  assert.equal(labelForCliproxyAuthIndex("missing", accounts), null);
 });

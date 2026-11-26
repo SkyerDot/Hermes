@@ -20,7 +20,7 @@ test("admin-prefix routes require admin for ANY method", () => {
   assert.equal(inferRequiredScope("GET", "/api/oauth/start"), "admin");
   assert.equal(inferRequiredScope("POST", "/api/auth/login"), "admin");
   assert.equal(inferRequiredScope("POST", "/api/policy"), "admin");
-  assert.equal(inferRequiredScope("POST", "/api/services/foo/start"), "admin");
+  assert.equal(inferRequiredScope("POST", "/api/mcp/tools/call"), "admin");
 });
 
 test("admin-mutation prefixes: GET stays read, mutations become admin", () => {
@@ -59,8 +59,8 @@ test("a brand-new mutating route is write by default (not admin)", () => {
 test("prefix matching does not over-match unrelated paths", () => {
   // "/api/authz-inventory" must NOT be caught by the "/api/auth" admin prefix
   assert.equal(inferRequiredScope("GET", "/api/authz-inventory"), "read");
-  // "/api/services" itself and its children are admin, but a lookalike is not
-  assert.equal(inferRequiredScope("GET", "/api/services-catalog"), "read");
+  // "/api/oauth" itself and its children are admin, but a lookalike is not
+  assert.equal(inferRequiredScope("GET", "/api/oauth-catalog"), "read");
 });
 
 test("API-key management needs admin: a write token cannot mint a manage-scoped key (GHSA-35gq)", () => {

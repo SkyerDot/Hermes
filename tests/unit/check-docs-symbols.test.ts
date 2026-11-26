@@ -66,9 +66,9 @@ test("does NOT match when the doc path is deeper than the real route", () => {
 });
 
 test("static segment mismatch is not absorbed by an unrelated dynamic route", () => {
-  const files = new Set(["src/app/api/plugins/[name]/activate/route.ts"]);
-  // /api/plugins/{id}/enable: dynamic seg ok, but "enable" != "activate"
-  assert.equal(resolve("/api/plugins/{id}/enable", files), false);
+  const files = new Set(["src/app/api/cli-tools/runtime/[toolId]/route.ts"]);
+  // /api/cli-tools/runtime/{toolId}/enable: dynamic seg ok, but "enable" is extra
+  assert.equal(resolve("/api/cli-tools/runtime/{toolId}/enable", files), false);
 });
 
 // --- extractDocApiPaths --------------------------------------------------------------

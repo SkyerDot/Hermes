@@ -17,7 +17,7 @@ process.env.APP_LOG_TO_FILE = "false";
 const route = await import("../../src/app/api/settings/codex-wakeups/route.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
 const settingsDb = await import("../../src/lib/db/settings.ts");
-const service = await import("../../src/lib/services/codexWakeups.ts");
+const service = await import("../../src/lib/quota/codexWakeups.ts");
 const { resetDbInstance } = await import("../../src/lib/db/core.ts");
 
 test.after(async () => {

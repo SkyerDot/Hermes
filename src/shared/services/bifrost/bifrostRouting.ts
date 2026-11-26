@@ -1,4 +1,3 @@
-import { getSupervisor } from "@/lib/services/registry";
 import { getProviderPluginManifestEntryForModel } from "@omniroute/open-sse/config/providerPluginManifestRegistry.ts";
 
 export type RelayRoutingBackend = "ts" | "bifrost" | "auto";
@@ -81,16 +80,9 @@ export function resetBifrostCooldowns(): void {
 export function getBifrostRoutingConfig(
   env: NodeJS.ProcessEnv = process.env
 ): BifrostRoutingConfig | null {
-  const baseUrl = env.BIFROST_BASE_URL?.replace(/\/$/, "");
-
-  // If BIFROST_BASE_URL is unset, check if supervised instance is running
-  let resolvedBaseUrl = baseUrl;
-  if (!resolvedBaseUrl) {
-    const sup = getSupervisor("bifrost");
-    if (sup?.getStatus().state === "running") {
-      resolvedBaseUrl = `http://127.0.0.1:${sup.getStatus().port}`;
-    }
-  }
+  // The embedded-service supervisor was removed (Task 8). Only an explicitly
+  // configured sidecar URL is used; no local process discovery remains.
+  const resolvedBaseUrl = env.BIFROST_BASE_URL?.replace(/\/$/, "");
 
   if (!resolvedBaseUrl) return null;
 

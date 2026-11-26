@@ -44,8 +44,6 @@ export const SPAWN_CAPABLE_PREFIXES: ReadonlyArray<string> = [
   "/api/cli-tools/smelt-settings", // GET probes the `smelt` binary via getCliRuntimeStatus()
   "/api/cli-tools/status", // GET calls getCliRuntimeStatus() per CLI_TOOL_IDS entry
   "/api/cli-tools/whycodes-settings", // GET probes the `whycodes` binary via getCliRuntimeStatus()
-  "/api/services/", // T-10: can run npm install + spawn node processes
-  "/api/version-manager/", // downloads, unpacks and runs the CLIProxyAPI binary (Hard Rules #15 + #17)
   "/api/tunnels/cloudflared", // POST installs/starts/stops cloudflared; safe methods are exempt and only probe the binary for loopback/LAN callers
   "/api/tunnels/tailscale/disable", // stops Funnel and may stop tailscaled/Tailscale service
   "/api/tunnels/tailscale/enable", // starts tailscaled/login/funnel subprocesses
@@ -56,7 +54,6 @@ export const SPAWN_CAPABLE_PREFIXES: ReadonlyArray<string> = [
   "/api/settings/mitm", // installs a system trusted root CA + /etc/hosts DNS overrides via src/mitm/* — must never be whitelistable via manage-scope bypass (GHSA-x7vm-hp44-9p79, Hard Rules #15 + #17)
   "/api/cli-tools/antigravity-mitm", // same privileged CA-trust + DNS surface as /api/settings/mitm (GHSA-x7vm-hp44-9p79, Hard Rules #15 + #17)
   "/api/tools/traffic-inspector/", // http-proxy listener + system proxy (Hard Rules #15 + #17)
-  "/api/plugins/", // plugins: load/execute via worker_threads + child_process (Hard Rules #15 + #17)
   "/api/local/", // T-12: 1-click local service launchers (Redis today) — must never be whitelistable via manage-scope bypass (Hard Rules #15 + #17)
   "/api/skills/collect/", // Skill Collector CLI detection: GET .../detect spawns a child process per CLI_TOOL_IDS entry — must never be whitelistable via manage-scope bypass (Hard Rules #15 + #17, PR #6294 review)
   "/api/skills/install", // POST registers a handler string that can alias the built-in execute_command / eval_code (src/lib/skills/executor.ts -> builtins.ts -> sandbox.ts childProcess.spawn) — must never be whitelistable via manage-scope bypass (Hard Rules #15 + #17, GHSA-jx89-f37j-pq89)
@@ -79,7 +76,6 @@ export const SPAWN_CAPABLE_PREFIXES: ReadonlyArray<string> = [
   "/api/cli-tools/grok-build-settings", // GET probes the `grok` binary via getCliRuntimeStatus()
   "/api/cli-tools/forge-settings", // GET probes the `forge` binary via getCliRuntimeStatus()
   "/api/cli-tools/jcode-settings", // GET probes the `jcode` binary via getCliRuntimeStatus()
-  "/dashboard/providers/services/", // reverse proxy into embedded service UIs — Hard Rule #17 pairs it with /api/services/
   "/api/discovery/", // not a spawn, but declared strict-loopback with no manage-scope bypass (outbound provider probes, SSRF-adjacent)
   // Host-credential reads: no spawn, but the handler reads credential files from the host's
   // home directory and imports them, so a manage-scoped key must never reach it remotely

@@ -17,7 +17,7 @@ process.env.DATA_DIR = directory;
 process.env.APP_LOG_TO_FILE = "false";
 
 const { pingCodexAccountNow, createManualPingState } =
-  await import("../../src/lib/services/quotaAutoPingManual.ts");
+  await import("../../src/lib/quota/quotaAutoPingManual.ts");
 const { resetDbInstance } = await import("../../src/lib/db/core.ts");
 const db = await import("../../src/lib/db/providers.ts");
 const settingsDb = await import("../../src/lib/db/settings.ts");

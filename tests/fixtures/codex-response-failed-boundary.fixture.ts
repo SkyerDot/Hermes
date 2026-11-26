@@ -1,4 +1,4 @@
-// This suite intentionally owns process-wide DATA_DIR, plugin, and DB state. It must run only
+// This suite intentionally owns process-wide DATA_DIR and DB state. It must run only
 // inside the subprocess launched by tests/unit/codex-response-failed-boundary.test.ts.
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -10,11 +10,7 @@ import type { CodexWreqWebSocket } from "../../open-sse/executors/codex/appServe
 import type { AdapterEvent } from "../../open-sse/vendor/codex-chatgpt-web/types.ts";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-codex-boundary-data-"));
-const TEST_PLUGINS_DIR = fs.mkdtempSync(
-  path.join(os.tmpdir(), "omniroute-codex-boundary-plugins-")
-);
 process.env.DATA_DIR = TEST_DATA_DIR;
-process.env.OMNIROUTE_PLUGINS_DIR = TEST_PLUGINS_DIR;
 process.env.APP_LOG_TO_FILE = "false";
 
 const { CodexExecutor, __setCodexWebSocketTransportForTesting, encodeResponseSseEvent } =
@@ -150,7 +146,6 @@ test.after(() => {
   __setCodexWebSocketTransportForTesting(undefined);
   resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
-  fs.rmSync(TEST_PLUGINS_DIR, { recursive: true, force: true });
 });
 
 test("Codex same-format error event emits only a fixed public failure contract", () => {

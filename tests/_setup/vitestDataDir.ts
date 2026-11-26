@@ -26,11 +26,7 @@ export function isolatedDataDirEnv(): Record<string, string> {
     process.env.DATA_DIR = dir;
   }
   const dir = process.env[CREATED_KEY] as string;
-  return {
-    DATA_DIR: dir,
-    // Same guard as isolateDataDir.ts: the plugin scanner would otherwise read ~/.omniroute/plugins.
-    OMNIROUTE_PLUGINS_DIR: process.env.OMNIROUTE_PLUGINS_DIR?.trim() || path.join(dir, "plugins"),
-  };
+  return { DATA_DIR: dir };
 }
 
 export default function setup(): () => void {

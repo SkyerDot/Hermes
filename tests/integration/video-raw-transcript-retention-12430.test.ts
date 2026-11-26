@@ -13,7 +13,6 @@ import { eventually, serveRetentionRoutes, syntheticReply } from "./_videoRetent
 const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "omni-raw-video-12430-"));
 Object.assign(process.env, {
   DATA_DIR: dataDir,
-  OMNIROUTE_PLUGINS_DIR: path.join(dataDir, "plugins"),
   API_KEY_SECRET: "raw-video-fixture-only-secret-12430",
   JWT_SECRET: "raw-video-fixture-only-jwt-12430",
   REQUIRE_API_KEY: "true",

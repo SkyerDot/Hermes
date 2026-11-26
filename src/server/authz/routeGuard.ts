@@ -62,23 +62,18 @@ export const LOCAL_ONLY_API_PREFIXES: ReadonlyArray<string> = [
   "/api/cli-tools/smelt-settings", // spawns via getCliRuntimeStatus() to detect the `smelt` CLI install (Hard Rules #15 + #17, GHSA-35fw-cv32-2373)
   "/api/cli-tools/status", // GET calls getCliRuntimeStatus() per CLI_TOOL_IDS entry (Hard Rules #15 + #17, GHSA-35fw-cv32-2373)
   "/api/cli-tools/whycodes-settings", // spawns via getCliRuntimeStatus() to detect the `whycodes` CLI install (Hard Rules #15 + #17, #14107)
-  "/api/services/", // T-10: embedded service lifecycle (spawn child processes)
-  "/api/version-manager/", // downloads, unpacks and runs the CLIProxyAPI binary, the same work as /api/services/cliproxy/ (Hard Rules #15 + #17); read-only GETs exempted below
   "/api/tunnels/cloudflared", // POST installs/starts/stops cloudflared; safe methods are exempted below
   "/api/tunnels/tailscale/disable", // stops Funnel and may stop tailscaled/Tailscale service
   "/api/tunnels/tailscale/enable", // starts tailscaled/login/funnel subprocesses
   "/api/tunnels/tailscale/install", // downloads/installs Tailscale and starts its daemon
   "/api/tunnels/tailscale/login", // spawns `tailscale up`
   "/api/tunnels/tailscale/start-daemon", // starts tailscaled/Tailscale service
-  "/dashboard/providers/services/", // T-07: reverse proxy to embedded service UIs
   "/api/copilot/", // unauthenticated LLM driver — CLI-only by default; admins can opt-in to remote access via manage-scope bypass
   "/api/tools/agent-bridge/", // AgentBridge: spawns MITM server + DNS edits (Hard Rules #15 + #17)
   "/api/settings/mitm", // "Enable MITM" flow: installs a system-wide trusted root CA (security add-trusted-cert / certutil / update-ca-certificates) and writes /etc/hosts DNS overrides via src/mitm/* — host-level TLS interception. Was MANAGEMENT-only, so requireLogin=false left it remotely reachable (GHSA-x7vm-hp44-9p79, Hard Rules #15 + #17). Same tier as /api/tools/agent-bridge/.
   "/api/cli-tools/antigravity-mitm", // Antigravity MITM enable flow: same privileged CA-trust + DNS surface as /api/settings/mitm (GHSA-x7vm-hp44-9p79, Hard Rules #15 + #17). Covers the /alias child route by prefix.
   "/api/tools/traffic-inspector/", // Traffic Inspector: http-proxy listener + system proxy (Hard Rules #15 + #17)
-  "/api/plugins/", // plugins: load/execute via worker_threads + child_process (Hard Rules #15 + #17)
-  "/api/plugins", // bare path: GET list + POST install also trigger plugin loading
-  "/api/middleware/", // SECURITY_AUDIT M8: middleware hooks compile+run arbitrary JS via new vm.Script (src/lib/middleware/registry.ts) on the request hot path — same code-exec class as /api/plugins/, so loopback-gate it for parity (Hard Rules #15 + #17)
+  "/api/middleware/", // SECURITY_AUDIT M8: middleware hooks compile+run arbitrary JS via new vm.Script (src/lib/middleware/registry.ts) on the request hot path — same code-exec class as the removed plugin runtime, so loopback-gate it for parity (Hard Rules #15 + #17)
   "/api/system/version", // auto-update: spawns git checkout + npm install — RCE-via-tunnel surface (Hard Rules #15 + #17, found by 6A.8 route-guard gate)
   "/api/db-backups/exportAll", // spawns tar for export archive (Hard Rules #15 + #17, found by 6A.8 route-guard gate)
   "/api/db/health", // runManagedDbHealthCheck() forks native diagnostics into a child process via healthCheckRunner.ts (Hard Rules #15 + #17, #13717)
@@ -370,13 +365,6 @@ export function isPrivateLanHost(hostHeader: string | null): boolean {
  *   PATH lookup (`which cloudflared`), which runs only for loopback/LAN callers:
  *   a remote caller gets the unprobed status (`probed: false`) with no spawn
  *   (GHSA-35fw-cv32-2373 class, GHSA-jmq6-8j86-8xqj call-site gate).
- *   /api/services/cliproxy/status — GET returns lifecycle/version metadata only;
- *   its latest-version lookup is an HTTPS release query, never a child process.
- *   Lifecycle mutations remain LOCAL_ONLY through the parent /api/services/
- *   prefix. The other service status routes are deliberately NOT exempt:
- *   bifrost/dario/mux/openwa call `getLatestVersion()` → `npm view` (execFile) on
- *   a cache miss, which a remote caller must never trigger (Hard Rules #15/#17),
- *   and 9router also supports `?reveal=key` (plaintext service credential).
  *   /api/skills/executions — GET lists stored execution rows (two SQLite reads in
  *   skillExecutor.listExecutions/countExecutions); only POST runs a skill and reaches
  *   the sandbox container spawn (GHSA-jx89-f37j-pq89), and it stays LOCAL_ONLY.
@@ -385,12 +373,7 @@ export function isPrivateLanHost(hostHeader: string | null): boolean {
  */
 export const LOCAL_ONLY_API_GET_EXEMPTIONS: ReadonlySet<string> = new Set([
   "/api/system/version",
-  // The two read-only version-manager routes only report state; every other route under
-  // /api/version-manager/ installs or spawns the CLIProxyAPI binary.
-  "/api/version-manager/status",
-  "/api/version-manager/check-update",
   "/api/tunnels/cloudflared",
-  "/api/services/cliproxy/status",
   "/api/skills/executions",
 ]);
 

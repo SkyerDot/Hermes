@@ -15,24 +15,24 @@ import { isLocalOnlyPath } from "../../src/server/authz/routeGuard.ts";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
-// Synthetic isLocalOnlyPath: classifies anything under the three spawn-capable
+// Synthetic isLocalOnlyPath: classifies anything under the two surviving spawn-capable
 // prefixes via startsWith. Mirrors the real predicate's prefix semantics without
 // importing routeGuard.ts (keeps this test DB-free / pure).
-const SYNTHETIC_PREFIXES = ["/api/mcp/", "/api/cli-tools/runtime/", "/api/services/"];
+const SYNTHETIC_PREFIXES = ["/api/mcp/", "/api/cli-tools/runtime/"];
 const isLocalOnly = (path: string): boolean =>
   SYNTHETIC_PREFIXES.some((p) => path === p || path.startsWith(p));
 
 test("routeFileToApiPath maps a Next App Router route.ts to its URL path", () => {
   assert.equal(
-    routeFileToApiPath("src/app/api/services/9router/install/route.ts"),
-    "/api/services/9router/install"
+    routeFileToApiPath("src/app/api/cli-tools/runtime/claude/route.ts"),
+    "/api/cli-tools/runtime/claude"
   );
 });
 
 test("routeFileToApiPath resolves dynamic [param] segments to a concrete placeholder", () => {
   assert.equal(
-    routeFileToApiPath("src/app/api/services/[name]/logs/route.ts"),
-    "/api/services/_name_/logs"
+    routeFileToApiPath("src/app/api/cli-tools/runtime/[toolId]/route.ts"),
+    "/api/cli-tools/runtime/_toolId_"
   );
   assert.equal(
     routeFileToApiPath("src/app/api/cli-tools/runtime/[toolId]/route.ts"),
@@ -46,35 +46,35 @@ test("routeFileToApiPath normalizes Windows backslash separators before strippin
   // route-guard gate produces wrong API paths (false negatives that miss
   // RCE-capable spawn routes). See PR #5613.
   assert.equal(
-    routeFileToApiPath("src\\app\\api\\services\\9router\\install\\route.ts"),
-    "/api/services/9router/install"
+    routeFileToApiPath("src\\app\\api\\cli-tools\\runtime\\claude\\route.ts"),
+    "/api/cli-tools/runtime/claude"
   );
 });
 
 test("no unclassified routes when every spawn-capable route is local-only", () => {
   const routes = [
     "/api/mcp/tools",
-    "/api/services/9router/start",
-    "/api/cli-tools/runtime/_toolId_",
+    "/api/cli-tools/runtime/claude",
+    "/api/cli-tools/runtime/start",
   ];
   assert.deepEqual(findUnclassifiedSpawnRoutes(routes, isLocalOnly, {}), []);
 });
 
 test("flags a spawn-capable route that is NOT classified local-only (RCE-via-tunnel gap)", () => {
-  // Synthetic predicate that forgot to cover /api/services/ — the exact regression
-  // this gate guards against.
+  // Synthetic predicate that forgot to cover /api/cli-tools/runtime/ — the exact
+  // regression class this gate guards against.
   const leaky = (path: string): boolean => path.startsWith("/api/mcp/");
   assert.deepEqual(
-    findUnclassifiedSpawnRoutes(["/api/mcp/tools", "/api/services/cliproxy/install"], leaky, {}),
-    ["/api/services/cliproxy/install"]
+    findUnclassifiedSpawnRoutes(["/api/mcp/tools", "/api/cli-tools/runtime/claude"], leaky, {}),
+    ["/api/cli-tools/runtime/claude"]
   );
 });
 
 test("allowlisted routes are not flagged (frozen pre-existing exceptions)", () => {
   const leaky = (path: string): boolean => path.startsWith("/api/mcp/");
   assert.deepEqual(
-    findUnclassifiedSpawnRoutes(["/api/mcp/tools", "/api/services/legacy/route"], leaky, {
-      "/api/services/legacy/route": "frozen pre-existing exception",
+    findUnclassifiedSpawnRoutes(["/api/mcp/tools", "/api/cli-tools/runtime/legacy"], leaky, {
+      "/api/cli-tools/runtime/legacy": "frozen pre-existing exception",
     }),
     []
   );
@@ -83,8 +83,12 @@ test("allowlisted routes are not flagged (frozen pre-existing exceptions)", () =
 test("flags multiple unclassified routes, preserves input order", () => {
   const leaky = (): boolean => false;
   assert.deepEqual(
-    findUnclassifiedSpawnRoutes(["/api/services/a", "/api/mcp/b", "/api/services/c"], leaky, {}),
-    ["/api/services/a", "/api/mcp/b", "/api/services/c"]
+    findUnclassifiedSpawnRoutes(
+      ["/api/cli-tools/runtime/a", "/api/mcp/b", "/api/cli-tools/runtime/c"],
+      leaky,
+      {}
+    ),
+    ["/api/cli-tools/runtime/a", "/api/mcp/b", "/api/cli-tools/runtime/c"]
   );
 });
 
@@ -215,21 +219,11 @@ test("GHSA-jx89-f37j-pq89: /api/skills/install + /api/skills/executions (transit
   }
 });
 
-test("/api/version-manager/* (CLIProxyAPI download + supervisor spawn) is classified local-only", () => {
-  assert.ok(
-    SPAWN_CAPABLE_ROUTE_ROOTS.includes("src/app/api/version-manager"),
-    "src/app/api/version-manager must be a SPAWN_CAPABLE_ROUTE_ROOT"
-  );
-  for (const r of ["install", "start", "restart", "stop", "status", "check-update"]) {
-    assert.equal(isLocalOnlyPath(`/api/version-manager/${r}`), true, `${r} must be local-only`);
-  }
-});
-
 test("6A.8: spawn-capable routes in SPAWN_CAPABLE_ROUTE_ROOTS are still all classified local-only", async () => {
   // The original subcheck (SPAWN_CAPABLE_ROUTE_ROOTS) must still pass.
   // This test is a regression guard — the new source-scan does not break the old check.
   const { isLocalOnlyPath } = await import("../../src/server/authz/routeGuard.ts");
-  const rootPrefixes = ["/api/services/", "/api/mcp/", "/api/cli-tools/runtime/"];
+  const rootPrefixes = ["/api/mcp/", "/api/cli-tools/runtime/"];
   for (const prefix of rootPrefixes) {
     assert.ok(isLocalOnlyPath(prefix + "test"), `expected ${prefix} to be local-only`);
   }

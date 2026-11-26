@@ -26,8 +26,9 @@ import path from "node:path";
 import test, { after, afterEach } from "node:test";
 
 // Temp DATA_DIR has to be in place before anything opens the SQLite singleton:
-// dario resolves its base URL from settings, and the 9router executor reads its
-// API key from version_manager.
+// dario resolves its base URL from settings. The 9router executor now takes its
+// endpoint from NINEROUTER_HOST/PORT (or an explicit base URL) and its credentials
+// from the normal provider connection path (Task 8 removed the local supervisor).
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-strip-internal-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.NODE_ENV = "test";
@@ -35,19 +36,8 @@ process.env.DISABLE_SQLITE_AUTO_BACKUP = "true";
 process.env.DARIO_HOST = "127.0.0.1";
 process.env.DARIO_PORT = "9";
 
-const { getDbInstance, resetDbInstance } = await import("../../src/lib/db/core.ts");
+const { resetDbInstance } = await import("../../src/lib/db/core.ts");
 
-getDbInstance()
-  .prepare(
-    `INSERT OR IGNORE INTO version_manager
-       (tool, status, port, auto_start, auto_update, provider_expose)
-     VALUES ('9router', 'stopped', 20130, 0, 1, 0)`
-  )
-  .run();
-
-const { registerSupervisor, unregisterSupervisor } =
-  await import("../../src/lib/services/registry.ts");
-const { ServiceSupervisor } = await import("../../src/lib/services/ServiceSupervisor.ts");
 const { DarioExecutor } = await import("../../open-sse/executors/dario.ts");
 const { NineRouterExecutor } = await import("../../open-sse/executors/ninerouter.ts");
 
@@ -70,7 +60,6 @@ afterEach(() => {
 });
 
 after(() => {
-  unregisterSupervisor("9router");
   resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
 });
@@ -104,27 +93,6 @@ function assertBodyWentThroughMarkerStrip(body: Record<string, unknown>, executo
   );
 }
 
-/** A supervising 9router service, without actually spawning a process. */
-function fakeRunningSupervisor() {
-  const supervisor = new ServiceSupervisor({
-    tool: "9router",
-    port: 20130,
-    spawnArgs: () => ({
-      command: process.execPath,
-      args: ["-e", "setTimeout(() => {}, 60000)"],
-      env: process.env,
-      cwd: process.cwd(),
-    }),
-    healthUrl: () => "http://127.0.0.1:20130/api/health",
-    healthIntervalMs: 2000,
-    stopTimeoutMs: 3000,
-    logsBufferBytes: 64 * 1024,
-  });
-  // @ts-ignore — accessing private field for test purposes
-  supervisor["state"] = "running";
-  return supervisor;
-}
-
 test("DarioExecutor strips internal markers from the body it serializes", async () => {
   const calls = captureRequests();
   const executor = new DarioExecutor("http://127.0.0.1:9");
@@ -151,7 +119,6 @@ test("DarioExecutor strips internal markers from the body it serializes", async 
 });
 
 test("NineRouterExecutor strips internal markers from the body it serializes", async () => {
-  registerSupervisor(fakeRunningSupervisor());
   const calls = captureRequests();
   const executor = new NineRouterExecutor("http://127.0.0.1:20130");
 

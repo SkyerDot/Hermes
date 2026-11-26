@@ -5,10 +5,6 @@
  *   setting instead of its value; an unset secret stays empty so the dashboard can tell
  *   "configured" from "not configured".
  * - A PATCH that sends the mask back unchanged keeps the stored secret.
- * - GET /api/version-manager/status does not serialize the service API/management keys.
- * - GET /api/services/9router/status?reveal=key needs a real management credential even when
- *   login is disabled; the confirmation header alone is not enough.
- *
  * Run with:
  *   node --import tsx/esm --test tests/unit/settings-secret-masking.test.ts
  */
@@ -29,10 +25,7 @@ delete process.env.INITIAL_PASSWORD;
 
 const core = await import("../../src/lib/db/core.ts");
 const settingsDb = await import("../../src/lib/db/settings.ts");
-const versionManagerDb = await import("../../src/lib/db/versionManager.ts");
 const settingsRoute = await import("../../src/app/api/settings/route.ts");
-const versionStatusRoute = await import("../../src/app/api/version-manager/status/route.ts");
-const nineRouterStatusRoute = await import("../../src/app/api/services/9router/status/route.ts");
 
 test.after(() => {
   core.resetDbInstance();
@@ -114,44 +107,4 @@ test("PATCH with a new value still replaces the secret", async () => {
   assert.equal(response.status, 200);
   const stored = (await settingsDb.getSettings()) as Record<string, unknown>;
   assert.equal(stored.skillsmpApiKey, "replacement-marketplace-key");
-});
-
-test("GET /api/version-manager/status does not serialize the service keys", async () => {
-  await versionManagerDb.upsertVersionManagerTool({
-    tool: "cliproxyapi",
-    status: "stopped",
-    apiKey: "version-manager-api-key-secret",
-    managementKey: "version-manager-management-key-secret",
-  });
-  const response = await versionStatusRoute.GET(
-    await makeManagementSessionRequest("http://localhost/api/version-manager/status")
-  );
-  assert.equal(response.status, 200);
-  const text = await response.text();
-  assert.equal(text.includes("version-manager-api-key-secret"), false);
-  assert.equal(text.includes("version-manager-management-key-secret"), false);
-  const entry = (JSON.parse(text) as Array<Record<string, unknown>>).find(
-    (row) => row.tool === "cliproxyapi"
-  );
-  assert.ok(entry, "the tool row is still reported");
-  assert.equal(entry.status, "stopped");
-});
-
-test("9router reveal needs a management credential even with login disabled", async () => {
-  await versionManagerDb.upsertVersionManagerTool({ tool: "9router", status: "stopped" });
-  const url = "http://localhost/api/services/9router/status?reveal=key";
-
-  const anonymous = await nineRouterStatusRoute.GET(
-    new Request(url, { headers: { "X-Reveal-Confirm": "yes" } })
-  );
-  const anonymousText = await anonymous.text();
-  assert.equal(anonymous.status, 401, anonymousText);
-  assert.equal(anonymousText.includes("apiKeyPlain"), false);
-
-  const signedIn = await nineRouterStatusRoute.GET(
-    await makeManagementSessionRequest(url, { headers: { "X-Reveal-Confirm": "yes" } })
-  );
-  assert.equal(signedIn.status, 200);
-  const body = (await signedIn.json()) as Record<string, unknown>;
-  assert.equal(typeof body.apiKeyPlain, "string");
 });

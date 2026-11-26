@@ -58,7 +58,7 @@ const CODE_EXEC_ROUTES: ReadonlyArray<{ prefix: string; sample: string }> = [
   { prefix: "/api/cli-tools/grok-build-settings", sample: "/api/cli-tools/grok-build-settings" },
   { prefix: "/api/cli-tools/forge-settings", sample: "/api/cli-tools/forge-settings" },
   { prefix: "/api/cli-tools/jcode-settings", sample: "/api/cli-tools/jcode-settings" },
-  { prefix: "/dashboard/providers/services/", sample: "/dashboard/providers/services/x/embed/" },
+  { prefix: "/api/local/", sample: "/api/local/start" }, // one-click local launchers (podman/docker)
   { prefix: "/api/discovery/", sample: "/api/discovery/scan" },
   // Not a spawn: reads host-local Kiro credential files (kiro-cli SQLite, ~/.aws/sso/cache).
   // Held to the same never-bypassable bar so a manage-scoped key cannot read them remotely.

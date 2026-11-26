@@ -10,7 +10,7 @@ import path from "node:path";
 process.env.DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-13601-farreset-"));
 
 const { runQuotaAutoPingTick, createQuotaAutoPingState } =
-  await import("../../src/lib/services/quotaAutoPing.ts");
+  await import("../../src/lib/quota/quotaAutoPing.ts");
 const { resetDbInstance } = await import("../../src/lib/db/core.ts");
 
 test.after(() => {

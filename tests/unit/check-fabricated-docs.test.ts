@@ -287,16 +287,18 @@ test("api-path: a documented prefix with sub-routes (/api/usage/) is NOT flagged
   );
 });
 
-test("api-path: a dynamic-segment prefix (/api/services/{name}/) is NOT flagged", () => {
+test("api-path: a dynamic-segment prefix (/api/cli-tools/runtime/{toolId}/) is NOT flagged", () => {
   const found = findingsFor({
     files: {
-      "src/app/api/services/[name]/status/route.ts": "export async function GET() {}\n",
+      "src/app/api/cli-tools/runtime/[toolId]/route.ts": "export async function GET() {}\n",
     },
-    docs: { "services.md": "Hit `/api/services/{name}/status` for health.\n" },
+    docs: {
+      "cli-tools.md": "Hit `/api/cli-tools/runtime/{toolId}/` for tool status.\n",
+    },
   });
   assert.ok(
-    !found.has("api-path::/api/services/{name}/status"),
-    "[name] dynamic segments must match the documented {name} convention"
+    !found.has("api-path::/api/cli-tools/runtime/{toolId}/"),
+    "[toolId] dynamic segments must match the documented {toolId} convention"
   );
 });
 

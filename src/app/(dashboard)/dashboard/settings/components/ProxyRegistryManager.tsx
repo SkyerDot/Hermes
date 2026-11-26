@@ -66,10 +66,8 @@ export default function ProxyRegistryManager({
   onRedeployRelay,
   showVercelRelay = false,
   showDenoRelay = false,
-  showCloudflareRelay = false,
   onOpenVercelRelay,
   onOpenDenoRelay,
-  onOpenCloudflareRelay,
 }: ProxyRegistryManagerProps = {}) {
   const t = useTranslations("proxyRegistry");
   const { requestConfirm, confirmDialog } = useConfirmDialog();
@@ -121,7 +119,7 @@ export default function ProxyRegistryManager({
     updated: number;
     failed: number;
   } | null>(null);
-  const showAnyRelay = showVercelRelay || showDenoRelay || showCloudflareRelay;
+  const showAnyRelay = showVercelRelay || showDenoRelay;
   const notesId = useId();
   const bulkScopeIdsId = useId();
   const bulkImportDescId = useId();
@@ -691,14 +689,6 @@ export default function ProxyRegistryManager({
                       onSelect={() => onOpenDenoRelay?.()}
                     >
                       {settingsT("denoRelayButton")}
-                    </DropdownMenuItem>
-                  )}
-                  {showCloudflareRelay && (
-                    <DropdownMenuItem
-                      icon={<Icon name="cloud" size={16} />}
-                      onSelect={() => onOpenCloudflareRelay?.()}
-                    >
-                      {settingsT("cloudflareRelayButton")}
                     </DropdownMenuItem>
                   )}
                 </DropdownMenuContent>

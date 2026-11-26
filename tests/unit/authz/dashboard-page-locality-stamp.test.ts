@@ -97,7 +97,7 @@ async function pageRequest(pathname: string, peerIp: string, viaProxy: boolean) 
   return headersThePageSees(response);
 }
 
-for (const pathname of ["/dashboard/plugins", "/dashboard/resilience/connections", "/home"]) {
+for (const pathname of ["/dashboard/endpoint", "/dashboard/resilience/connections", "/home"]) {
   test(`a remote request for ${pathname} carries the stamp and reads as remote`, async () => {
     const seen = await pageRequest(pathname, "203.0.113.8", true);
 
@@ -105,22 +105,22 @@ for (const pathname of ["/dashboard/plugins", "/dashboard/resilience/connections
     const access = resolveDashboardLocalAccess(seen);
     assert.equal(access.locality, "remote");
     // Spawn-capable reads stay blocked for a remote session…
-    assert.ok(access.remoteBlockedPaths.includes("/api/plugins"));
     assert.ok(access.remoteBlockedPaths.includes("/api/db/health"));
+    assert.ok(access.remoteBlockedPaths.includes("/api/tools/traffic-inspector/capture-modes"));
     // …while a read the guard exempts is never reported as blocked.
-    assert.equal(access.remoteBlockedPaths.includes("/api/services/cliproxy/status"), false);
+    assert.equal(access.remoteBlockedPaths.includes("/api/system/version"), false);
   });
 }
 
 test("a loopback page request carries the stamp and reads as local", async () => {
-  const seen = await pageRequest("/dashboard/plugins", "127.0.0.1", false);
+  const seen = await pageRequest("/dashboard/endpoint", "127.0.0.1", false);
 
   assert.equal(seen.get(AUTHZ_HEADER_PEER_LOCALITY), "loopback");
   assert.equal(resolveDashboardLocalAccess(seen).locality, "local");
 });
 
 test("a private-network page request reads as local", async () => {
-  const seen = await pageRequest("/dashboard/plugins", "192.168.0.44", false);
+  const seen = await pageRequest("/dashboard/endpoint", "192.168.0.44", false);
 
   assert.equal(seen.get(AUTHZ_HEADER_PEER_LOCALITY), "lan");
   assert.equal(resolveDashboardLocalAccess(seen).locality, "local");

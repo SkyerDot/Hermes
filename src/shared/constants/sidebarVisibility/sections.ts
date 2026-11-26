@@ -50,13 +50,6 @@ const OMNI_PROXY_ITEMS: readonly SidebarItemDefinition[] = [
     icon: "view_list",
   },
   {
-    id: "embedded-services",
-    href: "/dashboard/providers/services",
-    i18nKey: "embeddedServices",
-    subtitleKey: "embeddedServicesSubtitle",
-    icon: "deployed_code",
-  },
-  {
     id: "combos",
     href: "/dashboard/combos",
     i18nKey: "combos",
@@ -554,13 +547,6 @@ const AGENTIC_FEATURES_ITEMS: readonly SidebarSectionChild[] = [
     i18nKey: "omniSkills",
     subtitleKey: "omniSkillsSubtitle",
     icon: "auto_fix_high",
-  },
-  {
-    id: "plugins",
-    href: "/dashboard/plugins",
-    i18nKey: "plugins",
-    subtitleKey: "pluginsSubtitle",
-    icon: "extension",
   },
 ];
 

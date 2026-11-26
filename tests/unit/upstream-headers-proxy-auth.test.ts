@@ -8,9 +8,9 @@
 //
 // `proxy-authorization` is the one that costs something: it authenticates the
 // hop to the operator's own proxy, so forwarding it hands that credential to
-// the model provider. Five other modules in this repo already strip it
-// (reverseProxy HOP_BY_HOP, mitm/sanitizeHeaders, inspector/httpProxyServer,
-// tproxy/tlsCapture, openapi/try) — the canonical list did not.
+// the model provider. Other modules in this repo already strip it
+// (mitm/sanitizeHeaders, inspector/httpProxyServer, tproxy/tlsCapture,
+// openapi/try) — the canonical list did not.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
@@ -18,8 +18,19 @@ import {
   isForbiddenUpstreamHeaderName,
   isForbiddenCustomHeaderName,
 } from "../../src/shared/constants/upstreamHeaders.ts";
-import { HOP_BY_HOP } from "../../src/lib/services/reverseProxy.ts";
 import { sanitizeUpstreamHeadersMap } from "../../src/lib/db/models.ts";
+
+// RFC 7230 §6.1 hop-by-hop names previously mirrored from the removed reverseProxy module.
+const HOP_BY_HOP = [
+  "connection",
+  "keep-alive",
+  "proxy-authenticate",
+  "proxy-authorization",
+  "te",
+  "trailers",
+  "transfer-encoding",
+  "upgrade",
+] as const;
 
 test("proxy-authorization and proxy-authenticate are refused", () => {
   for (const name of ["proxy-authorization", "proxy-authenticate"]) {
@@ -44,9 +55,8 @@ test("sanitizeUpstreamHeadersMap drops them and keeps the rest", () => {
   assert.deepEqual(out, { "X-Custom": "ok" });
 });
 
-test("the canonical list now covers every hop-by-hop name reverseProxy strips", () => {
-  // `reverseProxy.HOP_BY_HOP` is the repo's own RFC 7230 §6.1 list. The two
-  // lists drifting apart is what this fix repairs, so compare them directly —
+test("the canonical list covers every RFC 7230 hop-by-hop name", () => {
+  // The two lists drifting apart is what this fix repairs, so compare them directly —
   // `trailers` is the TE token, spelled `trailer` as a header name.
   const missing = [...HOP_BY_HOP]
     .map((name) => (name === "trailers" ? "trailer" : name))

@@ -21,7 +21,7 @@ import {
 import {
   createQuotaAutoPingState,
   runQuotaAutoPingTick,
-} from "../../src/lib/services/quotaAutoPing.ts";
+} from "../../src/lib/quota/quotaAutoPing.ts";
 import {
   __setProxyHealthTcpCheckForTesting,
   invalidateProxyHealth,

@@ -1,11 +1,10 @@
 // Starts and stops the local `opencode serve` process on the operator's request.
 //
 // SECURITY (Hard Rules #13/#15/#17): this is the ONLY module of the
-// opencode-server provider that loads a process API. It is imported solely by the
-// lifecycle routes under /api/services/opencode-server/, which isLocalOnlyPath()
-// classifies loopback-only before any auth check. The executor (request path)
-// never imports it: when the server is down a chat request fails with a clear 503
-// instead of spawning anything (check:route-guard-membership keeps it that way).
+// opencode-server provider that loads a process API. Task 8 removed the embedded
+// lifecycle routes that used to import it; the executor (request path) never
+// imports it, so when the server is down a chat request fails with a clear 503
+// instead of spawning anything.
 //
 // What gets executed is never request input: the binary comes from the operator's
 // environment (OPENCODE_SERVER_BIN / CLI_OPENCODE_BIN) or well-known install

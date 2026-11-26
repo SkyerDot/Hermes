@@ -10,7 +10,6 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
 const combosDb = await import("../../src/lib/db/combos.ts");
-const serviceModelsDb = await import("../../src/lib/db/serviceModels.ts");
 const providerModelsRoute =
   await import("../../src/app/api/v1/providers/[provider]/models/route.ts");
 
@@ -121,52 +120,6 @@ test("provider models route accepts provider alias in path", async () => {
   assert.ok(ids.includes("claude-sonnet-4-6"));
   assert.equal(
     ids.some((id: string) => id.startsWith("cc/") || id.startsWith("claude/")),
-    false
-  );
-});
-
-test("provider models route supports service provider 9router", async () => {
-  serviceModelsDb.saveServiceModels("9router", [
-    { id: "gpt-4o-mini", name: "Local9R Test", available: true },
-  ]);
-
-  const response = await providerModelsRoute.GET(
-    new Request("http://localhost/api/v1/providers/9router/models"),
-    {
-      params: Promise.resolve({ provider: "9router" }),
-    }
-  );
-
-  const body = (await response.json()) as ProviderModelsResponse;
-  const ids = body.data.map((model) => String(model.id));
-
-  assert.equal(response.status, 200);
-  assert.ok(ids.includes("gpt-4o-mini"));
-  assert.equal(
-    ids.some((id: string) => id.includes("/")),
-    false
-  );
-});
-
-test("provider models route supports service provider cliproxyapi", async () => {
-  serviceModelsDb.saveServiceModels("cliproxyapi", [
-    { id: "llama-3", name: "Clip Test", available: true },
-  ]);
-
-  const response = await providerModelsRoute.GET(
-    new Request("http://localhost/api/v1/providers/cliproxyapi/models"),
-    {
-      params: Promise.resolve({ provider: "cliproxyapi" }),
-    }
-  );
-
-  const body = (await response.json()) as ProviderModelsResponse;
-  const ids = body.data.map((model) => String(model.id));
-
-  assert.equal(response.status, 200);
-  assert.ok(ids.includes("llama-3"));
-  assert.equal(
-    ids.some((id: string) => id.includes("/")),
     false
   );
 });

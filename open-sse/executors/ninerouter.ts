@@ -6,21 +6,16 @@
  * wire shape from the request body and selects the matching endpoint so the
  * response format is always consistent with what the upstream client expects.
  *
- * Auth: the 9router API key (nr_xxx) stored per-service, passed as a Bearer token.
- * The service is local-only (loopback enforced by routeGuard.ts), so no TLS or
- * identity cloaking is needed — 9router handles its own upstream auth internally.
+ * Auth: the 9router API key (nr_xxx) is supplied through the normal provider
+ * credentials (or NINEROUTER_API_KEY-compatible connection fields) and passed as
+ * a Bearer token. The embedded service supervisor was removed (Task 8); the base
+ * URL now comes from NINEROUTER_HOST / NINEROUTER_PORT only.
  *
- * G-01: port and apiKey are re-read per request from the supervisor registry
- * and DB respectively — never cached in the constructor — because rotate-key
- * and update (new port) can change them between calls.
- *
- * G-02: when the supervisor is not running, the executor returns a 503 with
- * header X-Omni-Fallback-Hint: connection_cooldown so accountFallback.ts
- * applies a short 5s cooldown without tripping the provider circuit breaker.
+ * G-02: a failed dispatch keeps the X-Omni-Fallback-Hint contract so
+ * accountFallback.ts applies a short cooldown without tripping the provider
+ * circuit breaker.
  */
 
-import { getOrCreateApiKey } from "@/lib/services/apiKey";
-import { getSupervisor } from "@/lib/services/registry";
 import { stripInternalBodyFields } from "../config/cliFingerprints.ts";
 import { FETCH_TIMEOUT_MS } from "../config/constants.ts";
 import {
@@ -75,12 +70,27 @@ export class NineRouterExecutor extends BaseExecutor {
     return `${this.upstreamBaseUrl}/v1/chat/completions`;
   }
 
-  /**
-   * Build a 503 service_not_running Response with the fallback hint header.
-   * Message goes through buildErrorBody to satisfy hard rule #12 (no raw err.message).
-   */
-  private buildServiceUnavailableResponse(message: string): Response {
-    const body = buildErrorBody(503, message, undefined, { code: "service_not_running" });
+  /** Keep the account-fallback cooldown contract on local 9router outages. */
+  private withFallbackHint(response: Response): Response {
+    if (
+      response.status !== 503 ||
+      response.headers.get(NINEROUTER_FALLBACK_HINT_HEADER) === NINEROUTER_FALLBACK_HINT
+    ) {
+      return response;
+    }
+    const headers = new Headers(response.headers);
+    headers.set(NINEROUTER_FALLBACK_HINT_HEADER, NINEROUTER_FALLBACK_HINT);
+    return new Response(response.body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers,
+    });
+  }
+
+  private buildUnavailableResponse(): Response {
+    const body = buildErrorBody(503, "9router is unreachable", undefined, {
+      code: "service_not_running",
+    });
     return new Response(JSON.stringify(body), {
       status: 503,
       headers: {
@@ -139,28 +149,10 @@ export class NineRouterExecutor extends BaseExecutor {
   }
 
   async execute(input: ExecuteInput) {
-    // G-01: re-lookup supervisor state per request (port may change on restart/update)
-    const supervisor = getSupervisor("9router");
-    const status = supervisor?.getStatus();
-    if (!supervisor || status?.state !== "running") {
-      const stateLabel = status?.state ?? "unknown";
-      const msg = `9router is not running (state: ${stateLabel})`;
-      input.log?.warn?.("9ROUTER", msg);
-      return {
-        response: this.buildServiceUnavailableResponse(msg),
-        url: "",
-        headers: {},
-        transformedBody: null,
-      };
-    }
-    const dynamicPort = status.port;
-    const dynamicBaseUrl = `http://127.0.0.1:${dynamicPort}`;
+    const dynamicBaseUrl = this.upstreamBaseUrl;
+    const dynamicCredentials: ProviderCredentials | null = input.credentials;
 
-    // G-01: re-read apiKey per request — never cached in constructor
-    const apiKey = await getOrCreateApiKey("9router");
-    const dynamicCredentials: ProviderCredentials = { ...input.credentials, apiKey };
-
-    // G-01: strip "9router/" prefix before forwarding to upstream
+    // Strip the "9router/" prefix before forwarding to upstream.
     const innerModel = input.model.replace(/^9router\//, "");
 
     const endpoint = this.selectEndpoint(input.body);
@@ -192,13 +184,18 @@ export class NineRouterExecutor extends BaseExecutor {
       ? mergeAbortSignals(input.signal, timeoutSignal)
       : timeoutSignal;
 
-    input.log?.info?.(
-      "9ROUTER",
-      `→ ${url} (model: ${innerModel}, shape: ${shape}, port: ${dynamicPort})`
-    );
+    input.log?.info?.("9ROUTER", `→ ${url} (model: ${innerModel}, shape: ${shape})`);
 
     const fetchOptions = { method: "POST", headers, signal: combinedSignal };
-    const dispatch = (u: string, o: RequestInit) => this.dispatchRequest(u, o, input.credentials);
+    const dispatch = async (u: string, o: RequestInit): Promise<Response> => {
+      try {
+        return this.withFallbackHint(await this.dispatchRequest(u, o, input.credentials));
+      } catch (err) {
+        if (input.signal?.aborted) throw err;
+        input.log?.warn?.("9ROUTER", "local 9router dispatch failed");
+        return this.buildUnavailableResponse();
+      }
+    };
     let response = await dispatch(url, { ...fetchOptions, body: JSON.stringify(transformedBody) });
 
     // #14629: this override never calls super.execute(), so wire the same

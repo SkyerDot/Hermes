@@ -8,7 +8,7 @@
  * when the path exactly matches LOCAL_ONLY_API_GET_EXEMPTIONS.
  *
  * Security invariant: POST /api/system/version MUST remain local-only.
- * All OTHER local-only prefixes (/api/mcp/, /api/services/, etc.) must
+ * All OTHER local-only prefixes (/api/mcp/, /api/cli-tools/runtime/, etc.) must
  * remain local-only for GET too (exemption is exact-match only).
  */
 
@@ -93,8 +93,8 @@ describe("isLocalOnlyPath - GET exemption for /api/system/version (#5083)", () =
     assert.equal(isLocalOnlyPath("/api/mcp/audit/extra", "GET"), true);
   });
 
-  test("GET /api/services/9router/start still local-only", () => {
-    assert.equal(isLocalOnlyPath("/api/services/9router/start", "GET"), true);
+  test("GET /api/local/start still local-only", () => {
+    assert.equal(isLocalOnlyPath("/api/local/start", "GET"), true);
   });
 
   test("GET /api/cli-tools/runtime/claude still local-only", () => {
@@ -125,12 +125,6 @@ describe("isLocalOnlyPath - GET exemption for /api/system/version (#5083)", () =
   //   /api/mcp/audit         - GET is a read-only mcp_tool_audit query behind
   //   /api/mcp/audit/stats     requireManagementAuth (no spawn); the rest of
   //                              /api/mcp/* (sse/stream) stays local-only (#13941)
-  //   /api/services/cliproxy/status - GET reports lifecycle/version metadata; the
-  //                              latest-version lookup is an HTTPS release query (no
-  //                              spawn). bifrost/dario/mux/openwa status stay local-only:
-  //                              their getLatestVersion() runs `npm view` (execFile)
-  //   /api/version-manager/status, /check-update - GET only reports the CLIProxyAPI
-  //                              install state; install/start/restart/stop stay local-only
   //   /api/skills/executions - GET lists stored skill_executions rows (two SQLite reads,
   //                              no spawn); POST runs a skill, reaches the sandbox
   //                              container spawn and stays local-only (GHSA-jx89-f37j-pq89,
@@ -139,12 +133,9 @@ describe("isLocalOnlyPath - GET exemption for /api/system/version (#5083)", () =
     assert.deepEqual([...LOCAL_ONLY_API_GET_EXEMPTIONS].sort(), [
       "/api/mcp/audit",
       "/api/mcp/audit/stats",
-      "/api/services/cliproxy/status",
       "/api/skills/executions",
       "/api/system/version",
       "/api/tunnels/cloudflared",
-      "/api/version-manager/check-update",
-      "/api/version-manager/status",
     ]);
   });
 });

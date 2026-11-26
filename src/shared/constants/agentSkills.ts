@@ -227,15 +227,6 @@ export const CURATED_SKILLS: CuratedSkillEntry[] = [
     icon: "device_hub",
   },
   {
-    id: "omni-version-manager",
-    name: "Version Manager",
-    description:
-      "Install, start, stop, restart, and update embedded services (9Router, CLIProxyAPI). Monitor service status, retrieve logs, and configure auto-start for local-only service endpoints.",
-    category: "api",
-    area: "version-manager",
-    icon: "manage_history",
-  },
-  {
     id: "omni-inference",
     name: "Inference (OpenAI-compatible)",
     description:

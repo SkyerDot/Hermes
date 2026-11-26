@@ -10,15 +10,15 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import type { CodexWakeupDeps } from "../../src/lib/services/codexWakeups.ts";
+import type { CodexWakeupDeps } from "../../src/lib/quota/codexWakeups.ts";
 
 const directory = fs.mkdtempSync(path.join(os.tmpdir(), "codex-wakeups-"));
 process.env.DATA_DIR = directory;
 process.env.APP_LOG_TO_FILE = "false";
 
 const store = await import("../../src/lib/db/codexWakeups.ts");
-const service = await import("../../src/lib/services/codexWakeups.ts");
-const { nextWakeupAt } = await import("../../src/lib/services/codexWakeupSchedule.ts");
+const service = await import("../../src/lib/quota/codexWakeups.ts");
+const { nextWakeupAt } = await import("../../src/lib/quota/codexWakeupSchedule.ts");
 const { resetDbInstance, getDbInstance } = await import("../../src/lib/db/core.ts");
 
 test.after(async () => {

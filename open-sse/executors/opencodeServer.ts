@@ -69,11 +69,10 @@ import {
 //
 // The executor never starts the server. Spawning a process from the request path
 // would make every inference route a process-spawn surface (Hard Rules #15/#17,
-// check:route-guard-membership), so `opencode serve` is started by the operator:
-// from the dashboard (Providers -> Services -> OpenCode, backed by the local-only
-// /api/services/opencode-server/* routes and services/opencodeServerLauncher.ts)
-// or by running `opencode serve` themselves. A request that finds no server gets
-// a clear 503 instead.
+// check:route-guard-membership), so `opencode serve` must be started by the
+// operator (see `opencodeServerLauncher.ts` / `opencodeServerEndpoint.ts` for the
+// retained local lifecycle helpers). A request that finds no server gets a clear
+// 503 instead.
 
 const DEFAULT_TIMEOUT_MS = 180_000;
 const CATALOG_TTL_MS = 60_000;

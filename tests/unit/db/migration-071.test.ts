@@ -1,12 +1,7 @@
 /**
- * Tests for migration 071 — extend version_manager for embedded services.
- *
- * Verifies:
- *  - 3 new columns are added (logs_buffer_path, provider_expose, last_sync_at)
- *  - 9router seed row inserted with expected defaults
- *  - Migration is idempotent (apply-twice → no error, no double seed)
- *  - Existing data survives the migration
- *  - getServiceRow / updateServiceField helpers work correctly
+ * Migration 071 remains in the SQL history even though the embedded-services runtime
+ * is gone. These checks pin the migration's schema and seed behavior without relying
+ * on the removed versionManager.ts module.
  */
 
 import test from "node:test";
@@ -21,7 +16,23 @@ process.env.NODE_ENV = "test";
 process.env.DISABLE_SQLITE_AUTO_BACKUP = "true";
 
 const core = await import("../../../src/lib/db/core.ts");
-const versionManager = await import("../../../src/lib/db/versionManager.ts");
+
+type ServiceRow = {
+  tool: string;
+  status: string;
+  port: number;
+  auto_start: number;
+  auto_update: number;
+  provider_expose: number;
+  pid: number | null;
+  logs_buffer_path: string | null;
+  last_sync_at: string | null;
+};
+
+function getServiceRow(tool: string): ServiceRow | undefined {
+  return core.getDbInstance().prepare("SELECT * FROM version_manager WHERE tool = ?").get(tool) as
+    ServiceRow | undefined;
+}
 
 async function resetDb() {
   core.resetDbInstance();
@@ -50,26 +61,23 @@ test("migration 071 — adds 3 new columns to version_manager", async () => {
 });
 
 test("migration 071 — seeds 9router row with expected defaults", async () => {
-  const row = await versionManager.getServiceRow("9router");
+  const row = getServiceRow("9router");
 
   assert.ok(row !== null, "9router row should exist after migration");
-  assert.equal(row.tool, "9router");
-  assert.equal(row.status, "not_installed");
-  assert.equal(row.port, 20130);
-  assert.equal(row.autoStart, false);
-  assert.equal(row.autoUpdate, true);
-  assert.equal(row.providerExpose, true);
-  assert.equal(row.pid, null);
-  assert.equal(row.logsBufferPath, null);
-  assert.equal(row.lastSyncAt, null);
+  assert.equal(row?.tool, "9router");
+  assert.equal(row?.status, "not_installed");
+  assert.equal(row?.port, 20130);
+  assert.equal(row?.auto_start, 0);
+  assert.equal(row?.auto_update, 1);
+  assert.equal(row?.provider_expose, 1);
+  assert.equal(row?.pid, null);
+  assert.equal(row?.logs_buffer_path, null);
+  assert.equal(row?.last_sync_at, null);
 });
 
-test("migration 071 — idempotent: applying twice produces no error and no double seed", async () => {
+test("migration 071 — idempotent: applying the seed twice produces no duplicate", async () => {
   const db = core.getDbInstance();
 
-  // Apply the migration SQL manually a second time (simulates re-run).
-  // The runner catches "duplicate column name" automatically; here we verify
-  // INSERT OR IGNORE prevents a duplicate 9router row.
   assert.doesNotThrow(() => {
     db.exec(`INSERT OR IGNORE INTO version_manager
       (tool, status, port, auto_start, auto_update, provider_expose)
@@ -86,61 +94,14 @@ test("migration 071 — idempotent: applying twice produces no error and no doub
 test("migration 071 — existing CLIProxyAPI data survives the migration", async () => {
   const db = core.getDbInstance();
 
-  // Simulate a pre-existing cliproxyapi row (it's seeded by T-11, not this migration).
   db.prepare(
     `INSERT OR IGNORE INTO version_manager (tool, status, port, auto_start, auto_update)
      VALUES ('cliproxyapi', 'stopped', 8317, 1, 1)`
   ).run();
 
-  const row = await versionManager.getServiceRow("cliproxyapi");
+  const row = getServiceRow("cliproxyapi");
   assert.ok(row !== null, "cliproxyapi row should still exist");
-  assert.equal(row.status, "stopped");
-  assert.equal(row.port, 8317);
-  assert.equal(row.providerExpose, false, "CLIProxyAPI provider_expose should default to 0");
-});
-
-test("getServiceRow — returns null for unknown tool", async () => {
-  const row = await versionManager.getServiceRow("nonexistent-tool");
-  assert.equal(row, null);
-});
-
-test("updateServiceField — updates a whitelisted field", async () => {
-  const updated = await versionManager.updateServiceField(
-    "9router",
-    "logsBufferPath",
-    "/tmp/ring.log"
-  );
-  assert.ok(updated !== null);
-  assert.equal(updated.logsBufferPath, "/tmp/ring.log");
-
-  const fetched = await versionManager.getServiceRow("9router");
-  assert.equal(fetched?.logsBufferPath, "/tmp/ring.log");
-});
-
-test("updateServiceField — updates providerExpose boolean → stored as INTEGER", async () => {
-  const updated = await versionManager.updateServiceField("9router", "providerExpose", false);
-  assert.ok(updated !== null);
-  assert.equal(updated.providerExpose, false);
-
-  const fetched = await versionManager.getServiceRow("9router");
-  assert.equal(fetched?.providerExpose, false);
-});
-
-test("updateServiceField — rejects non-whitelisted field", async () => {
-  await assert.rejects(
-    () =>
-      versionManager.updateServiceField(
-        "9router",
-        "injected_column; DROP TABLE version_manager--",
-        "evil"
-      ),
-    /not in the allowed list/
-  );
-});
-
-test("updateServiceField — updates lastSyncAt timestamp", async () => {
-  const ts = new Date().toISOString();
-  const updated = await versionManager.updateServiceField("9router", "lastSyncAt", ts);
-  assert.ok(updated !== null);
-  assert.equal(updated.lastSyncAt, ts);
+  assert.equal(row?.status, "stopped");
+  assert.equal(row?.port, 8317);
+  assert.equal(row?.provider_expose, 0, "CLIProxyAPI provider_expose should default to 0");
 });

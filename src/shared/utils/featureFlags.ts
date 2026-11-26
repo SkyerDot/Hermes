@@ -717,22 +717,6 @@ export function isFalNativeEnabled(): boolean {
   }
 }
 
-/**
- * Opt-in Node.js permission model for plugin processes. Read when a plugin is activated.
- * Fail closed to the pre-flag behavior: an unreadable flag store keeps it disabled.
- */
-export function isPluginPermissionModelEnabled(): boolean {
-  try {
-    return isFeatureFlagEnabled("PLUGIN_PERMISSION_MODEL_ENABLED");
-  } catch (error) {
-    console.error(
-      "[featureFlags] Failed to resolve PLUGIN_PERMISSION_MODEL_ENABLED, defaulting to disabled:",
-      error instanceof Error ? error.message : error
-    );
-    return false;
-  }
-}
-
 export function isAgentSessionMessagesEnabled(): boolean {
   try {
     return isFeatureFlagEnabled("AGENT_SESSION_MESSAGES_ENABLED");

@@ -33,7 +33,7 @@ import { APP_CONFIG } from "@/shared/constants/appConfig";
 // #5542 — On Windows npm is `npm.cmd`; Node ≥24 refuses to execFile a `.cmd` without
 // a shell (nodejs/node#52554 → "spawn npm ENOENT"). buildNpmExecOptions enables the
 // shell on win32 only; SERVICE_VERSION_PATTERN keeps the shell-joined version safe.
-import { buildNpmExecOptions, SERVICE_VERSION_PATTERN } from "@/lib/services/installers/utils";
+import { buildNpmExecOptions, SERVICE_VERSION_PATTERN } from "@/lib/system/npmExecOptions";
 
 const execFileAsync = promisify(execFile);
 

@@ -7,7 +7,7 @@ import test from "node:test";
 process.env.DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-autoping-proxy-"));
 
 const { createQuotaAutoPingState, runQuotaAutoPingTick } =
-  await import("../../src/lib/services/quotaAutoPing.ts");
+  await import("../../src/lib/quota/quotaAutoPing.ts");
 const { resetDbInstance } = await import("../../src/lib/db/core.ts");
 const { resolveProxyForRequest, runWithProxyContext } =
   await import("../../open-sse/utils/proxyFetch.ts");

@@ -64,13 +64,6 @@ async function assertStubCoversRealConsumerImports(specifier: string, stubRelPat
 }
 
 describe("build-profile stub export parity (#12806, #12807)", () => {
-  it("ninerouter.stub.ts exports everything real consumers import from @/lib/services/installers/ninerouter", async () => {
-    await assertStubCoversRealConsumerImports(
-      "@/lib/services/installers/ninerouter",
-      "../../src/lib/services/installers/ninerouter.stub.ts"
-    );
-  });
-
   it("mitm/cert/install.stub.ts exports everything real consumers import from @/mitm/cert/install", async () => {
     await assertStubCoversRealConsumerImports(
       "@/mitm/cert/install",

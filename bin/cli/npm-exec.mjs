@@ -4,7 +4,7 @@
 // `.cmd` without a shell (nodejs/node#52554), and a bare `npm` can additionally
 // resolve to an extensionless shim that `CreateProcess` cannot execute — so the
 // call fails with `EINVAL` or `ENOENT` while npm works fine in the same terminal.
-// `src/lib/services/installers/utils.ts` already solves this for the server; this
+// The server-side equivalent now lives in `src/lib/system/npmExecOptions.ts`; this
 // is the same rule for the `bin/cli` entry points, which cannot import TypeScript.
 //
 // SECURITY (Hard Rule #13): enabling the shell means the SHELL splits the command

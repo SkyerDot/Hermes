@@ -9,8 +9,8 @@ import {
   listCodexWakeupTasks,
   updateCodexWakeupTask,
 } from "@/lib/db/codexWakeups";
-import { nextWakeupAt } from "@/lib/services/codexWakeupSchedule";
-import { findUnusableWakeupAccounts, runCodexWakeupTaskNow } from "@/lib/services/codexWakeups";
+import { nextWakeupAt } from "@/lib/quota/codexWakeupSchedule";
+import { findUnusableWakeupAccounts, runCodexWakeupTaskNow } from "@/lib/quota/codexWakeups";
 import {
   codexWakeupActionSchema,
   type CodexWakeupTaskInput,

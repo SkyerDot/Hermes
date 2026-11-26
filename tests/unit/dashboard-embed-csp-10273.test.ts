@@ -79,7 +79,7 @@ const PAGE_PATHS = [
 const API_PATHS = [
   "/api",
   "/api/v1/chat/completions",
-  "/api/services/ninerouter/start",
+  "/api/local/redis/start",
   "/v1",
   "/v1/models",
   "/v1beta/models",
@@ -154,7 +154,7 @@ test("#10273 default build emits no extra header rules (byte-identical to pre-fe
   const rules = await loadHeaders("embed-off-shape");
   assert.deepEqual(
     rules.map((rule) => rule.source),
-    ["/:path*", "/dashboard/providers/services/:name/embed/:path*"]
+    ["/:path*"]
   );
 });
 
@@ -232,15 +232,16 @@ test("#10273 embed mode relaxes ONLY frame-ancestors — every other directive/h
   }
 });
 
-test("#10273 embed mode preserves the G-10 9Router embed override (last rule still wins)", async () => {
-  process.env[DASHBOARD_EMBED_ENV] = "vscode";
-  const rules = await loadHeaders("embed-on-g10");
+test("#10273 removed 9Router embed override no longer produces a second header rule", async () => {
+  delete process.env[DASHBOARD_EMBED_ENV];
+  const rules = await loadHeaders("embed-off-no-service-override");
   const headers = effectiveHeaders(rules, "/dashboard/providers/services/ninerouter/embed/ui");
 
-  assert.equal(
+  assert.equal(rules.length, 1, "the removed embedded-service override must be gone");
+  assert.match(
     headers["Content-Security-Policy"],
-    "frame-ancestors 'self'",
-    "the G-10 same-origin override must keep the last word for the 9Router embed route"
+    /frame-ancestors 'none'/,
+    "the removed embed path must fall through to the global strict CSP"
   );
 });
 
@@ -291,8 +292,8 @@ test("#10273 Next.js accepts the generated header sources in BOTH modes (startup
 
     assert.equal(
       routes.headers.length,
-      mode ? 3 : 2,
-      `mode=${mode ?? "off"} should produce ${mode ? 3 : 2} header routes`
+      mode ? 2 : 1,
+      `mode=${mode ?? "off"} should produce ${mode ? 2 : 1} header routes`
     );
   }
 });

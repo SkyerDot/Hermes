@@ -14,17 +14,7 @@ export const LOCAL_ONLY_DASHBOARD_PATHS = [
   "/api/resilience/connections",
   "/api/skills/executions",
   "/api/db/health",
-  "/api/plugins",
   "/api/tools/traffic-inspector/capture-modes",
-  "/api/services/cliproxy/status",
-  "/api/services/9router/status",
-  "/api/services/mux/status",
-  "/api/services/bifrost/status",
-  "/api/services/dario/status",
-  "/api/services/openwa/status",
-  "/api/services/llmlingua/status",
-  "/api/services/opencode-server/status",
-  "/api/services/singbox/status",
 ] as const;
 
 /**

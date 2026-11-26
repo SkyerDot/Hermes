@@ -98,8 +98,6 @@ export type ProxyRegistryManagerProps = {
   onRedeployRelay?: (proxy: ProxyItem) => void;
   showVercelRelay?: boolean;
   showDenoRelay?: boolean;
-  showCloudflareRelay?: boolean;
   onOpenVercelRelay?: () => void;
   onOpenDenoRelay?: () => void;
-  onOpenCloudflareRelay?: () => void;
 };

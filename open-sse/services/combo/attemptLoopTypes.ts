@@ -7,7 +7,6 @@
  * @internal — not part of the public combo.ts barrel.
  */
 import type { PerTargetAdmissionHook } from "../admission/types.ts";
-import type { CliproxyManagementHealthCache } from "../../../src/lib/services/cliproxyManagementPreflight.ts";
 import type { ResilienceSettings } from "../../../src/lib/resilience/settings";
 import type { ContextRelayConfig, UniversalHandoffConfig } from "../contextHandoff.ts";
 import type { ComboErrorEntry } from "./comboErrorAggregation.ts";
@@ -101,8 +100,6 @@ export type AttemptLoopDeps = {
   requestHeaders?: Headers | Record<string, unknown> | null;
   isModelAvailable?: IsModelAvailable;
   perTargetAdmission?: PerTargetAdmissionHook | null;
-  /** Optional only to permit deterministic management-health gate tests. */
-  cliproxyManagementHealthCache?: CliproxyManagementHealthCache;
   signal?: AbortSignal | null;
   body: Record<string, unknown>;
   startTime: number;

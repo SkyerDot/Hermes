@@ -26,6 +26,18 @@ const KNOWN_WRONG_UNTIL_SKILLS_FACTS_MERGE = new Set<string>([
 // operation. Remove when the spec drops it.
 const SPEC_CATCH_ALL = new Set<string>(["/api/v1/{omnirouteCatchAll}"]);
 
+// Task 8 removed these surfaces, but skills/**/*.md is a generated/derived
+// surface refreshed by Task 13. Keep the guard meaningful for every other URL
+// instead of editing generated skill files in Task 8.
+const TASK8_REMOVED_SURFACES: RegExp[] = [
+  /^\/api\/services(?:\/|$)/,
+  /^\/api\/version-manager(?:\/|$)/,
+  /^\/api\/plugins(?:\/|$)/,
+  /^\/api\/settings\/oneproxy(?:\/|$)/,
+  /^\/api\/settings\/proxy\/cloudflare-deploy$/,
+  /^\/api\/v1\/provider-plugin-manifest$/,
+];
+
 function walk(dir: string, out: string[] = []): string[] {
   for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
     const p = path.join(dir, e.name);
@@ -85,6 +97,7 @@ test("every OmniRoute URL in skills/**/*.md matches a real API route", () => {
     ({ urlPath }) =>
       !KNOWN_WRONG_UNTIL_SKILLS_FACTS_MERGE.has(urlPath) &&
       !SPEC_CATCH_ALL.has(urlPath) &&
+      !TASK8_REMOVED_SURFACES.some((r) => r.test(urlPath)) &&
       !routes.some((r) => r.test(urlPath))
   );
   assert.deepEqual(

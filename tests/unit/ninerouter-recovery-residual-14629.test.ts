@@ -11,11 +11,11 @@ const originalEnv = { ...process.env };
 for (const [key, directory] of Object.entries({
   HOME: "home",
   DATA_DIR: "data",
-  OMNIROUTE_PLUGINS_DIR: "plugins",
 })) {
   process.env[key] = join(testRoot, directory);
   mkdirSync(process.env[key]!, { recursive: true });
 }
+process.env.NINEROUTER_PORT = "23146";
 process.env.NODE_ENV = "test";
 process.env.DISABLE_SQLITE_AUTO_BACKUP = "true";
 process.env.OMNIROUTE_SKIP_SYSTEM_TRUST = "1";
@@ -30,55 +30,29 @@ const mockAgent = new MockAgent();
 mockAgent.disableNetConnect();
 setGlobalDispatcher(mockAgent);
 
-const { resetDbInstance } = await import("../../src/lib/db/core.ts");
-const { upsertVersionManagerTool } = await import("../../src/lib/db/versionManager.ts");
-const { registerSupervisor, unregisterSupervisor } =
-  await import("../../src/lib/services/registry.ts");
-const { ServiceSupervisor } = await import("../../src/lib/services/ServiceSupervisor.ts");
 const { NineRouterExecutor } = await import("../../open-sse/executors/ninerouter.ts");
 const { __test_resetLearnedReasoningEffortCaps } =
   await import("../../open-sse/services/learnedReasoningEffortCaps.ts");
 
 const originalFetch = globalThis.fetch;
-const supervisor = new ServiceSupervisor({
-  tool: "9router",
-  port: 23146,
-  spawnArgs: () => {
-    throw new Error("This fixture must never spawn the embedded service");
-  },
-  healthUrl: () => "http://127.0.0.1:23146/api/health",
-  healthIntervalMs: 2000,
-  stopTimeoutMs: 3000,
-  logsBufferBytes: 64 * 1024,
-});
-const stoppedStatus = supervisor.getStatus();
-const statusMock = mock.method(supervisor, "getStatus", () => ({
-  ...stoppedStatus,
-  state: "running" as const,
-}));
 
-beforeEach(async () => {
+beforeEach(() => {
   __test_resetLearnedReasoningEffortCaps();
-  await upsertVersionManagerTool({ tool: "9router", port: 23146, status: "stopped" });
-  registerSupervisor(supervisor);
 });
 
 afterEach(() => {
   globalThis.fetch = originalFetch;
-  unregisterSupervisor("9router");
   __test_resetLearnedReasoningEffortCaps();
 });
 
 after(async () => {
-  resetDbInstance();
-  statusMock.mock.restore();
   await mockAgent.close();
   setGlobalDispatcher(originalDispatcher);
   socketGuard.mock.restore();
   for (const key of [
     "HOME",
     "DATA_DIR",
-    "OMNIROUTE_PLUGINS_DIR",
+    "NINEROUTER_PORT",
     "NODE_ENV",
     "DISABLE_SQLITE_AUTO_BACKUP",
     "OMNIROUTE_SKIP_SYSTEM_TRUST",
@@ -135,7 +109,7 @@ test("#14629 returned body describes the successful reasoning retry", async () =
     model: "9router/cx/reasoning-model",
     body,
     stream: false,
-    credentials: {},
+    credentials: { apiKey: "nr_test_key" },
   });
 
   assert.equal(result.response.status, 200);
@@ -153,7 +127,7 @@ test("#14629 models without learned caps keep transparent first attempts", async
     model: "9router/cx/glm-5.3",
     body,
     stream: false,
-    credentials: {},
+    credentials: { apiKey: "nr_test_key" },
   });
   assert.equal(calls.length, 1);
   assert.deepEqual(calls[0].body, { ...body, model: "cx/glm-5.3" });
@@ -181,7 +155,7 @@ for (const { field, extra, endpoint } of [
       model: "9router/vendor/model-with/slashes",
       body,
       stream: false,
-      credentials: {},
+      credentials: { apiKey: "nr_test_key" },
       signal: controller.signal,
       upstreamExtraHeaders: { "x-test-recovery": "preserved" },
     });
@@ -246,7 +220,7 @@ for (const { label, status, message, extra } of [
       model: "9router/vendor/negative-control",
       body,
       stream: false,
-      credentials: {},
+      credentials: { apiKey: "nr_test_key" },
     });
 
     assert.equal(calls.length, 1);
@@ -267,7 +241,7 @@ test("#14629 stops after one field retry and preserves the final error body", as
     model: "9router/vendor/rejecting-model",
     body: { messages: [], verbosity: "high" },
     stream: false,
-    credentials: {},
+    credentials: { apiKey: "nr_test_key" },
   });
 
   assert.equal(calls.length, 2);
@@ -275,20 +249,6 @@ test("#14629 stops after one field retry and preserves the final error body", as
   assert.deepEqual(await result.response.json(), rejected);
   assert.deepEqual(result.transformedBody, calls[1].body);
   assert.equal("verbosity" in calls[1].body, false);
-});
-
-test("#14629 keeps the service-unavailable short circuit before dispatch", async () => {
-  unregisterSupervisor("9router");
-  const calls = interceptRequests([]);
-  const result = await new NineRouterExecutor().execute({
-    model: "9router/vendor/model",
-    body: { messages: [], reasoning_effort: "none", verbosity: "high" },
-    stream: false,
-    credentials: {},
-  });
-  assert.equal(calls.length, 0);
-  assert.equal(result.response.status, 503);
-  assert.equal(result.response.headers.get("X-Omni-Fallback-Hint"), "connection_cooldown");
 });
 
 test("#14629 field recovery follows reasoning recovery with the current body", async () => {
@@ -302,7 +262,7 @@ test("#14629 field recovery follows reasoning recovery with the current body", a
     model: "9router/vendor/reasoning-model",
     body,
     stream: false,
-    credentials: {},
+    credentials: { apiKey: "nr_test_key" },
   });
 
   assert.equal(result.response.status, 200);

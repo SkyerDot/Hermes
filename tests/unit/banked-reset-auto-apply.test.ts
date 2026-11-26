@@ -1,5 +1,5 @@
 /**
- * "Auto-apply banked resets" — the background job (src/lib/services/bankedResetAutoApply.ts).
+ * "Auto-apply banked resets" — the background job (src/lib/quota/bankedResetAutoApply.ts).
  *
  * Every external effect is an injected dep and the clock is injected, so these tests run
  * without timers, DB or network: only walled accounts get their credits listed (plus a
@@ -15,7 +15,7 @@ import path from "node:path";
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-banked-reset-job-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
-const job = await import("../../src/lib/services/bankedResetAutoApply.ts");
+const job = await import("../../src/lib/quota/bankedResetAutoApply.ts");
 
 test.after(() => fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true }));
 

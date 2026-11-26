@@ -2,7 +2,7 @@
 // so an upstream 400 naming the accepted reasoning_effort enum surfaced raw
 // instead of reaching the clamp-and-retry that BaseExecutor (and, since #14915,
 // glm and cliproxyapi) apply. 9router forwards the OpenAI-shaped body as is.
-import { describe, it, afterEach } from "node:test";
+import { describe, it, after, afterEach } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
@@ -13,42 +13,10 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.NODE_ENV = "test";
 process.env.DISABLE_SQLITE_AUTO_BACKUP = "true";
 
-const core = await import("../../src/lib/db/core.ts");
-core
-  .getDbInstance()
-  .prepare(
-    `INSERT OR IGNORE INTO version_manager
-       (tool, status, port, auto_start, auto_update, provider_expose)
-     VALUES ('9router', 'stopped', 20130, 0, 1, 0)`
-  )
-  .run();
-
-const { registerSupervisor, unregisterSupervisor } =
-  await import("../../src/lib/services/registry.ts");
-const { ServiceSupervisor } = await import("../../src/lib/services/ServiceSupervisor.ts");
+const { resetDbInstance } = await import("../../src/lib/db/core.ts");
 const { NineRouterExecutor } = await import("../../open-sse/executors/ninerouter.ts");
 const { __test_resetLearnedReasoningEffortCaps } =
   await import("../../open-sse/services/learnedReasoningEffortCaps.ts");
-
-function registerRunningSupervisor() {
-  const sup = new ServiceSupervisor({
-    tool: "9router",
-    port: 20130,
-    spawnArgs: () => ({
-      command: process.execPath,
-      args: ["-e", "setTimeout(() => {}, 60000)"],
-      env: process.env,
-      cwd: process.cwd(),
-    }),
-    healthUrl: () => "http://127.0.0.1:20130/api/health",
-    healthIntervalMs: 2000,
-    stopTimeoutMs: 3000,
-    logsBufferBytes: 64 * 1024,
-  });
-  // @ts-ignore — patch internal state without spawning a process
-  sup["state"] = "running";
-  registerSupervisor(sup);
-}
 
 const REJECTED = JSON.stringify({
   error: {
@@ -61,8 +29,12 @@ const originalFetch = globalThis.fetch;
 
 afterEach(() => {
   globalThis.fetch = originalFetch;
-  unregisterSupervisor("9router");
   __test_resetLearnedReasoningEffortCaps();
+});
+
+after(() => {
+  resetDbInstance();
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
 });
 
 function mockFetch(first: Response) {
@@ -81,7 +53,6 @@ function mockFetch(first: Response) {
 describe("issue #14629 — 9router reaches the reactive reasoning_effort 400 recovery", () => {
   it("clamps reasoning_effort and retries once against the same endpoint", async () => {
     __test_resetLearnedReasoningEffortCaps();
-    registerRunningSupervisor();
     const calls = mockFetch(new Response(REJECTED, { status: 400 }));
 
     const result = await new NineRouterExecutor("http://127.0.0.1:20130").execute({
@@ -101,7 +72,6 @@ describe("issue #14629 — 9router reaches the reactive reasoning_effort 400 rec
 
   it("does not retry a 400 that names no reasoning_effort enum", async () => {
     __test_resetLearnedReasoningEffortCaps();
-    registerRunningSupervisor();
     const calls = mockFetch(
       new Response(JSON.stringify({ error: { message: "messages: field required" } }), {
         status: 400,

@@ -72,10 +72,8 @@ test("SPAWN_CAPABLE_PREFIXES is defined in the server-free constants leaf with t
   // The full deny-list survived the extraction out of routeGuard.ts (Hard Rules #15/#17).
   for (const prefix of [
     "/api/cli-tools/runtime/",
-    "/api/services/",
     "/api/tools/agent-bridge/",
     "/api/tools/traffic-inspector/",
-    "/api/plugins/",
     "/api/local/",
     "/api/skills/collect/",
     "/api/headroom/start",
@@ -111,8 +109,6 @@ test("SPAWN_CAPABLE_PREFIXES is defined in the server-free constants leaf with t
     // sandbox container spawn transitively.
     "/api/skills/install",
     "/api/skills/executions",
-    // The CLIProxyAPI binary lifecycle under /api/version-manager/, same work as /api/services/.
-    "/api/version-manager/",
     // LOCAL_ONLY spawn / code-exec routes that were never mirrored into the deny-list
     // (drift guard: tests/unit/authz/local-only-bypass-spawn-denylist.test.ts).
     "/api/middleware/",
@@ -125,7 +121,6 @@ test("SPAWN_CAPABLE_PREFIXES is defined in the server-free constants leaf with t
     "/api/cli-tools/grok-build-settings",
     "/api/cli-tools/forge-settings",
     "/api/cli-tools/jcode-settings",
-    "/dashboard/providers/services/",
     "/api/discovery/",
     "/api/oauth/kiro/auto-import",
   ]) {
@@ -134,11 +129,12 @@ test("SPAWN_CAPABLE_PREFIXES is defined in the server-free constants leaf with t
       `SPAWN_CAPABLE_PREFIXES lost the spawn-capable prefix "${prefix}" during extraction`
     );
   }
-  // 20 at extraction time + 14 (GHSA-35fw-cv32-2373) + 2 (GHSA-jx89-f37j-pq89) + 1 (version-manager)
+  // 20 at extraction time + 14 (GHSA-35fw-cv32-2373) + 2 (GHSA-jx89-f37j-pq89)
   // + 14 LOCAL_ONLY spawn / code-exec routes that had never been mirrored here.
   // + 1 host-credential read (/api/oauth/kiro/auto-import) that must never be bypassable.
   // + 1 (whycodes-settings, #14107).
   // qwen-settings is the one pre-existing entry not enumerated above.
   // Task 5 removed 2 agent-orchestration entries (ACP registry + issue-agent).
-  assert.equal(SPAWN_CAPABLE_PREFIXES.length, 51);
+  // Task 8 removed 4 embedded-service/plugin/version-manager entries.
+  assert.equal(SPAWN_CAPABLE_PREFIXES.length, 47);
 });

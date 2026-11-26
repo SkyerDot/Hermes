@@ -19,7 +19,7 @@
 import { execFile } from "child_process";
 import { promisify } from "util";
 import { createLogger } from "@/shared/utils/logger";
-import { buildNpmExecOptions } from "@/lib/services/installers/utils";
+import { buildNpmExecOptions } from "@/lib/system/npmExecOptions";
 
 const execFileAsync = promisify(execFile);
 const log = createLogger("system/versionCheck");

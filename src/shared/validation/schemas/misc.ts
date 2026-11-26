@@ -196,14 +196,6 @@ export const codexProfileIdSchema = z.object({
     .refine((v) => v !== "." && v !== "..", "profileId is invalid"),
 });
 
-export const versionManagerToolSchema = z.object({
-  tool: z.string().trim().min(1),
-});
-
-export const versionManagerInstallSchema = versionManagerToolSchema.extend({
-  version: z.string().trim().optional(),
-});
-
 // ── Zed Credential Import Flow ──────────────────────────────────────────────────
 
 export const confirmedAccountSchema = z.object({

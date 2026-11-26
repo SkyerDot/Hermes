@@ -1,16 +1,13 @@
-// This suite owns process-wide DATA_DIR, plugin, fetch, and DB state. It must run only inside
+// This suite owns process-wide DATA_DIR, fetch, and DB state. It must run only inside
 // the subprocess launched by tests/unit/adapta-web-nonstream-error-boundary.test.ts.
 import assert from "node:assert/strict";
-import { mkdirSync, mkdtempSync, rmSync } from "node:fs";
+import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { after, afterEach, describe, it } from "node:test";
 
 const TEST_DATA_DIR = mkdtempSync(join(tmpdir(), "omniroute-adapta-nonstream-error-"));
-const TEST_PLUGINS_DIR = join(TEST_DATA_DIR, "plugins");
-mkdirSync(TEST_PLUGINS_DIR, { recursive: true });
 process.env.DATA_DIR = TEST_DATA_DIR;
-process.env.OMNIROUTE_PLUGINS_DIR = TEST_PLUGINS_DIR;
 
 const originalFetch = globalThis.fetch;
 const { AdaptaWebExecutor } = await import("../../open-sse/executors/adapta-web.ts");

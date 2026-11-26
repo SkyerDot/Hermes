@@ -18,7 +18,6 @@ const core = await import("../../src/lib/db/core.ts");
 const modelsDb = await import("../../src/lib/db/models.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
 const providerNodesDb = await import("../../src/lib/db/providers/nodes.ts");
-const serviceModelsDb = await import("../../src/lib/db/serviceModels.ts");
 const catalog = await import("../../src/app/api/v1/models/catalog.ts");
 const routeModule = await import("../../src/app/api/v1/providers/[provider]/models/route.ts");
 
@@ -95,28 +94,6 @@ test("GET /v1/providers/:provider/models accepts openai-compatible-responses con
     const body = await res.json();
     assert.notEqual(body.error?.code, "invalid_provider");
   }
-});
-
-test("GET /v1/providers/:provider/models returns synced embedded service models", async () => {
-  serviceModelsDb.saveServiceModels("cliproxyapi", [
-    { id: "cli/gpt-5", name: "GPT-5 via CLIProxyAPI" },
-    { id: "old-model" },
-  ]);
-  serviceModelsDb.saveServiceModels("cliproxyapi", [
-    { id: "cli/gpt-5", name: "GPT-5 via CLIProxyAPI" },
-  ]);
-
-  const res = await callGET("cliproxyapi");
-  const body = await res.json();
-
-  assert.equal(res.status, 200);
-  assert.equal(body.object, "list");
-  assert.deepEqual(
-    body.data.map((model: { id: string }) => model.id),
-    ["cli/gpt-5"]
-  );
-  assert.equal(body.data[0].owned_by, "cliproxyapi");
-  assert.equal(body.data[0].parent, null);
 });
 
 test("#13829: compatible provider IDs return synced models owned by their public prefix", async () => {

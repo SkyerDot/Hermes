@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
-import { pingCodexAccountNow, type ManualPingResult } from "@/lib/services/quotaAutoPingManual";
+import { pingCodexAccountNow, type ManualPingResult } from "@/lib/quota/quotaAutoPingManual";
 
 /**
  * POST /api/providers/{id}/ping — manual "Ping now" for one Codex OAuth connection.

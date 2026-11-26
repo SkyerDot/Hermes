@@ -16,7 +16,7 @@ const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-banked-re
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const audit = await import("../../src/lib/usage/bankedResetAudit.ts");
-const job = await import("../../src/lib/services/bankedResetAutoApply.ts");
+const job = await import("../../src/lib/quota/bankedResetAutoApply.ts");
 const { createClaudeSessionResetPolicy } =
   await import("../../src/lib/usage/claudeSessionResetPolicy.ts");
 

@@ -95,9 +95,6 @@ const PATH_AREA_MAP: Array<[string, SkillArea]> = [
   ["/api/mcp", "mcp"],
   // GitHub skills
   ["/api/github-skills", "github-skills"],
-  // Version manager
-  ["/api/services", "version-manager"],
-  ["/api/version", "version-manager"],
   // Inference (catch-all for /api/v1/* proxy endpoints)
   ["/api/v1", "inference"],
 ];

@@ -5,11 +5,9 @@ import fs from "node:fs";
 // #5542 — On Windows, npm is `npm.cmd`; Node ≥24 refuses to execFile a `.cmd`
 // without a shell (nodejs/node#52554), so the in-app auto-update flow threw
 // "spawn npm ENOENT" for the version lookup, dependency install, global install,
-// and native rebuild. Those npm calls now go through buildNpmExecOptions (the
-// same win32-shell helper the embedded-services installer uses, fix #5379).
-const { buildNpmExecOptions, SERVICE_VERSION_PATTERN } = await import(
-  "../../src/lib/services/installers/utils.ts"
-);
+// and native rebuild. Those npm calls now go through buildNpmExecOptions (fix #5379).
+const { buildNpmExecOptions, SERVICE_VERSION_PATTERN } =
+  await import("../../src/lib/system/npmExecOptions.ts");
 
 test("#5542 npm exec options enable the shell on win32 (resolves npm.cmd → no ENOENT)", () => {
   const win = buildNpmExecOptions("win32", { cwd: "/x", timeoutMs: 1000 });
@@ -38,8 +36,14 @@ test("#5542 the auto-update npm call sites route through buildNpmExecOptions", (
     new URL("../../src/lib/system/versionCheck.ts", import.meta.url),
     "utf8"
   );
-  assert.ok(routeSrc.includes("buildNpmExecOptions"), "version route must use the win32-shell helper");
-  assert.ok(checkSrc.includes("buildNpmExecOptions"), "versionCheck must use the win32-shell helper");
+  assert.ok(
+    routeSrc.includes("buildNpmExecOptions"),
+    "version route must use the win32-shell helper"
+  );
+  assert.ok(
+    checkSrc.includes("buildNpmExecOptions"),
+    "versionCheck must use the win32-shell helper"
+  );
   // The global install spec must be guarded before it reaches the shell.
   assert.ok(
     routeSrc.includes("SERVICE_VERSION_PATTERN.test(latest)"),

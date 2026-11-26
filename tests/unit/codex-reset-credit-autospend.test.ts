@@ -13,7 +13,7 @@ const providersDb = await import("../../src/lib/db/providers.ts");
 const settingsDb = await import("../../src/lib/db/settings.ts");
 const resetCredits = await import("../../src/lib/usage/codexResetCredits.ts");
 const autospendDb = await import("../../src/lib/db/codexResetCreditAutospend.ts");
-const autospendScheduler = await import("../../src/lib/services/codexResetCreditAutospend.ts");
+const autospendScheduler = await import("../../src/lib/quota/codexResetCreditAutospend.ts");
 const accountFallback = await import("@omniroute/open-sse/services/accountFallback.ts");
 const codexAccount = await import("@omniroute/open-sse/services/codexAccount/index.ts");
 

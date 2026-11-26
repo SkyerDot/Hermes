@@ -1,15 +1,13 @@
 /**
  * Hard Rules #15 + #17 — filesystem sweep of the spawn-capable route surface.
  *
- * Routes that spawn child processes (`npm install`, `node`, MCP stdio bridges,
- * embedded-service UIs) MUST be classified LOCAL_ONLY by `isLocalOnlyPath()` in
+ * Routes that spawn child processes (`npm install`, `node`, MCP stdio bridges)
+ * MUST be classified LOCAL_ONLY by `isLocalOnlyPath()` in
  * src/server/authz/routeGuard.ts, so a leaked JWT over a tunnel cannot reach a
  * spawn (GHSA-fhh6-4qxv-rpqj class). See docs/security/ROUTE_GUARD_TIERS.md.
  *
  * `npm run check:route-guard-membership` already enumerates the API roots. This
  * test is the LTS proof layer and covers what the gate does not:
- *   - the dashboard embed reverse proxy (`/dashboard/providers/services/<name>/embed/**`),
- *     which lives outside `src/app/api/` and so outside the gate's walk;
  *   - every write method, plus a pinned list of the GET exemptions inside these roots;
  *   - reachability: every LOCAL_ONLY route is classified MANAGEMENT, the only route
  *     class whose policy evaluates `isLocalOnlyPath()` (a PUBLIC- or CLIENT_API-classified
@@ -37,21 +35,15 @@ import {
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
-/** Hard Rule #15 (`/api/mcp/`, `/api/cli-tools/runtime/`) + #17 (`/api/services/`) API roots. */
-const API_ROOTS = ["src/app/api/mcp", "src/app/api/cli-tools/runtime", "src/app/api/services"];
-/** Hard Rule #17 dashboard root; only its `<name>/embed/**` subtree is in scope. */
-const EMBED_PARENT = "src/app/(dashboard)/dashboard/providers/services";
+/** Hard Rule #15 API roots that survive the embedded-service removal. */
+const API_ROOTS = ["src/app/api/mcp", "src/app/api/cli-tools/runtime"];
 
 /**
  * GET/HEAD exemptions that legitimately sit inside the roots above
  * (LOCAL_ONLY_API_GET_EXEMPTIONS, #13941). Pinned so a new exemption under a
  * spawn-capable root is a deliberate, reviewed change.
  */
-const EXPECTED_GET_EXEMPT = [
-  "/api/mcp/audit",
-  "/api/mcp/audit/stats",
-  "/api/services/cliproxy/status",
-];
+const EXPECTED_GET_EXEMPT = ["/api/mcp/audit", "/api/mcp/audit/stats"];
 
 const WRITE_METHODS = ["POST", "PUT", "PATCH", "DELETE"];
 const READ_METHODS = ["GET", "HEAD"];
@@ -106,11 +98,7 @@ function routeFileToPublicPaths(relFile: string): string[] {
 }
 
 function collectInScopeRoutes(): { file: string; paths: string[] }[] {
-  const apiFiles = API_ROOTS.flatMap((root) => walk(path.join(repoRoot, root), isRouteFile));
-  const embedFiles = walk(path.join(repoRoot, EMBED_PARENT), isRouteFile).filter((f) =>
-    /\/dashboard\/providers\/services\/[^/]+\/embed\//.test(f)
-  );
-  return [...apiFiles, ...embedFiles]
+  return API_ROOTS.flatMap((root) => walk(path.join(repoRoot, root), isRouteFile))
     .sort()
     .map((file) => ({ file, paths: routeFileToPublicPaths(file) }));
 }
@@ -119,18 +107,13 @@ const IN_SCOPE = collectInScopeRoutes();
 const IN_SCOPE_PATHS = IN_SCOPE.flatMap((r) => r.paths);
 
 test("path mapper handles route groups, dynamic segments and optional catch-alls", () => {
-  assert.deepEqual(routeFileToPublicPaths("src/app/api/services/[name]/logs/route.ts"), [
-    "/api/services/_name_/logs",
+  assert.deepEqual(routeFileToPublicPaths("src/app/api/cli-tools/runtime/[toolId]/route.ts"), [
+    "/api/cli-tools/runtime/_toolId_",
   ]);
-  assert.deepEqual(
-    routeFileToPublicPaths(
-      "src/app/(dashboard)/dashboard/providers/services/[name]/embed/[[...path]]/route.ts"
-    ),
-    [
-      "/dashboard/providers/services/_name_/embed",
-      "/dashboard/providers/services/_name_/embed/_path_/nested",
-    ]
-  );
+  assert.deepEqual(routeFileToPublicPaths("src/app/api/local/[[...path]]/route.ts"), [
+    "/api/local",
+    "/api/local/_path_/nested",
+  ]);
 });
 
 test("every in-scope root contributes route files (the sweep is not vacuous)", () => {
@@ -138,11 +121,9 @@ test("every in-scope root contributes route files (the sweep is not vacuous)", (
     const count = IN_SCOPE.filter((r) => r.file.startsWith(root + "/")).length;
     assert.ok(count > 0, `${root} has no route.ts — root moved? update API_ROOTS`);
   }
-  const embed = IN_SCOPE.filter((r) => r.file.startsWith(EMBED_PARENT + "/"));
-  assert.ok(embed.length > 0, "no dashboard embed route found under " + EMBED_PARENT);
 });
 
-test("every mcp / cli-tools runtime / services / embed route is LOCAL_ONLY for every write method", () => {
+test("every mcp / cli-tools runtime route is LOCAL_ONLY for every write method", () => {
   const misses: string[] = [];
   for (const { file, paths } of IN_SCOPE) {
     for (const p of paths) {
@@ -160,7 +141,7 @@ test("every mcp / cli-tools runtime / services / embed route is LOCAL_ONLY for e
   );
 });
 
-test("read-method exemptions inside these roots are only the pinned read-only MCP audit and cliproxy status routes", () => {
+test("read-method exemptions inside these roots are only the pinned read-only MCP audit routes", () => {
   const exempt = IN_SCOPE_PATHS.filter((p) =>
     READ_METHODS.some((method) => !isLocalOnlyPath(p, method))
   ).sort();
@@ -206,8 +187,8 @@ test("every in-scope route is classified MANAGEMENT, the route class whose polic
 
 test("the manage-scope carve-out can never cover the subprocess-spawning roots", () => {
   // Only /api/mcp/ and the read-only /api/resilience/connections (KEA-9357, spawns
-  // nothing) are bypassable by default; /api/services/ and /api/cli-tools/runtime/
-  // are in the compile-time spawn-capable deny-list, which the settings schema and
+  // nothing) are bypassable by default; /api/cli-tools/runtime/ is in the compile-time
+  // spawn-capable deny-list, which the settings schema and
   // isLocalOnlyBypassableByManageScope() both enforce.
   assert.deepEqual(
     [...LOCAL_ONLY_MANAGE_SCOPE_BYPASS_PREFIXES],
@@ -220,7 +201,7 @@ test("the manage-scope carve-out can never cover the subprocess-spawning roots",
       `${prefix} is spawn-capable and must not be bypassable by default`
     );
   }
-  for (const prefix of ["/api/services/", "/api/cli-tools/runtime/"]) {
+  for (const prefix of ["/api/cli-tools/runtime/"]) {
     assert.ok(SPAWN_CAPABLE_PREFIXES.includes(prefix), `${prefix} missing from deny-list`);
   }
 });
