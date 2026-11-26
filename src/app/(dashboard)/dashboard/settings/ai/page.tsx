@@ -11,7 +11,6 @@ import CodexFastTierTab from "../components/CodexFastTierTab";
 import CodexAutoPingTab from "../components/CodexAutoPingTab";
 import BankedResetAutoApplyTab from "../components/BankedResetAutoApplyTab";
 import ClaudeFastModeTab from "../components/ClaudeFastModeTab";
-import MemorySkillsTab from "../components/MemorySkillsTab";
 import ModelsDevSyncTab from "../components/ModelsDevSyncTab";
 import UsageTokenBufferTab from "../components/UsageTokenBufferTab";
 import ModelCapabilityOverridesTab from "../components/ModelCapabilityOverridesTab";
@@ -32,7 +31,6 @@ export default function SettingsAiPage() {
       <CodexAutoPingTab />
       <BankedResetAutoApplyTab />
       <ClaudeFastModeTab />
-      <MemorySkillsTab />
       <ModelCapabilityOverridesTab />
       <ModelsDevSyncTab />
     </div>

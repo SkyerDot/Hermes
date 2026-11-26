@@ -75,7 +75,7 @@ test("findRawSql: does NOT flag JS .set()/import-from/new Set() false positives"
 });
 
 test("findRawSql: an allowlisted (frozen) offender passes", () => {
-  const rel = "src/app/api/skills/[id]/route.ts";
+  const rel = "src/app/api/oauth/kiro/auto-import/route.ts";
   const abs = path.join(REPO_ROOT, rel);
   const allowlist = new Set([rel]) as Set<string>;
   const offenders = findRawSql([abs], allowlist) as string[];

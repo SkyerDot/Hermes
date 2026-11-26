@@ -25,14 +25,8 @@ export async function createChatPipelineHarness(prefix) {
   const callLogsDb = await import("../../src/lib/usage/callLogs.ts");
   const modelComboMappingsDb = await import("../../src/lib/db/modelComboMappings.ts");
   const readCacheDb = await import("../../src/lib/db/readCache.ts");
-  const memoryStore = await import("../../src/lib/memory/store.ts");
-  const { invalidateMemorySettingsCache } = await import("../../src/lib/memory/settings.ts");
   const { skillRegistry } = await import("../../src/lib/skills/registry.ts");
   const { skillExecutor } = await import("../../src/lib/skills/executor.ts");
-  const builtinsModule = await import("../../src/lib/skills/builtins.ts");
-  const sandboxModule = await import("../../src/lib/skills/sandbox.ts");
-  const skillsRouteModule = await import("../../src/app/api/skills/route.ts");
-  const skillByIdRouteModule = await import("../../src/app/api/skills/[id]/route.ts");
   const idempotencyLayerModule = await import("../../src/lib/idempotencyLayer.ts");
   const semanticCacheModule = await import("../../src/lib/semanticCache.ts");
   const { handleChat } = await import("../../src/sse/handlers/chat.ts");
@@ -95,7 +89,7 @@ export async function createChatPipelineHarness(prefix) {
           plain[key.toLowerCase()] = value;
         });
         return plain;
-      } catch (e) {
+      } catch (_e) {
         // Fall through to other strategies if forEach fails due to cross-realm private slot errors
       }
     }
@@ -105,7 +99,7 @@ export async function createChatPipelineHarness(prefix) {
           plain[key.toLowerCase()] = value;
         }
         return plain;
-      } catch (e) {
+      } catch (_e) {
         // Fall through
       }
     }
@@ -113,7 +107,7 @@ export async function createChatPipelineHarness(prefix) {
       for (const [key, value] of Object.entries(headers)) {
         plain[key.toLowerCase()] = value == null ? "" : String(value);
       }
-    } catch (e) {}
+    } catch (_e) {}
     return plain;
   }
 
@@ -281,7 +275,6 @@ export async function createChatPipelineHarness(prefix) {
     apiKeysDb.resetApiKeyState();
     readCacheDb.invalidateDbCache();
     reasoningRulesDb.invalidateReasoningRoutingRuleCache();
-    invalidateMemorySettingsCache();
     clearSkillState();
     await new Promise((resolve) => setTimeout(resolve, 20));
     // Call-log persistence is fire-and-forget and the first cold artifact-worker
@@ -369,28 +362,23 @@ export async function createChatPipelineHarness(prefix) {
     buildOpenAIResponse,
     buildOpenAIToolCallResponse,
     buildRequest,
-    builtinsModule,
     cleanup,
     combosDb,
     core,
     handleChat,
-    memoryStore,
     modelComboMappingsDb,
     originalRetryDelayMs,
     getLatestCallLog,
     getResponsesCallLogs,
     resetStorage,
-    sandboxModule,
     idempotencyLayerModule,
     semanticCacheModule,
     seedApiKey,
     seedConnection,
     settingsDb,
     reasoningRulesDb,
-    skillByIdRouteModule,
     skillExecutor,
     skillRegistry,
-    skillsRouteModule,
     toPlainHeaders,
     waitFor,
   };

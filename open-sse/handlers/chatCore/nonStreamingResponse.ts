@@ -82,7 +82,7 @@ import {
   getProviderCredentials,
   getProviderCredentialsWithQuotaPreflight,
 } from "@/sse/services/auth";
-import { extractFacts } from "@/lib/memory/extraction";
+import { extractFactsViaOpenChamber as extractFacts } from "../../services/openChamberBridge.ts";
 // The leaf body is unchanged from the barrel, so its closed-over values keep
 // the barrel's types. This alias only exists so the deps bag type-checks.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -3,8 +3,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import * as yaml from "js-yaml";
 
-import { buildApiOperationExample } from "../../src/lib/agentSkills/apiOperationExample.ts";
-import { parseOpenapi } from "../../src/lib/agentSkills/openapiParser.ts";
+import { buildApiOperationExample, parseOpenapiPaths } from "../_setup/openApiContractFixtures.ts";
 
 type Operation = {
   security: Array<Record<string, string[]>>;
@@ -13,13 +12,13 @@ type Operation = {
 };
 
 test("drill-down publishes one parseable authenticated GET/DELETE contract", () => {
-  // Use the same parser as generated skills: duplicate YAML keys must fail,
-  // rather than silently replacing the detailed contract with a generated stub.
-  const parsed = parseOpenapi();
+  // The local fixture reads the published OpenAPI document directly so duplicate
+  // YAML keys fail instead of silently replacing the detailed contract.
+  const parsedPaths = parseOpenapiPaths();
   const route = "/api/v1/video-bridge/drilldown";
-  assert.match(parsed.paths.get(`GET ${route}`)?.summary ?? "", /tenant-bound/);
-  assert.match(parsed.paths.get(`DELETE ${route}`)?.summary ?? "", /owner/);
-  assert.ok(parsed.paths.has("GET /api/settings"));
+  assert.match(parsedPaths.get(`GET ${route}`)?.summary ?? "", /tenant-bound/);
+  assert.match(parsedPaths.get(`DELETE ${route}`)?.summary ?? "", /owner/);
+  assert.ok(parsedPaths.has("GET /api/settings"));
 
   const document = yaml.load(readFileSync("docs/openapi.yaml", "utf8")) as {
     paths: Record<string, Record<string, Operation>>;
@@ -44,10 +43,10 @@ test("drill-down publishes one parseable authenticated GET/DELETE contract", () 
 
 for (const method of ["GET", "DELETE"]) {
   test(`published drill-down ${method} example supplies its required opaque handle`, () => {
-    const example = buildApiOperationExample(
-      { method, path: "/api/v1/video-bridge/drilldown" },
-      false
-    ).join("\n");
+    const example = buildApiOperationExample({
+      method,
+      path: "/api/v1/video-bridge/drilldown",
+    }).join("\n");
     assert.match(example, /curl --get /);
     assert.ok(example.includes('--data-urlencode "handle=$OMNIROUTE_VIDEO_HANDLE"'));
     assert.ok(example.includes("Authorization: Bearer $OMNIROUTE_TOKEN"));

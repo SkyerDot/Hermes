@@ -21,7 +21,7 @@ const { handleFalVideoGeneration, handleFalMusicGeneration } =
 const { falSelectionEndpoint } = await import("../../open-sse/config/falEndpoint.ts");
 const { falCompatibilityInput } = await import("../../open-sse/handlers/fal/schema.ts");
 const { FalError } = await import("../../open-sse/handlers/fal/client.ts");
-const { parseOpenapi } = await import("../../src/lib/agentSkills/openapiParser.ts");
+const { parseOpenapiPaths } = await import("../_setup/openApiContractFixtures.ts");
 const { resetDbInstance } = await import("../../src/lib/db/core.ts");
 const { waitForCallLogSaves } = await import("../../src/lib/usage/callLogs.ts");
 const run = await import("../../src/app/api/v1/fal/run/route.ts");
@@ -441,7 +441,7 @@ test("on: a schema edit keeps Fal's sanitized error text", async () => {
 });
 
 test("the opt-in routes stay in the API reference but out of the generated agent skills", () => {
-  const { paths } = parseOpenapi();
+  const paths = parseOpenapiPaths();
   assert.equal(paths.has("POST /api/v1/fal/run"), false);
   assert.equal(paths.has("GET /api/providers/{id}/fal"), false);
   assert.ok(paths.has("POST /api/v1/images/generations"));

@@ -39,7 +39,7 @@ test("each skill dir has SKILL.md with frontmatter", async () => {
     for (const key of REQUIRED_FRONTMATTER) {
       assert.ok(content.includes(key), `${dir}: missing frontmatter key ${key}`);
     }
-    // Skills `omni-*` são GERADOS por src/lib/agentSkills/generator.ts (alguns em
+    // Skills `omni-*` são publicadas pelo pacote de skills do OpenChamber (alguns em
     // estado "no endpoints mapped yet", sem refs de uso) — o invariante de uso vale
     // só para os manifests manuscritos (cli-* e config-*). `ponytail` é a entrada
     // `external` do catálogo (#9058, conteúdo MIT de terceiro) — não descreve uso

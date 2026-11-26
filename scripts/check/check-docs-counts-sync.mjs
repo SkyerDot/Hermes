@@ -524,7 +524,6 @@ export function agentInstructionFiles(root = ROOT) {
     "llm.txt",
     "docs/i18n/bs/AGENTS.md",
     "open-sse/services/AGENTS.md",
-    "src/shared/constants/agentSkills.ts",
     "skills/README.md",
     ...skills.sort(),
   ];

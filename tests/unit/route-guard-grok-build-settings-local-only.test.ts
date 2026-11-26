@@ -4,7 +4,7 @@
  *
  * GET calls getCliRuntimeStatus("grok-build"), which spawns a child process to
  * locate and healthcheck the `grok` binary (src/shared/services/cliRuntime.ts).
- * That is the same transitive-spawn surface that got /api/skills/collect/
+ * That is the same transitive-spawn surface that got CLI runtime routes
  * classified, and the same class as the already-gated omp-settings /
  * letta-settings routes (which spawn `which omp` / `which letta`).
  *

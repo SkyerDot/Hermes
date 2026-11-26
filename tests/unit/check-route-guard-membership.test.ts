@@ -206,19 +206,6 @@ test("GHSA-35fw-cv32-2373: every cli-tools route that reaches getCliRuntimeStatu
   }
 });
 
-test("GHSA-jx89-f37j-pq89: /api/skills/install + /api/skills/executions (transitive sandbox spawn) are classified local-only", () => {
-  // The spawn is three modules away from the route (executor.ts -> builtins.ts ->
-  // sandbox.ts childProcess.spawn), so the source-scan subcheck cannot see it.
-  // Both are now SPAWN_CAPABLE_ROUTE_ROOTs so subcheck 1 enforces membership.
-  for (const r of ["/api/skills/install", "/api/skills/executions"]) {
-    assert.equal(isLocalOnlyPath(r), true, `${r} must be local-only`);
-    assert.ok(
-      SPAWN_CAPABLE_ROUTE_ROOTS.includes(`src/app${r}`),
-      `src/app${r} must be a SPAWN_CAPABLE_ROUTE_ROOT`
-    );
-  }
-});
-
 test("6A.8: spawn-capable routes in SPAWN_CAPABLE_ROUTE_ROOTS are still all classified local-only", async () => {
   // The original subcheck (SPAWN_CAPABLE_ROUTE_ROOTS) must still pass.
   // This test is a regression guard — the new source-scan does not break the old check.

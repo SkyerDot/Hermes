@@ -71,9 +71,6 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "playground",
   "search-tools",
   // Agentic Features
-  "memory",
-  "skills",
-  "agent-skills",
   "chaos-config",
   // Other Features — flat
   "media",

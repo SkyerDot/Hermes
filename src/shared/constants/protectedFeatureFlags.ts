@@ -4,15 +4,14 @@ import { FEATURE_FLAG_DEFINITIONS } from "@/shared/constants/featureFlagDefiniti
  * Flags outside the "security" category that still loosen an access, SSRF,
  * TLS or sandbox control when flipped. Every "security" flag is covered by
  * category, so a new one is protected without editing this list.
- * MITM_DISABLE_TLS_VERIFY and SKILLS_SANDBOX_NETWORK_ENABLED (like the
- * security flag INPUT_SANITIZER_ENABLED) are read from env only today; they
- * are listed so a DB-aware reader added later is already covered.
+ * MITM_DISABLE_TLS_VERIFY (like the security flag INPUT_SANITIZER_ENABLED)
+ * is read from env only today; it is listed so a DB-aware reader added later
+ * is already covered.
  */
 const PROTECTED_FLAGS_OUTSIDE_SECURITY_CATEGORY: ReadonlySet<string> = new Set([
   "OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS",
   "OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS",
   "MITM_DISABLE_TLS_VERIFY",
-  "SKILLS_SANDBOX_NETWORK_ENABLED",
 ]);
 
 /**

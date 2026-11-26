@@ -1,10 +1,27 @@
+import { z } from "zod";
 import type { Skill, SkillSchema } from "./types";
-import { SkillCreateInputSchema } from "./schemas";
 import { getDbInstance } from "../db/core";
 import { randomUUID } from "crypto";
 import { logger } from "../../../open-sse/utils/logger.ts";
 
 const log = logger("SKILLS");
+
+const SkillCreateInputSchema = z
+  .object({
+    name: z.string().min(1).max(100),
+    version: z
+      .string()
+      .regex(/^\d+\.\d+\.\d+$/)
+      .default("1.0.0"),
+    description: z.string().max(500).optional(),
+    schema: z.object({
+      input: z.record(z.string(), z.unknown()),
+      output: z.record(z.string(), z.unknown()),
+    }),
+    handler: z.string().min(1),
+    enabled: z.boolean().default(true),
+  })
+  .strict();
 
 export const GLOBAL_SKILL_OWNER_ID = "system";
 const GLOBAL_SKILL_OWNER_IDS = [GLOBAL_SKILL_OWNER_ID, "skillsmp", "skillssh"] as const;

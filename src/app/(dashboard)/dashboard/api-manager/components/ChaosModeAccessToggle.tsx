@@ -7,7 +7,7 @@ import { useTranslations } from "next-intl";
 /**
  * Chaos Mode access toggle for the API Key permissions modal — gates a single
  * API key's ability to call the Chaos Mode dispatch endpoints
- * (`POST /api/chaos/run`, `POST /api/skills/collect/chaos`) via the
+ * (`POST /api/chaos/run`) via the
  * `chaosModeEnabled` permission. Extracted out of ApiManagerPageClient.tsx
  * (frozen god-file — see config/quality/file-size-baseline.json) following the
  * same pattern as UsageLimitSettings.tsx.

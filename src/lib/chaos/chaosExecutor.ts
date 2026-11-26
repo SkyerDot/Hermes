@@ -1,11 +1,8 @@
 /**
  * lib/chaos/chaosExecutor.ts
  *
- * Shared Chaos Mode execution engine — used by BOTH:
- *   - POST /api/chaos/run       (dashboard, management-session auth)
- *   - POST /api/skills/collect/chaos  (external, Bearer-token auth)
+ * Shared Chaos Mode execution engine, used by POST /api/chaos/run.
  *
- * Eliminates the ~150 lines of duplicate dispatch logic that previously existed
  * in both route files.
  */
 import { resolveSelfLoopBearer } from "@/shared/middleware/chatAdmissionIdentity";

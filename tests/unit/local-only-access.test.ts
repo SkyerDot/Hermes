@@ -65,7 +65,7 @@ describe("resolveDashboardLocalAccess (server)", () => {
 
     assert.equal(access.locality, "remote");
     // Paths no configuration opens to a remote session. The two plain reads
-    // (/api/resilience/connections, /api/skills/executions) are left out on purpose: whether
+    // (/api/resilience/connections, /api/tools/traffic-inspector/capture-modes) are left out on purpose: whether
     // a remote session may run them is the guard's decision (a GET exemption or the
     // manage-scope bypass), covered by the two tests below.
     for (const path of ["/api/db/health", "/api/tools/traffic-inspector/capture-modes"]) {
@@ -158,18 +158,24 @@ describe("LOCAL_ONLY rejection detection (client)", () => {
 });
 
 describe("isLocalOnlyPathBlocked (client)", () => {
-  const blockedPaths = ["/api/skills/executions", "/api/db/health"];
+  const blockedPaths = ["/api/tools/traffic-inspector/capture-modes", "/api/db/health"];
 
   test("a remote session is blocked up front, before any request", () => {
     const access = { locality: "remote" as const, remoteBlockedPaths: blockedPaths };
-    assert.equal(isLocalOnlyPathBlocked(access, "/api/skills/executions"), true);
+    assert.equal(
+      isLocalOnlyPathBlocked(access, "/api/tools/traffic-inspector/capture-modes"),
+      true
+    );
     assert.equal(isLocalOnlyPathBlocked(access, "/api/system/version"), false);
   });
 
   test("local and unknown sessions are not blocked up front", () => {
     for (const locality of ["local", "unknown"] as const) {
       const access = { locality, remoteBlockedPaths: blockedPaths };
-      assert.equal(isLocalOnlyPathBlocked(access, "/api/skills/executions"), false);
+      assert.equal(
+        isLocalOnlyPathBlocked(access, "/api/tools/traffic-inspector/capture-modes"),
+        false
+      );
     }
   });
 
@@ -177,19 +183,28 @@ describe("isLocalOnlyPathBlocked (client)", () => {
     const access = { locality: "unknown" as const, remoteBlockedPaths: blockedPaths };
 
     assert.equal(
-      await detectLocalOnlyRejection(localOnlyResponse(), "/api/skills/executions"),
+      await detectLocalOnlyRejection(
+        localOnlyResponse(),
+        "/api/tools/traffic-inspector/capture-modes"
+      ),
       true
     );
 
-    assert.equal(isLocalOnlyPathBlocked(access, "/api/skills/executions"), true);
+    assert.equal(
+      isLocalOnlyPathBlocked(access, "/api/tools/traffic-inspector/capture-modes"),
+      true
+    );
     assert.equal(isLocalOnlyPathBlocked(access, "/api/db/health"), true);
     assert.equal(isLocalOnlyPathBlocked(access, "/api/system/version"), false);
   });
 
   test("a rejected path is blocked even when the server list does not carry it", () => {
     const access = { locality: "unknown" as const, remoteBlockedPaths: [] };
-    reportLocalOnlyRejection("/api/skills/executions");
-    assert.equal(isLocalOnlyPathBlocked(access, "/api/skills/executions"), true);
+    reportLocalOnlyRejection("/api/tools/traffic-inspector/capture-modes");
+    assert.equal(
+      isLocalOnlyPathBlocked(access, "/api/tools/traffic-inspector/capture-modes"),
+      true
+    );
     assert.equal(
       isLocalOnlyPathBlocked(access, "/api/tools/traffic-inspector/capture-modes"),
       false

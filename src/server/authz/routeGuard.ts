@@ -34,7 +34,7 @@ const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1", "::1"]);
 export const LOCAL_ONLY_API_PREFIXES: ReadonlyArray<string> = [
   "/api/cli-tools/omp-settings", // spawns `which omp` to detect the CLI install (Hard Rules #15 + #17, #6318)
   "/api/cli-tools/letta-settings", // spawns `which letta` to detect the CLI install (Hard Rules #15 + #17, #6318)
-  "/api/cli-tools/grok-build-settings", // GET calls getCliRuntimeStatus("grok-build"), which spawns a child process to locate + healthcheck the `grok` binary — same transitive-spawn surface that classified /api/skills/collect/ (Hard Rules #15 + #17). Writing ~/.grok/config.toml is inherently a local-machine operation, so loopback-only costs no real capability.
+  "/api/cli-tools/grok-build-settings", // GET calls getCliRuntimeStatus("grok-build"), which spawns a child process to locate + healthcheck the `grok` binary (Hard Rules #15 + #17). Writing ~/.grok/config.toml is inherently a local-machine operation, so loopback-only costs no real capability.
   "/api/cli-tools/forge-settings", // spawns via getCliRuntimeStatus() to detect the `forge` CLI install (Hard Rules #15 + #17, #7263)
   "/api/cli-tools/jcode-settings", // spawns via getCliRuntimeStatus() to detect the `jcode` CLI install (Hard Rules #15 + #17, #7263)
   "/api/cli-tools/qwen-settings", // GET probes the local `qwen` binary; writes target ~/.qwen config files (Hard Rules #15 + #17)
@@ -82,9 +82,6 @@ export const LOCAL_ONLY_API_PREFIXES: ReadonlyArray<string> = [
   "/api/jobs/", // sub-paths: /api/jobs/:id/{runs,enable,disable,run-now} (the bare `/api/jobs` above matches the list route; this matches children)
   "/api/oauth/cursor/auto-import", // spawns execFile("which", argv-array-of-one-arg "cursor") to verify a local Cursor install before importing creds — RCE-via-tunnel surface (Hard Rules #15 + #17, found by 6A.8 route-guard gate). Specific path only: the rest of /api/oauth/ (browser redirect/callback flows) must stay remote-reachable. Note: this comment intentionally avoids a literal closing square bracket character — check-openapi-security-tiers.mjs's naive regex parser for this array stops at the first one it finds, silently truncating its view of every entry after this one.
   "/api/oauth/kiro/auto-import", // reads host-local Kiro credential files (homedir kiro-cli data) — must reach the loopback-only gate, not the PUBLIC /api/oauth/ prefix (GHSA-wgwc-crjm-pmwv, GHSA-gxv4-955v-v6cm). Excluded from PUBLIC in publicApiRoutes.ts.
-  "/api/skills/collect/", // Skill Collector CLI detection: GET .../detect probes getCliRuntimeStatus() per CLI_TOOL_IDS entry, which spawns a child process to check each tool — RCE-via-tunnel surface (Hard Rules #15 + #17, PR #6294 review).
-  "/api/skills/install", // POST stores the request's handlerCode verbatim as the skill handler with no allowlist; a value equal to the built-in `execute_command` / `eval_code` name aliases the real sandboxed built-in (src/lib/skills/executor.ts -> builtins.ts -> sandbox.ts childProcess.spawn). Transitive spawn the 6A.8 source-scan cannot see (Hard Rules #15 + #17, GHSA-jx89-f37j-pq89)
-  "/api/skills/executions", // POST runs skillExecutor.execute() on any global/system skill with caller-chosen input — reaches the container spawn in src/lib/skills/sandbox.ts; only isAuthenticated()-gated, which requireLogin=false waives (Hard Rules #15 + #17, GHSA-jx89-f37j-pq89). Registry list/delete, marketplace and skillssh stay remote-reachable.
   "/api/discovery/", // Discovery tool (opt-in provider scanner): the scan route makes outbound probes to provider endpoints (SSRF-adjacent) and the whole surface is an admin research tool — strict-loopback only, no manage-scope bypass (NOT in LOCAL_ONLY_MANAGE_SCOPE_BYPASS_PREFIXES). See _tasks/features-v3.8.42/gaps/DISCOVERY_TOOL_DESIGN.md.
   VNC_ROUTE_PREFIX, // #7892: /api/vnc-session/* spawns Docker containers via child_process.spawn (src/lib/vncSession/service.ts) — RCE-via-tunnel surface (Hard Rules #15 + #17), same CVE class (GHSA-fhh6-4qxv-rpqj).
   "/api/resilience/connections", // Per-account resilience state. Spawns nothing, so it is in the default manage-scope bypass list below: a remote caller needs an authenticated dashboard session or a manage-scope key, and an anonymous one still gets 403 (KEA-9357). NOTE: prefix matching also gates future /api/resilience/connections-* paths.
@@ -170,13 +167,6 @@ export const LOCAL_ONLY_MANAGE_SCOPE_BYPASS_PREFIXES: ReadonlyArray<string> = [
 
 export const ALWAYS_PROTECTED_API_PATHS: ReadonlyArray<string> = [
   "/api/shutdown",
-  // Skill writers. generate with prune=true deletes every non-catalog directory under
-  // skills/ on the host; the two install routes register a global, enabled, auto-mode
-  // skill that is injected into every key's requests. Their handlers checked auth only
-  // when login was on, so requireLogin=false left them anonymous.
-  "/api/agent-skills/generate",
-  "/api/skills/marketplace/install",
-  "/api/skills/skillssh/install",
   "/api/providers/health-autopilot/actions",
   "/api/settings/database",
   // Full-database export/import: a credential dump and an irreversible replace.
@@ -363,16 +353,11 @@ export function isPrivateLanHost(hostHeader: string | null): boolean {
  *   PATH lookup (`which cloudflared`), which runs only for loopback/LAN callers:
  *   a remote caller gets the unprobed status (`probed: false`) with no spawn
  *   (GHSA-35fw-cv32-2373 class, GHSA-jmq6-8j86-8xqj call-site gate).
- *   /api/skills/executions — GET lists stored execution rows (two SQLite reads in
- *   skillExecutor.listExecutions/countExecutions); only POST runs a skill and reaches
- *   the sandbox container spawn (GHSA-jx89-f37j-pq89), and it stays LOCAL_ONLY.
- *   Without the exemption Skills > Executions can never load on a remote dashboard
  *   (KEA-9359). Same shape as the /api/mcp/audit exemption (#13941).
  */
 export const LOCAL_ONLY_API_GET_EXEMPTIONS: ReadonlySet<string> = new Set([
   "/api/system/version",
   "/api/tunnels/cloudflared",
-  "/api/skills/executions",
 ]);
 
 /** Safe HTTP methods that can be exempted for read-only paths. */

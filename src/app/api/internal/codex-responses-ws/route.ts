@@ -19,13 +19,7 @@ import { StaleCodexOperationError } from "@/lib/db/codexConnectionFences";
 import { resolveCodexWsModelInfo } from "./modelResolution";
 import { isFeatureFlagEnabled, isRequireApiKeyEnabled } from "@/shared/utils/featureFlags";
 import { buildHandshakeOriginRequest, isWebSocketOriginAllowed } from "@/server/origin/wsOrigin";
-import { formatMemoryContext } from "@/lib/memory/injection";
-import { retrieveMemories } from "@/lib/memory/retrieval";
-import {
-  DEFAULT_MEMORY_SETTINGS,
-  getMemorySettings,
-  toMemoryRetrievalConfig,
-} from "@/lib/memory/settings";
+import { retrieveOpenChamberMemoryText } from "@omniroute/open-sse/services/openChamberBridge.ts";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
 import { logger } from "@omniroute/open-sse/utils/logger.ts";
 import { resolveProxyForConnection } from "@/lib/db/settings";
@@ -241,17 +235,6 @@ export function injectResponsesWsMemoryInstructions(
   };
 }
 
-async function getMemorySettingsForResponsesWs() {
-  try {
-    return await getMemorySettings();
-  } catch (error) {
-    log.warn("memory.settings.defaulted", {
-      error: sanitizeErrorMessage(error instanceof Error ? error.message : String(error)),
-    });
-    return DEFAULT_MEMORY_SETTINGS;
-  }
-}
-
 async function maybeInjectResponsesWsMemory(
   responseBody: JsonRecord,
   metadata: ApiKeyMetadata | null
@@ -262,12 +245,7 @@ async function maybeInjectResponsesWsMemory(
   if (!query) return responseBody;
 
   try {
-    const memorySettings = await getMemorySettingsForResponsesWs();
-    const memories = await retrieveMemories(
-      metadata.id,
-      toMemoryRetrievalConfig(memorySettings, { query })
-    );
-    const memoryText = formatMemoryContext(memories);
+    const memoryText = await retrieveOpenChamberMemoryText(metadata.id, query);
     return injectResponsesWsMemoryInstructions(responseBody, memoryText);
   } catch (error) {
     log.warn("memory.injection.skipped", {

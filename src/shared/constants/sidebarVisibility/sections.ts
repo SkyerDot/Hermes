@@ -512,20 +512,6 @@ const DEVTOOLS_ITEMS: readonly SidebarItemDefinition[] = [
 
 const AGENTIC_FEATURES_ITEMS: readonly SidebarSectionChild[] = [
   {
-    id: "memory",
-    href: "/dashboard/memory",
-    i18nKey: "memory",
-    subtitleKey: "memorySubtitle",
-    icon: "psychology",
-  },
-  {
-    id: "agent-skills",
-    href: "/dashboard/agent-skills",
-    i18nKey: "agentSkills",
-    subtitleKey: "agentSkillsSubtitle",
-    icon: "share",
-  },
-  {
     id: "chaos-config",
     href: "/dashboard/chaos",
     i18nKey: "chaosConfig",
@@ -533,13 +519,6 @@ const AGENTIC_FEATURES_ITEMS: readonly SidebarSectionChild[] = [
     subtitleKey: "chaosConfigSubtitle",
     subtitleFallback: "Multi-model parallel execution",
     icon: "blender",
-  },
-  {
-    id: "skills",
-    href: "/dashboard/omni-skills",
-    i18nKey: "omniSkills",
-    subtitleKey: "omniSkillsSubtitle",
-    icon: "auto_fix_high",
   },
 ];
 
@@ -653,7 +632,7 @@ const CONFIGURATION_ITEMS: readonly SidebarItemDefinition[] = [
     href: "/dashboard/settings/cache",
     i18nKey: "settingsCache",
     subtitleKey: "settingsCacheSubtitle",
-    icon: "memory",
+    icon: "database",
   },
   {
     id: "settings-sidebar",

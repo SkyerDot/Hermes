@@ -189,7 +189,7 @@ export function shouldExtractMemory(input: {
  * than a test file hand-mirroring the call sites' shape.
  *
  * `extractFacts` is injected (not imported directly) purely for testability —
- * production callers pass the real `@/lib/memory/extraction` one. When
+ * production callers pass the OpenChamber bridge adapter. When
  * `shouldExtractMemory` says no (memory disabled/unconfigured, OR a
  * video-bridge-observed request), this is a complete no-op: neither the
  * request- nor the response-derived text is extracted, so an observed

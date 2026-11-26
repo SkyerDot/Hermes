@@ -90,7 +90,7 @@ describe("feature-flags-settings count update", () => {
     // PROXY_REEGRESS_ON_QUOTA_429 (pool re-send after a per-IP 429, default off) to 134.
     // Task 7 removed two gamification/webhook flags and Task 8 removed
     // PLUGIN_PERMISSION_MODEL_ENABLED.
-    assert.equal(FEATURE_FLAG_DEFINITIONS.length, 135);
+    assert.equal(FEATURE_FLAG_DEFINITIONS.length, 132);
     // COMPRESSION_CACHE_AUTOMATIC_PREFIX_ESTIMATE (#17114, default off) to 114.
     // CURSOR_GROK_47_DROP_MAX_EFFORT (#17386, default off) to 112.
     // UNPRICED_USAGE_BUDGET_POLICY (#14604, default fail_closed) to 113.

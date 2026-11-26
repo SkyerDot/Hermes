@@ -65,7 +65,7 @@ import {
   resolveTargetStreamActiveTimeoutMs,
 } from "./upstreamTimeouts.ts";
 import { recordCost, recordUnpricedBudgetUsage } from "@/domain/costRules";
-import { extractFacts } from "@/lib/memory/extraction";
+import { extractFactsViaOpenChamber as extractFacts } from "../../services/openChamberBridge.ts";
 import { calculateCost, calculateCostDetailed } from "@/lib/usage/costCalculator";
 import { appendRequestLog, trackPendingRequest } from "@/lib/usageDb";
 import { isRegisteredFeatureFlagEnabled } from "../../utils/registeredFeatureFlag.ts";

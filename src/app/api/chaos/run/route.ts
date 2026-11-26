@@ -11,7 +11,7 @@
  *   systemPrompt?: string // Optional — override global system prompt
  *   maxTokens?: number    // Optional — override max_tokens per model call
  *
- * Returns the same shape as POST /api/skills/collect/chaos.
+ * Returns the Chaos Mode dispatch result.
  */
 import { NextResponse } from "next/server";
 import { z } from "zod";

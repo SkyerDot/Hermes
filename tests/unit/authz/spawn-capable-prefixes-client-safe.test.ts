@@ -75,7 +75,6 @@ test("SPAWN_CAPABLE_PREFIXES is defined in the server-free constants leaf with t
     "/api/tools/agent-bridge/",
     "/api/tools/traffic-inspector/",
     "/api/local/",
-    "/api/skills/collect/",
     "/api/headroom/start",
     "/api/headroom/stop",
     "/api/vnc-session",
@@ -105,10 +104,6 @@ test("SPAWN_CAPABLE_PREFIXES is defined in the server-free constants leaf with t
     "/api/cli-tools/smelt-settings",
     "/api/cli-tools/status",
     "/api/cli-tools/whycodes-settings",
-    // GHSA-jx89-f37j-pq89: skills handler registration + execution reach the
-    // sandbox container spawn transitively.
-    "/api/skills/install",
-    "/api/skills/executions",
     // LOCAL_ONLY spawn / code-exec routes that were never mirrored into the deny-list
     // (drift guard: tests/unit/authz/local-only-bypass-spawn-denylist.test.ts).
     "/api/middleware/",
@@ -129,12 +124,13 @@ test("SPAWN_CAPABLE_PREFIXES is defined in the server-free constants leaf with t
       `SPAWN_CAPABLE_PREFIXES lost the spawn-capable prefix "${prefix}" during extraction`
     );
   }
-  // 20 at extraction time + 14 (GHSA-35fw-cv32-2373) + 2 (GHSA-jx89-f37j-pq89)
+  // 20 at extraction time + 14 (GHSA-35fw-cv32-2373)
   // + 14 LOCAL_ONLY spawn / code-exec routes that had never been mirrored here.
   // + 1 host-credential read (/api/oauth/kiro/auto-import) that must never be bypassable.
   // + 1 (whycodes-settings, #14107).
   // qwen-settings is the one pre-existing entry not enumerated above.
   // Task 5 removed 2 agent-orchestration entries (ACP registry + issue-agent).
   // Task 8 removed 4 embedded-service/plugin/version-manager entries.
-  assert.equal(SPAWN_CAPABLE_PREFIXES.length, 47);
+  // Task 10 removed 3 retired skills prefixes.
+  assert.equal(SPAWN_CAPABLE_PREFIXES.length, 44);
 });

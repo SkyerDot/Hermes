@@ -15149,9 +15149,6 @@
       "OMNIROUTE_DISABLE_TOKEN_HEALTHCHECK": {
         "description": "Disable the token-validation health check."
       },
-      "SKILLS_SANDBOX_NETWORK_ENABLED": {
-        "description": "Enable network access in the skills sandbox."
-      },
       "SERVER_OWNED_TOOL_LOOP_ENABLED": {
         "label": "Server-Owned Tool Loop",
         "description": "Continue non-streaming server-owned tool calls until the model returns a client-usable response."

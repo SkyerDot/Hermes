@@ -196,7 +196,6 @@ test("boot: skipInHeadless gates serial optional steps and logs the skip", () =>
 test("boot: the default optional table holds the optional subsystems, not the proxy core", () => {
   const names = instrumentationNode.OPTIONAL_BOOT_SUBSYSTEMS.map((s) => s.name);
   for (const expected of [
-    "embedded-services",
     "arena-elo-sync",
     "radar-sync",
     "pricing-sync",
@@ -207,15 +206,7 @@ test("boot: the default optional table holds the optional subsystems, not the pr
   ]) {
     assert.ok(names.includes(expected), `optional table must include ${expected}`);
   }
-  for (const core of [
-    "auto-refresh-daemon",
-    "connection-recovery",
-    "context-window-reconcile",
-    // Memory is cross-cutting to the request pipeline (/v1 injects and queries
-    // memory), so it is NOT an optional subsystem and must keep running headless.
-    "memory-backends",
-    "memory-decay-sweep",
-  ]) {
+  for (const core of ["auto-refresh-daemon", "connection-recovery", "context-window-reconcile"]) {
     assert.ok(!names.includes(core), `${core} is proxy-engine core and must not be gated`);
   }
 });
@@ -228,7 +219,7 @@ test("boot wiring: registerNodejs routes optional inits through the headless gat
   assert.match(body, /skipInHeadless\("cloud-sync"\)/);
 });
 
-test("boot (headless): the memory subsystems stay on the core path and still start", () => {
+test("boot (headless): removed memory subsystems are no longer booted at all", () => {
   const source = fs.readFileSync("src/instrumentation-node.ts", "utf8");
   const tableStart = source.indexOf("export const OPTIONAL_BOOT_SUBSYSTEMS");
   const tableEnd = source.indexOf("export async function startOptionalBootSubsystems");
@@ -236,8 +227,7 @@ test("boot (headless): the memory subsystems stay on the core path and still sta
   const body = source.slice(source.indexOf("export async function registerNodejs"));
   for (const mod of ['import("@/lib/memory/index")', 'import("@/lib/memory/typedDecay")']) {
     assert.ok(!table.includes(mod), `${mod} must not be in the headless-skipped table`);
-    assert.ok(body.includes(mod), `${mod} must be started inline by registerNodejs`);
+    assert.ok(!body.includes(mod), `${mod} must not be started by registerNodejs`);
   }
-  // Inline core inits are not wrapped by any headless guard.
   assert.doesNotMatch(body, /skipInHeadless\("memory/);
 });

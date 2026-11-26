@@ -178,7 +178,8 @@ test("env-var: an actual protocol error code in a code field is NOT flagged", ()
 test('env-var: a var read via bracket notation process.env["X"] is NOT flagged', () => {
   const found = findingsFor({
     files: {
-      "src/lib/memory/vectorStore.ts": 'const k = Number(process.env["MEMORY_RRF_K"] ?? 60);\n',
+      "src/lib/usage/comboScoringInspector.ts":
+        'const k = Number(process.env["MEMORY_RRF_K"] ?? 60);\n',
     },
     docs: { "memory.md": "Tune ranking with `MEMORY_RRF_K`.\n" },
   });

@@ -12,7 +12,6 @@
  */
 export const LOCAL_ONLY_DASHBOARD_PATHS = [
   "/api/resilience/connections",
-  "/api/skills/executions",
   "/api/db/health",
   "/api/tools/traffic-inspector/capture-modes",
 ] as const;

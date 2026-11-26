@@ -26,7 +26,6 @@ const REMOVED_FILES = [
   "src/lib/db/notion.ts",
   "src/lib/db/obsidian.ts",
   "src/lib/obsidianSync.ts",
-  "src/lib/memory/obsidianBackend.ts",
   "src/app/api/settings/notion/route.ts",
   "src/app/api/settings/obsidian/route.ts",
   "src/app/api/settings/obsidian/webdav/route.ts",

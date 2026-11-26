@@ -125,15 +125,10 @@ describe("isLocalOnlyPath - GET exemption for /api/system/version (#5083)", () =
   //   /api/mcp/audit         - GET is a read-only mcp_tool_audit query behind
   //   /api/mcp/audit/stats     requireManagementAuth (no spawn); the rest of
   //                              /api/mcp/* (sse/stream) stays local-only (#13941)
-  //   /api/skills/executions - GET lists stored skill_executions rows (two SQLite reads,
-  //                              no spawn); POST runs a skill, reaches the sandbox
-  //                              container spawn and stays local-only (GHSA-jx89-f37j-pq89,
-  //                              KEA-9359; see remote-readonly-resilience-skill-executions.test.ts)
   test("LOCAL_ONLY_API_GET_EXEMPTIONS holds exactly the reviewed paths", () => {
     assert.deepEqual([...LOCAL_ONLY_API_GET_EXEMPTIONS].sort(), [
       "/api/mcp/audit",
       "/api/mcp/audit/stats",
-      "/api/skills/executions",
       "/api/system/version",
       "/api/tunnels/cloudflared",
     ]);

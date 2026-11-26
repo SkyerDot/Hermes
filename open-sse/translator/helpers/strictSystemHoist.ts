@@ -1,6 +1,27 @@
-import { systemMessageMustBeFirst } from "../../../src/lib/memory/injection.ts";
-
 type Message = { role: string; content: unknown; [key: string]: unknown };
+
+const BUILTIN_PROVIDERS_SYSTEM_MUST_BE_FIRST = new Set(["xiaomi-mimo", "mimo", "tokenrouter"]);
+
+export function parseStrictSystemProvidersEnv(env: NodeJS.ProcessEnv = process.env): string[] {
+  return (env.OMNIROUTE_STRICT_SYSTEM_PROVIDERS ?? "")
+    .split(",")
+    .map((id) => id.trim().toLowerCase())
+    .filter(Boolean);
+}
+
+export function systemMessageMustBeFirst(
+  provider: string | null | undefined,
+  env: NodeJS.ProcessEnv = process.env
+): boolean {
+  if (!provider) return false;
+  const normalized = provider.toLowerCase().trim();
+  const extra = parseStrictSystemProvidersEnv(env);
+  const providers =
+    extra.length === 0
+      ? BUILTIN_PROVIDERS_SYSTEM_MUST_BE_FIRST
+      : new Set([...BUILTIN_PROVIDERS_SYSTEM_MUST_BE_FIRST, ...extra]);
+  return providers.has(normalized);
+}
 
 function toTextContent(content: unknown): string {
   if (typeof content === "string") return content;
@@ -19,8 +40,7 @@ function toTextContent(content: unknown): string {
 
 /**
  * #7293: hoist every `system`-role message onto index 0 for providers that reject a
- * non-first system message (`systemMessageMustBeFirst()` — the single source of truth
- * already used by `src/lib/memory/injection.ts`'s memory-injection half, #6135/PR#6225).
+ * non-first system message (`systemMessageMustBeFirst()` is defined locally here).
  *
  * `translateRequest()` is the single outbound choke point every request passes through,
  * including same-format (OpenAI→OpenAI) passthrough where none of the format-specific

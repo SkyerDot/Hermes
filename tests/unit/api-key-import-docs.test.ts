@@ -1,13 +1,13 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { buildApiOperationExample } from "../../src/lib/agentSkills/apiOperationExample.ts";
+import { buildApiOperationExample } from "../_setup/openApiContractFixtures.ts";
 
 test("generated import example supplies required name/key without publishing a reusable secret", () => {
-  const example = buildApiOperationExample(
-    { method: "POST", path: "/api/keys/import" },
-    false
-  ).join("\n");
+  const example = buildApiOperationExample({
+    method: "POST",
+    path: "/api/keys/import",
+  }).join("\n");
   assert.match(example, /IMPORTED_API_KEY/);
   assert.match(example, /name/);
   assert.doesNotMatch(example, /-d '\{\}'/);

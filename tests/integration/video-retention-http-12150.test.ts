@@ -82,8 +82,6 @@ test("retention HTTP route matrix", { timeout: 300_000 }, async (t) => {
   const readCache = await import("../../src/lib/db/readCache.ts");
   const logs = await import("../../src/lib/usage/callLogs.ts");
   const pending = await import("../../src/lib/usage/usageHistory.ts");
-  const memory = await import("../../src/lib/memory/store.ts");
-  const memorySettings = await import("../../src/lib/memory/settings.ts");
   const semantic = await import("../../src/lib/semanticCache.ts");
   const manager = await import("../../open-sse/services/cache/semanticCacheManager.ts");
   const idempotency = await import("../../src/lib/idempotencyLayer.ts");
@@ -152,8 +150,6 @@ test("retention HTTP route matrix", { timeout: 300_000 }, async (t) => {
     await settings.updateSettings({
       semanticCacheEnabled: true,
       semanticCacheVectorEnabled: true,
-      memoryEnabled: true,
-      memoryMaxTokens: 2000,
       call_log_pipeline_enabled: true,
       modalityBridgeVideoEnabled: true,
       modalityBridgeVideoModel: "openai/gpt-4.1-mini",
@@ -164,7 +160,6 @@ test("retention HTTP route matrix", { timeout: 300_000 }, async (t) => {
       .getSemanticCacheManager()
       .setEmbeddingGenerator(async () => ({ embedding: [1, 0, 0], inputTokens: 1 }));
     readCache.invalidateDbCache();
-    memorySettings.invalidateMemorySettingsCache();
     registry.registerDefaultGuardrails();
     registry.guardrailRegistry.register(
       new VideoBridgeGuardrail({
@@ -342,7 +337,6 @@ test("retention HTTP route matrix", { timeout: 300_000 }, async (t) => {
     assert.equal(semantic.getCacheStats().memoryEntries, 0);
     assert.equal((await manager.getSemanticCacheManager().getStats()).entries, 0);
     assert.equal((await idempotency.getIdempotencyStats()).activeKeys, 0);
-    assert.equal((await memory.listMemories({ apiKeyId: key.id })).total, 0);
     assert.equal(reasoning.getReasoningCacheServiceStats().totalEntries, 0);
     const applicationLog = await eventually(() => {
       const file = path.join(dataDir, "logs", "app.log");
@@ -485,7 +479,6 @@ test("retention HTTP route matrix", { timeout: 300_000 }, async (t) => {
       const detail = await latestLog(correlationId);
       assert(detail, "rejected log must exist");
       assert(!JSON.stringify(detail).includes(sentinel), "rejected log retained raw transcript");
-      assert.equal((await memory.listMemories({ apiKeyId: restricted.id })).total, 0);
     }
   );
 

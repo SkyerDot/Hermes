@@ -210,7 +210,7 @@ const POSITIVE_CASES: Array<[string, string[]]> = [
       "open-sse/handlers/chatCore.ts",
       "open-sse/utils/error.ts",
       "src/server/authz/routeGuard.ts",
-      "src/lib/memory/store.ts",
+      "src/lib/db/settings.ts",
       "open-sse/services/model.ts",
     ],
   ],

@@ -1,8 +1,7 @@
 /**
- * Unit tests for the 3 Chaos Mode API routes:
+ * Unit tests for the 2 Chaos Mode API routes:
  *   - GET/PUT/DELETE /api/chaos/config       (management-session auth)
  *   - POST           /api/chaos/run          (management-session auth)
- *   - POST           /api/skills/collect/chaos (external Bearer-token auth)
  *
  * Covers auth, Zod validation, and the "Chaos Mode disabled" 400 short-circuit
  * per Hard Rule #18 / the #6679 review checklist. Upstream model dispatch is
@@ -31,7 +30,6 @@ const chaosExecutor = await import("../../src/lib/chaos/chaosExecutor.ts");
 
 const configRoute = await import("../../src/app/api/chaos/config/route.ts");
 const runRoute = await import("../../src/app/api/chaos/run/route.ts");
-const skillsChaosRoute = await import("../../src/app/api/skills/collect/chaos/route.ts");
 
 async function resetStorage() {
   core.resetDbInstance();
@@ -251,101 +249,4 @@ test("POST /api/chaos/run — reports a clear error without any upstream request
   const body = (await res.json()) as { error: { message: string } };
   assert.match(body.error.message, /No provider has a model set/);
   assert.equal(calls, 0);
-});
-
-// ═════════════════════════════════════════════════════════════════════════════
-// POST /api/skills/collect/chaos
-// ═════════════════════════════════════════════════════════════════════════════
-
-test("POST /api/skills/collect/chaos — 401 without an Authorization header", async () => {
-  const res = await skillsChaosRoute.POST(
-    makeRequest("POST", "http://localhost/api/skills/collect/chaos", { task: "hello" })
-  );
-  assert.equal(res.status, 401);
-});
-
-test("POST /api/skills/collect/chaos — 403 with an invalid API key", async () => {
-  const res = await skillsChaosRoute.POST(
-    makeRequest(
-      "POST",
-      "http://localhost/api/skills/collect/chaos",
-      { task: "hello" },
-      { Authorization: "Bearer sk-does-not-exist" }
-    )
-  );
-  assert.equal(res.status, 403);
-});
-
-test("POST /api/skills/collect/chaos — 403 when the API key does not have chaosModeEnabled", async () => {
-  const created = await apiKeysDb.createApiKey("No Chaos Key", "machine-chaos-01");
-
-  const res = await skillsChaosRoute.POST(
-    makeRequest(
-      "POST",
-      "http://localhost/api/skills/collect/chaos",
-      { task: "hello" },
-      { Authorization: `Bearer ${created.key}` }
-    )
-  );
-  assert.equal(res.status, 403);
-  const body = (await res.json()) as { error: { message: string } };
-  assert.match(body.error.message, /Chaos Mode is not enabled for this API key/);
-});
-
-test("POST /api/skills/collect/chaos — 400 when Chaos Mode is disabled globally even with a valid key", async () => {
-  const created = await apiKeysDb.createApiKey("Chaos Key", "machine-chaos-02");
-  await apiKeysDb.updateApiKeyPermissions(created.id, { chaosModeEnabled: true });
-  apiKeysDb.clearApiKeyCaches();
-
-  const res = await skillsChaosRoute.POST(
-    makeRequest(
-      "POST",
-      "http://localhost/api/skills/collect/chaos",
-      { task: "hello" },
-      { Authorization: `Bearer ${created.key}` }
-    )
-  );
-  assert.equal(res.status, 400);
-});
-
-test("POST /api/skills/collect/chaos — 200 happy path forwards the caller's key to the in-process dispatch", async () => {
-  await chaosConfig.setChaosConfig({
-    enabled: true,
-    defaultMode: "parallel",
-    providerOverrides: [],
-    timeoutMs: 120_000,
-    maxTokens: 4096,
-  });
-  await providersDb.createProviderConnection({
-    provider: "openai",
-    authType: "apikey",
-    name: "Skills Route Provider",
-    apiKey: "sk-skills-route",
-    defaultModel: "gpt-4o-mini",
-  });
-
-  const created = await apiKeysDb.createApiKey("Chaos Key External", "machine-chaos-03");
-  await apiKeysDb.updateApiKeyPermissions(created.id, { chaosModeEnabled: true });
-  apiKeysDb.clearApiKeyCaches();
-
-  let capturedAuth: string | null | undefined;
-  mock.method(chaosExecutor.chatDispatch, "postChatCompletion", async (req: Request) => {
-    capturedAuth = req.headers.get("Authorization");
-    return jsonResponse({ choices: [{ message: { content: "external result" } }] });
-  });
-
-  const res = await skillsChaosRoute.POST(
-    makeRequest(
-      "POST",
-      "http://localhost/api/skills/collect/chaos",
-      { task: "Summarize" },
-      { Authorization: `Bearer ${created.key}` }
-    )
-  );
-
-  assert.equal(res.status, 200);
-  const body = (await res.json()) as { models: { status: string; content: string }[] };
-  assert.equal(body.models[0].status, "success");
-  assert.equal(body.models[0].content, "external result");
-  assert.equal(capturedAuth, `Bearer ${created.key}`);
 });

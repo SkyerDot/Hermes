@@ -7,7 +7,7 @@
  * src/app/api/cli-tools/jcode-settings/route.ts), which spawns a child process to locate
  * and healthcheck the CLI binary (src/shared/services/cliRuntime.ts:332). That is the same
  * transitive-spawn surface that got /api/cli-tools/grok-build-settings and
- * /api/skills/collect/ classified.
+ * CLI runtime routes classified.
  *
  * Classifying it LOCAL_ONLY closes the remote-RCE vector: a leaked JWT over a
  * Cloudflared/Ngrok tunnel cannot trigger process spawning.
