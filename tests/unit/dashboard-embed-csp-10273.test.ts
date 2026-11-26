@@ -8,7 +8,7 @@
 // `frame-ancestors 'self' vscode-webview:` and drop `X-Frame-Options` (XFO has no syntax
 // for a custom scheme, and CSP frame-ancestors supersedes it in modern engines).
 //
-// The API surface (`/api`, `/v1`, `/v1beta`, the root-level rewrite aliases, `/a2a`,
+// The API surface (`/api`, `/v1`, `/v1beta`, the root-level rewrite aliases,
 // `/healthz`) must keep the strict headers even in embed mode — those are the
 // Hard-Rule-15/17 surfaces and never need framing.
 //
@@ -93,7 +93,6 @@ const API_PATHS = [
   "/metrics",
   "/debug",
   "/.env",
-  "/a2a",
   "/healthz",
 ];
 
@@ -262,7 +261,7 @@ test("#10273 every root-level rewrite alias is excluded from the embeddable page
     );
   }
   // The app-router API surfaces that have no rewrite alias.
-  for (const literal of ["api", "a2a", "healthz"]) {
+  for (const literal of ["api", "healthz"]) {
     assert.ok(prefixes.has(literal), `"${literal}" must be excluded from the page surface`);
   }
 });

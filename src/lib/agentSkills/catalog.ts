@@ -1,7 +1,7 @@
 /**
  * catalog.ts — single source of truth for the 46-entry Agent Skills catalog.
  *
- * Consumers: REST routes (/api/agent-skills/*), MCP tools, A2A skill, Generator.
+ * Consumers: REST routes (/api/agent-skills/*), Generator.
  * Do NOT import this from UI components directly — use the REST API instead.
  */
 

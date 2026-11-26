@@ -41,8 +41,6 @@ test("proxy matcher still covers the canonical lowercase client aliases", () => 
     "/responses",
     "/codex/x",
     "/models",
-    "/a2a",
-    "/a2a/tasks",
     "/connect",
     "/connect/token",
   ]) {
@@ -61,8 +59,6 @@ test("proxy matcher covers uppercase / mixed-case client aliases (GHSA-jvqc-mp9f
     "/MODELS",
     "/Responses/x",
     "/v1BeTa/models",
-    "/A2A",
-    "/A2A/tasks",
     "/CONNECT",
     "/CONNECT/token",
   ]) {
@@ -79,10 +75,8 @@ test("classifyRoute treats uppercase client aliases as CLIENT_API, not managemen
   assert.equal(classifyRoute("/V1BETA/models", "GET").routeClass, "CLIENT_API");
   assert.equal(classifyRoute("/MODELS", "GET").routeClass, "CLIENT_API");
   assert.equal(classifyRoute("/CODEX", "POST").routeClass, "CLIENT_API");
-  assert.equal(classifyRoute("/A2A", "POST").routeClass, "CLIENT_API");
   assert.equal(classifyRoute("/CONNECT/token", "GET").routeClass, "PUBLIC");
   // Lowercase behavior is unchanged.
   assert.equal(classifyRoute("/v1/chat/completions", "POST").routeClass, "CLIENT_API");
-  assert.equal(classifyRoute("/a2a", "POST").routeClass, "CLIENT_API");
   assert.equal(classifyRoute("/connect/token", "GET").routeClass, "PUBLIC");
 });

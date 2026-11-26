@@ -4,14 +4,12 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-// F4 (KEA-7886, lote 7 pendência 12): six lote-7 pages had no page title of their own — only the
+// F4 (KEA-7886, lote 7 pendência 12): lote-7 pages had no page title of their own — only the
 // shell top bar, which is hidden below lg and now hides itself next to a PageHeader. Each page
 // renders a kit PageHeader titled like its sidebar entry (same keys the shell title used).
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
 const PAGES: Array<[string, string, string]> = [
   ["src/app/(dashboard)/dashboard/memory/page.tsx", "memory", "memorySubtitle"],
-  ["src/app/(dashboard)/dashboard/mcp/page.tsx", "mcp", "mcpSubtitle"],
-  ["src/app/(dashboard)/dashboard/a2a/page.tsx", "a2a", "a2aSubtitle"],
   ["src/app/(dashboard)/dashboard/cloud-agents/page.tsx", "cloudAgents", "cloudAgentsSubtitle"],
   [
     "src/app/(dashboard)/dashboard/agent-skills/AgentSkillsPageClient.tsx",
@@ -25,7 +23,7 @@ const PAGES: Array<[string, string, string]> = [
   ],
 ];
 
-test("the six lote-7 pages render a kit PageHeader with their sidebar title", () => {
+test("the retained lote-7 pages render a kit PageHeader with their sidebar title", () => {
   for (const [file, title, subtitle] of PAGES) {
     const src = fs.readFileSync(path.join(ROOT, file), "utf8");
     assert.match(src, /from "@omniroute\/ui-kit\/page-header"/, `${file}: PageHeader import`);

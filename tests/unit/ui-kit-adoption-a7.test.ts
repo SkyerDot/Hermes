@@ -10,7 +10,6 @@ import test from "node:test";
 
 const DASHBOARD = "src/app/(dashboard)/dashboard";
 const DASHBOARD_AREAS = [
-  "a2a",
   "acp-agents",
   "api-endpoints",
   "auto-combo",
@@ -22,7 +21,6 @@ const DASHBOARD_AREAS = [
   "gamification",
   "leaderboard",
   "limits",
-  "mcp",
   "onboarding",
   "plugins",
   "profile",

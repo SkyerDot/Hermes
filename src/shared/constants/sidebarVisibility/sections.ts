@@ -253,22 +253,6 @@ const TOOLS_GROUP: SidebarItemGroup = {
       icon: "cloud",
     },
     {
-      id: "conductor",
-      href: "/dashboard/conductor",
-      i18nKey: "conductor",
-      subtitleKey: "conductorSubtitle",
-      icon: "account_tree",
-      labelFallback: "Conductor",
-      subtitleFallback: "CLI-agent fleet",
-    },
-    {
-      id: "orchestration",
-      href: "/dashboard/orchestration",
-      i18nKey: "orchestration",
-      subtitleKey: "orchestrationSubtitle",
-      icon: "account_tree",
-    },
-    {
       id: "agent-bridge",
       href: "/dashboard/tools/agent-bridge",
       i18nKey: "agentBridge",
@@ -548,13 +532,6 @@ const AUDIT_GROUP: SidebarItemGroup = {
       subtitleKey: "auditLogSubtitle",
       icon: "policy",
     },
-    {
-      id: "audit-a2a",
-      href: "/dashboard/audit/a2a",
-      i18nKey: "auditA2a",
-      subtitleKey: "auditA2aSubtitle",
-      icon: "device_hub",
-    },
   ],
 };
 
@@ -612,13 +589,6 @@ const AGENTIC_FEATURES_ITEMS: readonly SidebarSectionChild[] = [
     i18nKey: "omniSkills",
     subtitleKey: "omniSkillsSubtitle",
     icon: "auto_fix_high",
-  },
-  {
-    id: "a2a",
-    href: "/dashboard/a2a",
-    i18nKey: "a2a",
-    subtitleKey: "a2aSubtitle",
-    icon: "device_hub",
   },
   {
     id: "plugins",

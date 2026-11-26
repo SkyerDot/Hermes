@@ -109,18 +109,6 @@ const cases: Case[] = [
     expectedNormalized: "/api/v1/models",
   },
   {
-    name: "/a2a alias",
-    path: "/a2a",
-    expectedClass: "CLIENT_API",
-    expectedNormalized: "/a2a",
-  },
-  {
-    name: "/a2a/* alias",
-    path: "/a2a/tasks",
-    expectedClass: "CLIENT_API",
-    expectedNormalized: "/a2a/tasks",
-  },
-  {
     name: "/connect public page",
     path: "/connect",
     expectedClass: "PUBLIC",

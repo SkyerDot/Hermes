@@ -53,11 +53,6 @@ function normalizePathname(rawPath: string): { path: string; reason?: Classifica
     return { path: "/api/v1" + tail, reason: "client_api_alias" };
   }
 
-  if (lower === "/a2a" || lower.startsWith("/a2a/")) {
-    const tail = path.slice("/a2a".length) || "";
-    return { path: "/a2a" + tail, reason: "client_api_alias" };
-  }
-
   if (lower === "/connect" || lower.startsWith("/connect/")) {
     const tail = path.slice("/connect".length) || "";
     return { path: "/connect" + tail, reason: "public_connect_page" };
@@ -111,14 +106,6 @@ export function classifyRoute(rawPath: string, method: string = "GET"): RouteCla
     return {
       routeClass: "MANAGEMENT",
       reason: "dashboard_prefix",
-      normalizedPath,
-    };
-  }
-
-  if (normalizedPath === "/a2a" || normalizedPath.startsWith("/a2a/")) {
-    return {
-      routeClass: "CLIENT_API",
-      reason: aliasReason ?? "client_api_alias",
       normalizedPath,
     };
   }

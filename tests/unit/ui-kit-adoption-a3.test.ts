@@ -17,7 +17,6 @@ const AREAS = [
   "cli-agents",
   "agent-skills",
   "omni-skills",
-  "conductor",
   "runtime",
   "discovery",
 ];
@@ -189,13 +188,7 @@ const PILL_BOX = [
   /(?<![\w:-])rounded(?:-full|-md|-sm)?(?![\w-])/,
 ];
 
-const PILL_EXCEPTIONS: Exception[] = [
-  {
-    file: "conductor/FaroChat.tsx",
-    marker: 'm.role === "user"',
-    reason: "Chat message bubble: it holds the whole message text, not a status label.",
-  },
-];
+const PILL_EXCEPTIONS: Exception[] = [];
 
 test('A: status pills are the Badge adapter with size="sm"', () => {
   const offenders = openingTags("span|div").filter(

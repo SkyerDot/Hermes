@@ -30,8 +30,6 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "cli-agents",
   "acp-agents",
   "cloud-agents",
-  "conductor",
-  "orchestration",
   "agent-bridge",
   "traffic-inspector",
   "discovery",
@@ -75,7 +73,6 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "radar-admin",
   // Monitoring > Audit
   "audit",
-  "audit-a2a",
   // Dev Tools
   "translator",
   "playground",
@@ -85,7 +82,6 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "skills",
   "agent-skills",
   "chaos-config",
-  "a2a",
   "plugins",
   // Gamification
   "leaderboard",

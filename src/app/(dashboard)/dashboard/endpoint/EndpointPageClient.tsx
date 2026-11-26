@@ -23,7 +23,6 @@ import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 import { isPublicDisplayBaseUrl, useDisplayBaseUrl } from "@/shared/hooks";
 import { extractApiErrorMessage } from "@/shared/http/apiErrorMessage";
 import { useTranslations } from "next-intl";
-import A2ADashboardPage from "./components/A2ADashboard";
 import NotionSourceCard from "./components/NotionSourceCard";
 import ObsidianSourceCard from "./components/ObsidianSourceCard";
 import VscodeTokenAliasCard from "./VscodeTokenAliasCard";
@@ -126,11 +125,10 @@ type EndpointTunnelVisibility = {
   showNgrokTunnel: boolean;
 };
 
-type EndpointTab = "apis" | "a2a" | "context-sources";
+type EndpointTab = "apis" | "context-sources";
 
 const ENDPOINT_TABS: Array<{ value: EndpointTab; labelKey: string; icon: string }> = [
   { value: "apis", labelKey: "tabApis", icon: "api" },
-  { value: "a2a", labelKey: "tabA2a", icon: "hub" },
   { value: "context-sources", labelKey: "tabContextSources", icon: "database" },
 ];
 
@@ -172,7 +170,6 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
   const [selectedProvider, setSelectedProvider] = useState(null); // for provider models popup
   const [cloudBaseUrl, setCloudBaseUrl] = useState(BUILD_TIME_CLOUD_URL); // dynamic cloud URL from API response
   const [cloudConfigured, setCloudConfigured] = useState(Boolean(BUILD_TIME_CLOUD_URL));
-  const [_a2aStatus, setA2aStatus] = useState<any>(null);
   const [searchProviders, setSearchProviders] = useState<any[]>([]);
   const [cloudflaredStatus, setCloudflaredStatus] = useState<CloudflaredTunnelStatus | null>(null);
   const [cloudflaredBusy, setCloudflaredBusy] = useState(false);
@@ -342,17 +339,6 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
     }
   };
 
-  const fetchProtocolStatus = async () => {
-    try {
-      const a2aRes = await fetch("/api/a2a/status");
-      if (a2aRes.ok) {
-        setA2aStatus(await a2aRes.json());
-      }
-    } catch {
-      // Ignore status failures; protocols panel has fallback text.
-    }
-  };
-
   // Categorize models by endpoint type
   // Filter out parent models (models with parent field set) to avoid showing duplicates
   const endpointData = useMemo(() => {
@@ -494,7 +480,6 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
       setLoading(false);
 
       runEndpointBackgroundTask("models", fetchModels);
-      runEndpointBackgroundTask("protocol-status", fetchProtocolStatus);
       runEndpointBackgroundTask("search-providers", fetchSearchProviders);
       runEndpointBackgroundTask("network-info", async () => {
         try {
@@ -598,7 +583,6 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
 
   useEffect(() => {
     const interval = setInterval(() => {
-      void fetchProtocolStatus();
       if (showCloudflaredTunnel) {
         void fetchCloudflaredStatus(true);
       }
@@ -1292,7 +1276,6 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
 
       {/* The endpoint cards stay under every section, so one panel follows the selected tab. */}
       <SegmentedPanel value={activeEndpointTab} className="flex flex-col gap-8">
-        {activeEndpointTab === "a2a" ? <A2ADashboardPage /> : null}
         {activeEndpointTab === "context-sources" ? (
           <div className="flex flex-col gap-4">
             <NotionSourceCard />

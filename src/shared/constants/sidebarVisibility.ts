@@ -179,7 +179,6 @@ export const ESSENTIALS_ADVANCED_TOOL_IDS: ReadonlySet<HideableSidebarItemId> = 
   "cache",
   "runtime",
   "resilience-connections",
-  "a2a",
   "memory",
   "skills",
 ]);
@@ -226,7 +225,6 @@ const DEVELOPER_SHOWN: ReadonlySet<HideableSidebarItemId> = new Set([
   "playground",
   "memory",
   "skills",
-  "a2a",
   "settings-general",
   "settings-modality-bridge",
   "settings-routing",
@@ -259,7 +257,6 @@ const ADMIN_SHOWN: ReadonlySet<HideableSidebarItemId> = new Set([
   "health",
   "runtime",
   "audit",
-  "audit-a2a",
   "settings-general",
   "settings-modality-bridge",
   "settings-routing",

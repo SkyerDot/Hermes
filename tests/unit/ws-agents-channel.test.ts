@@ -13,7 +13,12 @@ describe("agents WS channel (B1)", () => {
   it("emit/on round-trip", () => {
     const seen: unknown[] = [];
     const off = on("agent.task.updated", (p) => seen.push(p));
-    emit("agent.task.updated", { source: "a2a", taskId: "t1", state: "working", timestamp: 1 });
+    emit("agent.task.updated", {
+      source: "cloud-agent",
+      taskId: "t1",
+      state: "working",
+      timestamp: 1,
+    });
     off();
     assert.equal(seen.length, 1);
   });

@@ -540,7 +540,6 @@ export const updateSettingsSchema = z.object({
   intentExtraReasoningKeywords: z.array(z.string().max(100)).optional(),
   intentExtraSimpleKeywords: z.array(z.string().max(100)).optional(),
   // Protocol toggles (default: disabled)
-  a2aEnabled: z.boolean().optional(),
   wsAuth: z.boolean().optional(),
   // CLI Fingerprint compatibility (per-provider)
   cliCompatProviders: z.array(z.string().max(100)).optional(),
@@ -798,7 +797,6 @@ export const databaseSettingsSchema = z
       compressionAnalytics: z.number().int().min(1).max(365),
       mcpAudit: z.number().int().min(1).max(365),
       configAudit: z.number().int().min(1).max(365).optional(),
-      a2aEvents: z.number().int().min(1).max(365),
       callLogs: z.number().int().min(1).max(3650),
       conversationTurnNodes: z.number().int().min(1).max(3650).optional(),
       usageHistory: z.number().int().min(1).max(3650),

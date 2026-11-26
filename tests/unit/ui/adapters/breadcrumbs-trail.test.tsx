@@ -94,7 +94,6 @@ describe("Breadcrumbs: segments are translated", () => {
     ["/dashboard/logs/timeline", en.sidebar.logsTimeline, null],
     ["/dashboard/radar/offers", en.breadcrumbs.offers, null],
     ["/dashboard/onboarding", en.breadcrumbs.onboarding, null],
-    ["/dashboard/orchestration", en.breadcrumbs.orchestration, null],
   ])("%s ends in %s", (pathname, label, rawFallback) => {
     const { container } = renderAt(pathname);
     const last = crumbs(container).at(-1)!;

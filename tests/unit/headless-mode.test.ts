@@ -197,15 +197,13 @@ test("boot: the default optional table holds the optional subsystems, not the pr
   const names = instrumentationNode.OPTIONAL_BOOT_SUBSYSTEMS.map((s) => s.name);
   for (const expected of [
     "embedded-services",
-    "embed-ws-proxy",
-    "conductor-bridge",
     "arena-elo-sync",
     "radar-sync",
     "pricing-sync",
     "openrouter-provider-stats",
     "models-dev-sync",
     "opencode-free-relay",
-    "live-dashboard-ws",
+    "wake-recovery",
   ]) {
     assert.ok(names.includes(expected), `optional table must include ${expected}`);
   }

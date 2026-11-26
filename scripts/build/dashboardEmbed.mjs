@@ -13,7 +13,7 @@
  * it is required, not cosmetic. (Modern engines ignore XFO entirely once `frame-ancestors`
  * is present, so nothing is lost where CSP is supported.)
  *
- * The API surface is deliberately left out: `/api/*`, `/v1*`, `/a2a`, `/healthz` and every
+ * The API surface is deliberately left out: `/api/*`, `/v1*`, `/healthz` and every
  * root-level rewrite alias keep the strict headers even in embed mode. Those are the
  * Hard-Rule-15/17 process-spawning and proxy surfaces and never need framing.
  *
@@ -39,7 +39,7 @@ export const STRICT_FRAME_ANCESTORS = "frame-ancestors 'none'";
  * from. Everything else in the exclusion list comes from the rewrite table, so a future API
  * alias is excluded automatically instead of silently becoming framable.
  */
-export const STATIC_NON_PAGE_PREFIXES = Object.freeze(["api", "a2a", "healthz"]);
+export const STATIC_NON_PAGE_PREFIXES = Object.freeze(["api", "healthz"]);
 
 /**
  * Resolve the opt-in embed mode from the environment.

@@ -122,7 +122,6 @@ describe("converted files use the kit components (source guard)", () => {
     `${dash}/webhooks/components/steps/integrations/TelegramConfigForm.tsx`,
     `${dash}/cache/media/MediaPageClient.tsx`,
     `${dash}/cli-code/components/CopilotToolCard.tsx`,
-    `${dash}/conductor/FaroChat.tsx`,
     `${dash}/chaos/components/ChaosProviderOverridesPanel.tsx`,
     `${dash}/search-tools/components/SearchToolsConfigPane.tsx`,
     `${dash}/search-tools/components/SearchForm.tsx`,
@@ -136,7 +135,6 @@ describe("converted files use the kit components (source guard)", () => {
   });
 
   it.each([
-    `${dash}/orchestration/tabs/OverviewTab.tsx`,
     `${dash}/settings/components/CompressionSettingsTab.tsx`,
     `${dash}/runtime/RuntimePageClient.tsx`,
     `${dash}/combos/page.tsx`,

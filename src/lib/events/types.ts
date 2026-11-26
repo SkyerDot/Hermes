@@ -170,12 +170,11 @@ export interface CompressionStepPayload {
 }
 
 /**
- * Real-time transition of an orchestrated task tracked by the orchestration dashboard
- * (Fase 2). `source` distinguishes which subsystem raised the transition so the canvas can
- * route it to the right node type.
+ * Real-time transition of a cloud-agent task. `source` identifies the subsystem that raised
+ * the transition so subscribers can route it to the right node type.
  */
 export interface AgentTaskUpdatedPayload {
-  source: "cloud-agent" | "a2a" | "conductor";
+  source: "cloud-agent";
   taskId: string;
   state: string;
   timestamp: number;

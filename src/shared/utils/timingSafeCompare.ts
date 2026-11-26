@@ -6,8 +6,8 @@ import { timingSafeEqual } from "crypto";
  * `===` short-circuits on the first differing byte, so rejection time
  * correlates with how much of the value the caller already guessed (CWE-208).
  * That is the comparison this repo already avoids in every OAuth callback, the
- * A2A token check, the Telegram initData HMAC and the CLI token check — each of
- * which grew its own private copy of these five lines. This is the shared one:
+ * Telegram initData HMAC and the CLI token check — each of which grew its own
+ * private copy of these five lines. This is the shared one:
  * reach for it instead of writing a ninth copy, and instead of `===`.
  *
  * Length is not secret here (it leaks through the early return, as it does in

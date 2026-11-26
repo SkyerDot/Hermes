@@ -88,7 +88,7 @@ function makeRequest(
 // GET/POST /api/github-skills and GET /api/skills/collect/detect are typed as
 // NextRequest; POST /api/skills/collect/install is typed as plain Request. A
 // standard Request satisfies every property NextRequest handlers actually read
-// (method/url/headers/json()) — the same cast pattern as tests/unit/a2a-enabled-route.test.ts.
+// (method/url/headers/json()).
 function asNextRequest(req: Request): NextRequest {
   return req as unknown as NextRequest;
 }

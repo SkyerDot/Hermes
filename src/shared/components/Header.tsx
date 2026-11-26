@@ -108,7 +108,6 @@ const HEADER_DESCRIPTIONS: Partial<
   proxy: "proxyDescription",
   changelog: "changelogDescription",
   // Protocols
-  a2a: "a2aDescription",
   "api-endpoints": "apiEndpointsDescription",
   // Agents & AI sub-pages
   "batch-files": "batchFilesDescription",

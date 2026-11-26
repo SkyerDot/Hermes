@@ -4,7 +4,6 @@
  * Verifies:
  *  1. Every catalog ID has a skills/<id>/SKILL.md on disk.
  *  2. Each SKILL.md has valid frontmatter (name + description) and body ≥ 100 chars.
- *  3. A2A skill list-capabilities returns one artifact containing all 46 entries.
  *
  * Does NOT spin up a server — tests handlers directly via imports.
  */
@@ -16,8 +15,6 @@ import path from "node:path";
 // Dynamic imports for ESM + tsx compatibility
 const { API_SKILL_IDS, CLI_SKILL_IDS, CONFIG_SKILL_IDS, getCatalog } =
   await import("../../src/lib/agentSkills/catalog.ts");
-const { executeListCapabilities } = await import("../../src/lib/a2a/skills/listCapabilities.ts");
-import type { A2ATask } from "../../src/lib/a2a/taskManager.ts";
 
 const SKILLS_DIR = path.resolve(process.cwd(), "skills");
 
@@ -127,43 +124,4 @@ test("each SKILL.md body is at least 100 chars", () => {
   }
   const msg = failures.map((f) => `${f.id}(${f.len})`).join(", ");
   assert.deepEqual(failures, [], `SKILL.md files with body < 100 chars: ${msg}`);
-});
-
-// ── §3: A2A list-capabilities ────────────────────────────────────────────────
-
-const stubTask = {} as A2ATask;
-
-test("A2A list-capabilities returns exactly 1 artifact", async () => {
-  const result = await executeListCapabilities(stubTask);
-  assert.equal(result.artifacts.length, 1, "Expected exactly 1 artifact");
-  assert.equal(result.artifacts[0].type, "text", "Artifact type should be 'text'");
-});
-
-test("A2A list-capabilities artifact content contains 46 skill IDs as table rows", async () => {
-  const result = await executeListCapabilities(stubTask);
-  const content = result.artifacts[0].content;
-  const rows = content
-    .split("\n")
-    .filter(
-      (line) => line.startsWith("| ") && !line.startsWith("| ID") && !line.startsWith("| ---")
-    );
-  // Each skill row starts with "| <id> |"
-  assert.equal(rows.length, 46, `Expected 46 data rows but got ${rows.length}`);
-});
-
-test("A2A list-capabilities metadata.totalSkills === 46", async () => {
-  const result = await executeListCapabilities(stubTask);
-  assert.equal(result.metadata.totalSkills, 46);
-});
-
-test("A2A list-capabilities artifact contains all 46 skill IDs", async () => {
-  const result = await executeListCapabilities(stubTask);
-  const content = result.artifacts[0].content;
-  const missing: string[] = [];
-  for (const id of ALL_IDS) {
-    if (!content.includes(id)) {
-      missing.push(id);
-    }
-  }
-  assert.deepEqual(missing, [], `A2A artifact missing skill IDs: ${missing.join(", ")}`);
 });

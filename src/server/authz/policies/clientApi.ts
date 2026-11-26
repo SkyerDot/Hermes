@@ -9,11 +9,6 @@ import type { AuthOutcome, PolicyContext, RoutePolicy } from "../context";
 import { allow, reject } from "../context";
 import { isViaProxyRequest, requestPeerAddress } from "../peerContext";
 
-/** `/a2a` accepts header credentials only (#19832): never a URL-borne token. */
-function isA2aPath(normalizedPath: string): boolean {
-  return normalizedPath === "/a2a" || normalizedPath.startsWith("/a2a/");
-}
-
 function maskKeyId(apiKey: string): string {
   const tail = apiKey.slice(-4);
   return `key_${tail}`;
@@ -102,8 +97,7 @@ export const clientApiPolicy: RoutePolicy = {
     // NOT short-circuit auth, and neither may an unrelated Bearer sent ALONGSIDE
     // a valid x-api-key (Claude Code with a claude.ai session or
     // ANTHROPIC_AUTH_TOKEN): the request is accepted when ANY credential validates.
-    const allowUrl = !isA2aPath(ctx.classification.normalizedPath);
-    const credentials = extractApiKeyCandidates(ctx.request as Request, { allowUrl });
+    const credentials = extractApiKeyCandidates(ctx.request as Request);
     if (credentials.length === 0) {
       if (await isDashboardSessionAuthenticated(ctx.request)) {
         return allow({ kind: "dashboard_session", id: "dashboard" });

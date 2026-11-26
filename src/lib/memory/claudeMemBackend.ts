@@ -4,7 +4,7 @@
  *
  * claude-mem captures Claude Code / Codex / Cursor sessions into "observations" and serves
  * them from a worker bound to loopback. Registering this backend lets OmniRoute's memory
- * REST API and A2A memory search read (and write) that same store.
+ * REST API read (and write) that same store.
  *
  * The worker only listens on loopback, which the GenericMemoryBackend SSRF guard rejects by
  * design. Instead of loosening that guard, this adapter never accepts a host: it always

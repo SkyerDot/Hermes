@@ -410,7 +410,7 @@ describe("AgentSkillsPageClient", () => {
     expect(cards.length).toBeLessThanOrEqual(42);
   });
 
-  it("MCP and A2A links bar is present", async () => {
+  it("renders the skills grid and search control", async () => {
     vi.stubGlobal("fetch", mockFetch(make42Skills(), FULL_COVERAGE));
 
     const { AgentSkillsPageClient } =
@@ -421,8 +421,8 @@ describe("AgentSkillsPageClient", () => {
       root?.render(<AgentSkillsPageClient />);
     });
 
-    const linksBar = container.querySelector("[data-testid='mcp-a2a-links-bar']");
-    expect(linksBar).not.toBeNull();
+    expect(container.querySelector("[data-testid='skills-grid']")).not.toBeNull();
+    expect(container.querySelector("[data-testid='search-input']")).not.toBeNull();
   });
 });
 

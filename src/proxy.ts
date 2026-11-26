@@ -61,8 +61,6 @@ export const config = {
     "/:codexseg([cC][oO][dD][eE][xX])/:path*",
     "/:codexseg([cC][oO][dD][eE][xX])",
     "/:modelsseg([mM][oO][dD][eE][lL][sS])",
-    "/:a2aseg([aA]2[aA])/:path*",
-    "/:a2aseg([aA]2[aA])",
     "/:connectseg([cC][oO][nN][nN][eE][cC][tT])/:path*",
     "/:connectseg([cC][oO][nN][nN][eE][cC][tT])",
     "/:quotaseg([qQ][uU][oO][tT][aA])/:path*",

@@ -88,7 +88,6 @@ const BREADCRUMB_LABEL_KEYS: Readonly<Record<string, string>> = {
   utilization: "utilization",
   "api-endpoints": "apiEndpoints",
   audit: "audit",
-  a2a: "a2a",
   mcp: "mcp",
   batch: "batch",
   files: "files",
@@ -134,7 +133,6 @@ const BREADCRUMB_LABEL_KEYS: Readonly<Record<string, string>> = {
   "agent-bridge": "agentBridge",
   "traffic-inspector": "trafficInspector",
   usage: "usage",
-  orchestration: "orchestration",
   // Segments no sidebar entry names (sub-pages and redirects).
   access: "access",
   "auto-combo": "autoCombo",

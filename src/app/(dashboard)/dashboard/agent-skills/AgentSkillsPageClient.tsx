@@ -222,7 +222,7 @@ export function AgentSkillsPageClient(): JSX.Element {
       {/* Concept card — full width */}
       <SkillsConceptCard variant="agent" />
 
-      {/* Header: coverage + MCP/A2A bar + generate button */}
+      {/* Header: coverage + generate button */}
       <Card padding="sm" className="flex flex-col gap-3">
         {/* Coverage */}
         <div>

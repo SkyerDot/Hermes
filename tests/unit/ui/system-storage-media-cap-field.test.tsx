@@ -14,7 +14,6 @@ const RETENTION = {
   quotaSnapshots: 7,
   compressionAnalytics: 30,
   mcpAudit: 30,
-  a2aEvents: 30,
   callLogs: 30,
   conversationTurnNodes: 30,
   usageHistory: 30,

@@ -2,12 +2,12 @@ import { getDbInstance } from "@/lib/db/core.ts";
 import { emit } from "@/lib/events/eventBus";
 
 /**
- * Publish an `agent.task.updated` transition for the orchestration canvas (Fase 2, Task B2).
+ * Publish an `agent.task.updated` transition for cloud-agent task subscribers.
  * Best-effort: a listener throwing must never break the DB write path that triggered it.
  */
-function emitAgentTaskUpdated(source: "cloud-agent" | "a2a", taskId: string, state: string): void {
+function emitAgentTaskUpdated(taskId: string, state: string): void {
   try {
-    emit("agent.task.updated", { source, taskId, state, timestamp: Date.now() });
+    emit("agent.task.updated", { source: "cloud-agent", taskId, state, timestamp: Date.now() });
   } catch {
     /* listeners never derail the write path */
   }
@@ -79,7 +79,7 @@ export function insertCloudAgentTask(task: CloudAgentTaskRow): void {
     )
   `
   ).run(task);
-  emitAgentTaskUpdated("cloud-agent", task.id, task.status);
+  emitAgentTaskUpdated(task.id, task.status);
 }
 
 // Whitelist of allowed columns for update operations
@@ -124,7 +124,7 @@ export function updateCloudAgentTask(
   // Publish the row's real status: an update that only touches result/activities/error must
   // not fabricate a state the canvas has never heard of. No row means nothing was written.
   const state = (validUpdates.status as string | undefined) ?? getCloudAgentTaskById(id)?.status;
-  if (state) emitAgentTaskUpdated("cloud-agent", id, state);
+  if (state) emitAgentTaskUpdated(id, state);
 }
 
 export function getCloudAgentTaskById(id: string): CloudAgentTaskRow | null {

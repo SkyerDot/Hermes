@@ -13,10 +13,7 @@ import { categoricalSlotFor } from "@/shared/utils/categoricalPalette";
 // order, ciChartSeriesOrder[i % 8]) — six layers, six colours; the pill also prints the layer id.
 const LAYER_ORDER = ["L1", "L3", "L4", "L5", "L6", "L9"] as const; // prose, tool, code, MCP, history, pruning
 
-/**
- * In-flight engine step. Mirrors the Phase-2 orchestration mapping `running ->
- * var(--orch-status-warning)` (`orchestrationTypes.ts::STATE_VAR`).
- */
+/** In-flight engine step, using the theme-aware warning status token. */
 const RUNNING_COLOR = "var(--orch-status-warning)";
 
 /** Map engine name → layer tags for the pill display */

@@ -92,8 +92,6 @@ const SHELL_TITLED_ROUTES: Record<string, string> = {
   "/dashboard/costs/teams": "src/app/(dashboard)/dashboard/costs/teams-page.tsx",
   "/dashboard/free-tiers": "src/app/(dashboard)/dashboard/free-tiers/page.tsx",
   "/dashboard/logs/timeline": "src/app/(dashboard)/dashboard/logs/timeline/page.tsx",
-  "/dashboard/orchestration":
-    "src/app/(dashboard)/dashboard/orchestration/OrchestrationPageClient.tsx",
   "/dashboard/playground": "src/app/(dashboard)/dashboard/playground/PlaygroundStudio.tsx",
   "/dashboard/providers":
     "src/app/(dashboard)/dashboard/providers/components/ProvidersPageFrame.tsx",

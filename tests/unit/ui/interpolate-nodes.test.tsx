@@ -1,9 +1,10 @@
 // @vitest-environment jsdom
 /**
- * F4 (wave-2/3 checkpoint §6.11): MCP/A2A step hints use ICU *arguments* (`Run via {code}`).
- * t.rich takes functions only for <tag> placeholders, so `code: (chunks) => <code/>` rendered a
- * function ("Functions are not valid as a React child") and a node is a type error. The helper
- * passes sentinels through the real ICU formatter and swaps them for nodes.
+ * F4 (wave-2/3 checkpoint §6.11): ICU *arguments* (`{count} tokens compressed`) must
+ * pass through the real formatter and be swapped for React nodes. `t.rich` takes
+ * functions only for <tag> placeholders, so `code: (chunks) => <code/>` rendered a
+ * function ("Functions are not valid as a React child") and a node is a type error.
+ * The helper passes sentinels through the real ICU formatter and swaps them for nodes.
  */
 import React from "react";
 import { render } from "@testing-library/react";
@@ -13,45 +14,52 @@ import { describe, expect, it } from "vitest";
 import { interpolateNodes, nodeArgs } from "@/shared/utils/interpolateNodes";
 import en from "@/i18n/messages/en.json";
 
-const t = createTranslator({ locale: "en", messages: en as never, namespace: "mcpDashboard" });
-const ta = createTranslator({ locale: "en", messages: en as never, namespace: "a2aDashboard" });
+const tc = createTranslator({
+  locale: "en",
+  messages: en as never,
+  namespace: "common.usageEvidence",
+});
+const tm = createTranslator({ locale: "en", messages: en as never, namespace: "modelCatalog" });
 
 describe("interpolateNodes", () => {
-  it("renders the mcpStep1 hint with its command as a <code> node", () => {
+  it("renders a single ICU argument as a <code> node", () => {
     const { container } = render(
       <p>
         {interpolateNodes(
-          (t as never as (k: string, v: object) => string)("mcpStep1", nodeArgs(["code"])),
+          (tc as never as (k: string, v: object) => string)(
+            "compressedTokens",
+            nodeArgs(["count"])
+          ),
           {
-            code: <code>omniroute --mcp</code>,
+            count: <code>128</code>,
           }
         )}
       </p>
     );
-    expect(container.textContent).toBe("Run via omniroute --mcp");
-    expect(container.querySelector("code")?.textContent).toBe("omniroute --mcp");
+    expect(container.textContent).toBe("128 tokens compressed");
+    expect(container.querySelector("code")?.textContent).toBe("128");
   });
 
-  it("handles several arguments in one message (a2aStep2)", () => {
+  it("handles several arguments in one message (visibilityCounts)", () => {
     const { container } = render(
       <p>
         {interpolateNodes(
-          (ta as never as (k: string, v: object) => string)(
-            "a2aStep2",
-            nodeArgs(["code1", "code2", "code3"])
+          (tm as never as (k: string, v: object) => string)(
+            "visibilityCounts",
+            nodeArgs(["visible", "hidden", "total"])
           ),
           {
-            code1: <code>/a2a</code>,
-            code2: <code>message/send</code>,
-            code3: <code>message/stream</code>,
+            visible: <code>8</code>,
+            hidden: <code>2</code>,
+            total: <code>10</code>,
           }
         )}
       </p>
     );
     expect([...container.querySelectorAll("code")].map((c) => c.textContent)).toEqual([
-      "/a2a",
-      "message/send",
-      "message/stream",
+      "8",
+      "2",
+      "10",
     ]);
     expect(container.textContent).not.toMatch(/\u0000/);
   });

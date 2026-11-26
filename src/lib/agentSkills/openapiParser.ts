@@ -95,8 +95,6 @@ const PATH_AREA_MAP: Array<[string, SkillArea]> = [
   ["/api/mcp", "mcp"],
   // GitHub skills
   ["/api/github-skills", "github-skills"],
-  // A2A
-  ["/a2a", "agents-a2a"],
   // Version manager
   ["/api/services", "version-manager"],
   ["/api/version", "version-manager"],

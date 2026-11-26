@@ -1,5 +1,5 @@
 /**
- * #17188 — MCP and A2A accept an explicit combo alongside a fallback model.
+ * #17188 — callers accept an explicit combo alongside a fallback model.
  *
  * The chat gateway selects combos through the `model` field; there is no
  * consumer for `body["x-combo"]`. Choose the requested combo as the model

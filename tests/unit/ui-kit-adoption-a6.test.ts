@@ -5,7 +5,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 // Adoption of the new CI UI Kit, slice A6: the context, playground, webhooks, translator,
-// media-providers, compression, search-tools, memory and orchestration screens. Each test
+// media-providers, compression, search-tools and memory screens. Each test
 // keeps one hand-made pattern from coming back to these folders once the kit API replaced
 // it. A kept occurrence is listed with its reason; a listed one that no longer exists fails
 // too, so the lists cannot go stale.
@@ -21,7 +21,6 @@ const AREAS = [
   "compression",
   "search-tools",
   "memory",
-  "orchestration",
 ];
 
 function walk(dir: string, out: string[] = []): string[] {
@@ -101,7 +100,7 @@ function assertOnlyKept(hits: Tag[], kept: Kept[], message: string): void {
   assert.deepEqual(stale, [], "stale kept entries: remove them");
 }
 
-test("the slice scans the nine A6 areas", () => {
+test("the slice scans the eight A6 areas", () => {
   assert.ok(SOURCES.length > 150, `only ${SOURCES.length} files found`);
   for (const area of AREAS)
     assert.ok(
@@ -117,11 +116,6 @@ test("flow nodes: every canvas node is framed by the kit FlowNode", () => {
   assert.deepEqual(nodes.map((n) => n.file).sort(), [
     "compression/studio/nodes/EngineNode.tsx",
     "compression/studio/nodes/IoNode.tsx",
-    "orchestration/nodes/ActivityNode.tsx",
-    "orchestration/nodes/OrchestratorNode.tsx",
-    "orchestration/nodes/OverflowNode.tsx",
-    "orchestration/nodes/SourceNode.tsx",
-    "orchestration/nodes/WorkNode.tsx",
   ]);
   for (const { file, source } of nodes) {
     assert.match(source, /<FlowNode\b/, `${file} renders the kit FlowNode`);
@@ -192,8 +186,6 @@ test("A: filter chips are the kit ToggleChip and removable chips the kit ScopeCh
     ({ tag }) => /aria-pressed/.test(tag) && /rounded-full/.test(tag)
   );
   assertOnlyKept(pressedPills, [], "use <ToggleChip>");
-  const toolbar = SOURCES.find((s) => s.file === "orchestration/OrchestrationToolbar.tsx");
-  assert.match(toolbar?.source ?? "", /<ToggleChip\b/);
   const form = SOURCES.find((s) => s.file === "search-tools/components/SearchForm.tsx");
   assert.match(form?.source ?? "", /<ScopeChip\b[^>]*tone="success"/);
   assert.match(form?.source ?? "", /<ScopeChip\b[^>]*tone="danger"/);
@@ -314,7 +306,6 @@ test("C: a neutral panel nested in a card is Card.Section, not a hand-made box",
         ["search-tools/components/tabs/CompareTab.tsx", 'data-testid="compare-results"'],
         ["search-tools/components/tabs/CompareTab.tsx", "min-w-[280px]"],
         ["search-tools/components/tabs/ScrapeTab.tsx", "rounded-lg p-4 space-y-3"],
-        ["orchestration/OrchestrationToolbar.tsx", "flex flex-wrap items-center gap-3"],
       ] as const
     ).map(([file, marker]) => ({ file, marker, reason: TOP_LEVEL })),
     {
@@ -326,11 +317,6 @@ test("C: a neutral panel nested in a card is Card.Section, not a hand-made box",
       file: "search-tools/components/ProviderCatalog.tsx",
       marker: "transition-colors",
       reason: "A selectable provider tile (selected and hover states), not a panel.",
-    },
-    {
-      file: "orchestration/tabs/OverviewTab.tsx",
-      marker: "data-orch-card",
-      reason: "A card that opens the drawer (role=button), not a panel.",
     },
     {
       file: "playground/components/tabs/ChatTab.tsx",
@@ -457,18 +443,7 @@ test("E: row height and cell text size come from the table density", () => {
   const cells = openingTags("TableHead|TableCell").filter(({ tag }) =>
     /className="[^"]*(?<![\w:-])(?:h-8|p[xy]-(?:2|3)|py-1|text-left)(?![\w.-])/.test(tag)
   );
-  assertOnlyKept(
-    cells,
-    [
-      {
-        file: "orchestration/tabs/HistoryTab.tsx",
-        marker: "px-0.5 py-1",
-        reason:
-          "Column header of the history heatmap: one column per time bucket over 12px cells, narrower than any table density.",
-      },
-    ],
-    "set density on the table"
-  );
+  assertOnlyKept(cells, [], "set density on the table");
 });
 
 test("E: number columns use numeric, pinned columns sticky, a bounded table fill", () => {

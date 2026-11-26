@@ -21,9 +21,9 @@ export const FLOW_EDGE_COLORS = {
 
 /**
  * Translucent variant of a flow color. The palette values are `var()` now, so the old
- * `${hex}30` suffix trick no longer resolves; `color-mix` is the theme-aware equivalent
- * (same precedent as `orchStateBadgeBg` in the orchestration model). Percentages mirror
- * the previous 8-bit alpha suffixes: `20` -> 13%, `30` -> 19%, `40` -> 25%.
+ * `${hex}30` suffix trick no longer resolves; `color-mix` is the theme-aware equivalent.
+ * Percentages mirror the previous 8-bit alpha suffixes: `20` -> 13%, `30` -> 19%,
+ * `40` -> 25%.
  */
 export function flowColorAlpha(color: string, percent: number): string {
   return `color-mix(in srgb, ${color} ${percent}%, transparent)`;

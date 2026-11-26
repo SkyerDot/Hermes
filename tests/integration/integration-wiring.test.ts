@@ -313,11 +313,7 @@ describe("API Routes — dashboard and tool consumers", () => {
     assert.doesNotMatch(requestLogger, /\/api\/logs\/active/);
   });
 
-  it("keeps usage quota wired through A2A skill and quota route", () => {
-    const quotaSkill = readProjectFile("src/lib/a2a/skills/quotaManagement.ts");
-
-    assert.ok(quotaSkill, "quotaManagement skill should exist");
-    assert.match(quotaSkill, /\/api\/usage\/quota/);
+  it("keeps the usage quota route exposed for management clients", () => {
     assertRouteMethods("src/app/api/usage/quota/route.ts", ["GET"]);
   });
 

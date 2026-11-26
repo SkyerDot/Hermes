@@ -254,9 +254,6 @@ describe("EndpointPageClient", () => {
       }
       if (path === "/v1/models") return Promise.resolve(jsonResponse({ data: [] }));
       if (path === "/api/mcp/status") return Promise.resolve(jsonResponse({ online: false }));
-      if (path === "/api/a2a/status") {
-        return Promise.resolve(jsonResponse({ status: "ok", tasks: { activeStreams: 0 } }));
-      }
       if (path === "/api/search/providers") {
         return Promise.resolve(jsonResponse({ providers: [] }));
       }
@@ -353,9 +350,6 @@ describe("EndpointPageClient", () => {
       }
       if (path === "/api/mcp/status") {
         return Promise.resolve(jsonResponse({ online: false }));
-      }
-      if (path === "/api/a2a/status") {
-        return Promise.resolve(jsonResponse({ status: "ok", tasks: { activeStreams: 0 } }));
       }
       if (path === "/api/search/providers") {
         return Promise.resolve(jsonResponse({ providers: [] }));
@@ -489,9 +483,6 @@ describe("EndpointPageClient", () => {
       }
       if (path === "/v1/models") return Promise.resolve(jsonResponse({ data: [] }));
       if (path === "/api/mcp/status") return Promise.resolve(jsonResponse({ online: false }));
-      if (path === "/api/a2a/status") {
-        return Promise.resolve(jsonResponse({ status: "ok", tasks: { activeStreams: 0 } }));
-      }
       if (path === "/api/search/providers") return Promise.resolve(jsonResponse({ providers: [] }));
       if (path === "/api/cli-tools/keys") return Promise.resolve(jsonResponse({ keys: [] }));
       throw new Error(`Unexpected request: ${path}`);
@@ -600,9 +591,6 @@ describe("EndpointPageClient", () => {
       }
       if (path === "/api/mcp/status") {
         return Promise.resolve(jsonResponse({ online: false }));
-      }
-      if (path === "/api/a2a/status") {
-        return Promise.resolve(jsonResponse({ status: "ok", tasks: { activeStreams: 0 } }));
       }
       if (path === "/api/search/providers") {
         return Promise.resolve(jsonResponse({ providers: [] }));
