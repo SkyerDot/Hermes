@@ -52,7 +52,7 @@ export function resolveTpsOutputTokens(
 /**
  * Tokens per second for one logged call. Returns 0 (not null) when the inputs
  * cannot produce a rate — matches the historical `getLogTps()` display
- * contract in RequestLoggerV2.
+ * contract in the request-log surfaces.
  */
 export function computeLogTps(
   tokensOut: number | null | undefined,

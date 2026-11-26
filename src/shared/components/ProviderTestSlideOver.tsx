@@ -428,7 +428,7 @@ function LogsTab({ providerId }: { providerId: string }) {
           <>
             <p>{t("noLogsDescription")}</p>
             <a
-              href={`/dashboard/logs?connection=${encodeURIComponent(providerId)}`}
+              href={`/dashboard/activity?connection=${encodeURIComponent(providerId)}`}
               className="mt-2 inline-flex items-center gap-1 text-accent hover:underline"
               target="_blank"
               rel="noopener noreferrer"
@@ -522,7 +522,7 @@ function LogsTab({ providerId }: { providerId: string }) {
       </ul>
       <div className="px-4 py-2 border-t border-border text-3xs text-text-muted text-center shrink-0">
         <a
-          href={`/dashboard/logs?connection=${encodeURIComponent(providerId)}`}
+          href={`/dashboard/activity?connection=${encodeURIComponent(providerId)}`}
           className="inline-flex items-center gap-1 hover:text-text-main hover:underline"
           target="_blank"
           rel="noopener noreferrer"

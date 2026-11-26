@@ -68,14 +68,3 @@ test("Oneproxy and SkillsMP messages preserve their runtime values", () => {
   assert.equal(getMessage(messages, "settings.oneproxySyncFailed"), "Sync failed: {error}");
   assert.match(getMessage(messages, "settings.skillsmpApiKeyHintAfter") as string, /\{limit\}/);
 });
-
-test("request log dates follow the active locale without duplicating rotated account IDs", () => {
-  const source = readRepoFile("src/shared/components/RequestLoggerDetail.tsx");
-  assert.match(source, /const locale = useLocale\(\)/);
-  assert.doesNotMatch(source, /toLocaleDateString\("pt-BR"\)/);
-  assert.doesNotMatch(source, /toLocaleTimeString\("en-US"/);
-  assert.doesNotMatch(
-    source,
-    /\}\)\}\s*\{formatConnectionId\(codexAccountRotation\.finalConnectionId\)\}/
-  );
-});

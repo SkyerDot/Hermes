@@ -4,9 +4,8 @@
 //
 // Renders the master on/off switch, one row per catalog engine (on/off + level +
 // link to its detail page), the adaptive context-budget dial, the cavemanOutput
-// intensity row, the mcpAccessibility toggle (its own endpoint / separate store),
-// a derived-pipeline preview, and the general settings (auto-trigger tokens +
-// preserve-system-prompt).
+// intensity row, a derived-pipeline preview, and the general settings
+// (auto-trigger tokens + preserve-system-prompt).
 //
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
@@ -345,7 +344,6 @@ export default function CompressionPanel() {
   // Compare the UI language base ("zh-CN" → "zh") against the style's `locale`.
   const uiLang = (useLocale() || "en").split("-")[0];
   const [config, setConfig] = useState<CompressionConfig>(DEFAULT_CONFIG);
-  const [mcpAccessibility, setMcpAccessibility] = useState(true);
   // Named-combo pipelines (id -> steps), so the "Effective pipeline" preview below can match
   // what a live request actually runs when an active profile is selected (#12063).
   const [namedCombos, setNamedCombos] = useState<NamedCombos>({});
@@ -457,15 +455,6 @@ export default function CompressionPanel() {
         if (!ignore) setLoading(false);
       });
 
-    fetch("/api/settings/compression/mcp-accessibility")
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data: { enabled?: boolean } | null) => {
-        if (!ignore && data && typeof data.enabled === "boolean") {
-          setMcpAccessibility(data.enabled);
-        }
-      })
-      .catch(() => {});
-
     fetch("/api/context/combos")
       .then((r) => (r.ok ? r.json() : null))
       .then((data: { combos?: Array<{ id: string; pipeline: NamedCombos[string] }> } | null) => {
@@ -566,19 +555,6 @@ export default function CompressionPanel() {
       return hit ? [hit] : [];
     });
     save({ outputStyles: ordered });
-  };
-
-  const toggleMcpAccessibility = async (enabled: boolean) => {
-    setMcpAccessibility(enabled);
-    try {
-      await fetch("/api/settings/compression/mcp-accessibility", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ enabled }),
-      });
-    } catch {
-      // Surface nothing — the row reflects optimistic local state; the next mount re-reads.
-    }
   };
 
   const previewConfig = buildPreviewConfig(config);
@@ -854,22 +830,6 @@ export default function CompressionPanel() {
             </label>
           </>
         )}
-      </div>
-
-      {/* mcpAccessibility — writes its own endpoint / separate store */}
-      <div className="flex flex-col gap-2 border-t border-border py-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium text-text-main">{t("mcpAccessibilityTitle")}</p>
-          <p className="mt-0.5 text-xs text-text-muted">{t("mcpAccessibilityDescription")}</p>
-        </div>
-        <span data-testid="mcp-accessibility-toggle">
-          <Toggle
-            size="sm"
-            checked={mcpAccessibility}
-            onChange={toggleMcpAccessibility}
-            ariaLabel={t("mcpAccessibilityTitle")}
-          />
-        </span>
       </div>
 
       {/* General */}

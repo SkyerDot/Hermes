@@ -26,7 +26,7 @@ export function HomeProviderTopologySection({
   errorProvider: string;
 }) {
   const t = useTranslations("home");
-  // Live WS removed; local empty state until Task 12
+  // Live WS removed; the topology renders its local empty state.
   const liveActiveRequests: never[] = [];
   const completedRequests: never[] = [];
   const activeRequests = selectActiveRequests(liveActiveRequests);

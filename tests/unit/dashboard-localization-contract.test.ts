@@ -79,20 +79,12 @@ test("feature-flag descriptions are localized without changing flag values", () 
   );
 });
 
-test("analytics charts localize calendar, account, and diversity labels", () => {
+test("analytics charts localize calendar and account labels", () => {
   const sources = [
     readSource("src/shared/components/analytics/charts.tsx"),
     readSource("src/shared/components/analytics/rechartsDonuts.tsx"),
-    readSource("src/app/(dashboard)/dashboard/analytics/components/DiversityScoreCard.tsx"),
   ].join("\n");
-  for (const rawText of [
-    ">Less<",
-    ">More<",
-    ">Most Active Day<",
-    ">By Account<",
-    ">By API Key<",
-    '"Healthy Distribution"',
-  ]) {
+  for (const rawText of [">Less<", ">More<", ">Most Active Day<", ">By Account<", ">By API Key<"]) {
     assert.equal(sources.includes(rawText), false, `raw analytics copy: ${rawText}`);
   }
 });
@@ -156,11 +148,7 @@ test("changelog and settings breadcrumbs use localized labels", () => {
   assert.match(breadcrumbs, /"feature-flags": "featureFlags"/);
 });
 
-test("production audit regressions stay localized and provider icons stay bounded", () => {
-  const costs = readSource("src/app/(dashboard)/dashboard/costs/CostOverviewTab.tsx");
-  assert.match(costs, /formatWeekdayLabel\(row\.day, locale\)/);
-  assert.equal(costs.includes("} tokens`"), false);
-
+test("production storage and endpoint regressions stay localized", () => {
   const storage = [
     readSource("src/app/(dashboard)/dashboard/settings/components/SystemStorageTab.tsx"),
     readSource("src/app/(dashboard)/dashboard/settings/components/DatabaseBackupRetentionCard.tsx"),

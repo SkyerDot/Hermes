@@ -32,13 +32,6 @@ test("/api/logs/active route is removed", () => {
   );
 });
 
-test("RequestLoggerV2 detail fetch uses /api/logs/[id] and not /api/logs/active", () => {
-  const content = fs.readFileSync("src/shared/components/RequestLoggerV2.tsx", "utf8");
-  assert.match(content, /fetch\(`\/api\/logs\/\$\{[^}]+\.id\}`,\s*\{\s*cache:\s*"no-store"/);
-  assert.doesNotMatch(content, /fetch\(["'`]\/api\/logs\/active/);
-  assert.match(content, /detailState:\s*"pending"/);
-});
-
 // ─── usageHistory module behaviour ───────────────────────────────────────
 
 test("trackPendingRequest creates a detail entry", () => {
@@ -494,18 +487,6 @@ test("handleNext navigates forward when not at last item", () => {
   if (idx < items.length - 1) {
     assert.equal(items[idx + 1].id, "b", "should navigate to next item");
   }
-});
-
-// ─── Detail endpoint polling ─────────────────────────────────────────────
-
-test("deep-linked missing request id is kept pending for /api/logs/[id] polling", () => {
-  const content = fs.readFileSync("src/shared/components/RequestLoggerV2.tsx", "utf8");
-  assert.match(content, /pendingLookup:\s*true/);
-  // A deep-linked id that 404s while still active is kept pending...
-  assert.match(content, /setDetailData\(\{\s*detailState:\s*"pending"\s*\}\)/);
-  // ...and the detail-polling effect re-runs on that pending state.
-  assert.match(content, /detailData\?\.detailState/);
-  assert.doesNotMatch(content, /activeRequests|completedRows|completedRow/);
 });
 
 // ─── End-to-end streamChunks integration ──────────────────────────────────

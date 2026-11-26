@@ -156,21 +156,6 @@ const HOVER_ONLY_KEPT: Array<{ file: string; marker: string; reason: string }> =
     reason: "x at the end of a step line, among move up/down and test icons (unsaved builder).",
   },
   {
-    file: "src/app/(dashboard)/dashboard/costs/quota-share/components/PoolSchedulesCard.tsx",
-    marker: "patchReserve(index, ruleIndex, null)",
-    reason: "24px x that drops a reserve rule next to its inputs.",
-  },
-  {
-    file: "src/app/(dashboard)/dashboard/costs/quota-share/components/PoolWizard.tsx",
-    marker: "removeDimension(i)",
-    reason: "24px x that drops a dimension line of the wizard form.",
-  },
-  {
-    file: "src/app/(dashboard)/dashboard/costs/quota-share/components/PoolWizard.tsx",
-    marker: "removeAllocation(a.apiKeyId)",
-    reason: "24px x that drops a key line of the wizard form.",
-  },
-  {
     file: "src/app/(dashboard)/dashboard/omni-skills/components/SkillInspectorPane.tsx",
     marker: "onUninstall(skill.id)",
     reason: "Outline button that already draws error ink at rest (inspector footer).",
@@ -300,18 +285,6 @@ test("the destructive row actions from the #19620 list use destructive-ghost", (
     // Decision 1 (2026-11-14): hover-only red row/card deletes, checked in the browser.
     ["src/app/(dashboard)/dashboard/batch/BatchListTab.tsx", "setDeletingId(batch.id)"],
     ["src/app/(dashboard)/dashboard/batch/FilesListTab.tsx", "handleDeleteFile(file)"],
-    [
-      "src/app/(dashboard)/dashboard/costs/quota-share/QuotaSharePageClient.tsx",
-      "handleDeleteGroup()",
-    ],
-    [
-      "src/app/(dashboard)/dashboard/costs/quota-share/components/PoolCard.tsx",
-      "onClick={onRemove}",
-    ],
-    [
-      "src/app/(dashboard)/dashboard/costs/quota-share/components/PoolSchedulesCard.tsx",
-      "setRows((prev) => prev.filter((_, i) => i !== index))",
-    ],
     ["src/app/(dashboard)/dashboard/playground/components/PresetPicker.tsx", "remove(preset.id)"],
     ["src/app/(dashboard)/dashboard/playground/components/ToolsBuilder.tsx", "remove(idx)"],
     ["src/shared/components/NoAuthAccountCard.tsx", "handleRemoveAccount(id)"],

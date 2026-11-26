@@ -9,6 +9,7 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "combos",
   "combos-live",
   "quota",
+  "cache",
   // OmniProxy > Compression Context (Settings → Combos → engines → Studio)
   "context-settings",
   "context-combos",
@@ -29,39 +30,12 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   // OmniProxy > Integrations
   "api-endpoints",
   "log-export",
-  // OmniProxy — proxy tools
-  "mitm-proxy",
-  "1proxy",
-  // Analytics
-  "analytics",
-  "analytics-combo-health",
-  "analytics-utilization",
-  "costs",
-  "cache",
-  "analytics-compression",
-  "analytics-search",
-  "provider-stats",
   // Monitoring — flat
   "activity",
-  "logs",
-  "logs-proxy",
-  "logs-console",
-  "logs-timeline",
-  "conversations",
-  "logs-activity",
   "health",
   "runtime",
   "resilience-connections",
   "resilience-cooldowns",
-  // Costs section
-  "costs-pricing",
-  "costs-budget",
-  "costs-free-tiers",
-  "costs-quota-share",
-  "costs-teams",
-  "free-provider-rankings",
-  // Monitoring > Audit
-  "audit",
   // Dev Tools
   "translator",
   "playground",
@@ -103,8 +77,6 @@ export type SidebarSectionId =
   | "home"
   | "pinned"
   | "omni-proxy"
-  | "analytics"
-  | "costs"
   | "monitoring"
   | "devtools"
   | "agentic-features"

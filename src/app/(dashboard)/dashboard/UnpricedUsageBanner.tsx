@@ -88,10 +88,7 @@ export default function UnpricedUsageBanner() {
               <li className="opacity-70">{t("unpricedUsageMore", { count: hidden })}</li>
             )}
           </ul>
-          <Link
-            href="/dashboard/costs/pricing"
-            className="mt-1.5 inline-block font-medium underline"
-          >
+          <Link href="/dashboard/quota" className="mt-1.5 inline-block font-medium underline">
             {t("unpricedUsageConfigure")}
           </Link>
         </>

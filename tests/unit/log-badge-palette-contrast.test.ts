@@ -275,11 +275,8 @@ test("white text on a brand fill and brand-coloured text are gone from the audit
     );
   }
   const loggers = [
-    "src/shared/components/RequestLoggerV2.tsx",
-    "src/shared/components/RequestLoggerDetail.tsx",
     "src/shared/components/ProxyLogger.tsx",
     "src/shared/components/ProxyLogDetail.tsx",
-    "src/app/(dashboard)/dashboard/conversations/page.tsx",
   ];
   for (const file of loggers) {
     const source = read(file);

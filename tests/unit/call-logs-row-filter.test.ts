@@ -58,8 +58,8 @@ test.describe("call-logs rowMatchesFilter unit tests", () => {
   };
 
   test("apiKey filter matches the key id the dashboard dropdown sends", () => {
-    // RequestLoggerV2 builds each option's value as `apiKeyId || apiKeyName`, so
-    // selecting a key sends its UUID. The SQL layer matches api_key_name OR
+    // The API-key dropdown builds each option's value as `apiKeyId || apiKeyName`,
+    // so selecting a key sends its UUID. The SQL layer matches api_key_name OR
     // api_key_id; matching only the name here emptied the grid for a key with
     // thousands of calls.
     assert.equal(

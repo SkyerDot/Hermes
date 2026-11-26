@@ -244,12 +244,10 @@ describe("API Routes — dashboard and tool consumers", () => {
     assertRouteMethods("src/app/api/usage/call-logs/[id]/route.ts", ["GET"]);
   });
 
-  it("keeps request log surfaces on opaque theme colors", () => {
-    const requestLogger = readProjectFile("src/shared/components/RequestLoggerV2.tsx");
+  it("keeps card and surface colors opaque in both themes", () => {
     const globals = readProjectFile("src/app/globals.css");
     const kitTokens = readProjectFile("packages/ui-kit/src/ci-tokens.css");
 
-    assert.ok(requestLogger, "RequestLoggerV2 should exist");
     assert.ok(globals, "globals.css should exist");
     assert.ok(kitTokens, "vendored CI UI Kit tokens should exist");
     assert.match(globals, /--color-card:\s+var\(--color-card\)/);
@@ -295,12 +293,6 @@ describe("API Routes — dashboard and tool consumers", () => {
         assert.match(resolved, OPAQUE, `${bridged} → ${kitToken} must be opaque in ${theme}`);
       }
     }
-    // #4233 ("opaque tables D9") replaced the bg-black/5 tint — which lost to
-    // bg-surface via tailwind-merge — with the opaque bg-surface theme color.
-    // The intent here (request log surface stays opaque over theme colors) is now
-    // expressed by bg-surface itself.
-    assert.match(requestLogger, /bg-surface/);
-    assert.doesNotMatch(requestLogger, /\/api\/logs\/active/);
   });
 
   it("keeps the usage quota route exposed for management clients", () => {
@@ -486,29 +478,6 @@ describe("Page Integration — cache page wiring", () => {
   it("should consolidate prompt cache metrics directly into cache management", () => {
     assert.ok(src, "src/app/(dashboard)/dashboard/cache/page.tsx should exist");
     assert.doesNotMatch(src, /CacheStatsCard/);
-  });
-});
-
-describe("Page Integration — cost explorer wiring", () => {
-  const costsPage = readProjectFile("src/app/(dashboard)/dashboard/costs/CostOverviewTab.tsx");
-  const usageAnalytics = readProjectFile("src/shared/components/UsageAnalytics.tsx");
-  const costExplorerUtils = readProjectFile(
-    "src/app/(dashboard)/dashboard/costs/costExplorerUtils.ts"
-  );
-
-  it("should expose an interactive grouped Cost Explorer on the costs dashboard", () => {
-    assert.ok(costsPage, "CostOverviewTab should exist");
-    assert.ok(costExplorerUtils, "costExplorerUtils should exist");
-    assert.match(costsPage, /CostExplorerCard/);
-    assert.match(costsPage, /EXPLORER_GROUP_OPTIONS/);
-    assert.match(costsPage, /byServiceTier/);
-    assert.match(costExplorerUtils, /buildCostExplorerRows/);
-    assert.match(costExplorerUtils, /serviceTier/);
-  });
-
-  it("should request token-price estimates for flat-rate providers", () => {
-    assert.match(costsPage, /includeFlatRateEstimates:\s*"true"/);
-    assert.match(usageAnalytics, /params\.set\("includeFlatRateEstimates",\s*"true"\)/);
   });
 });
 

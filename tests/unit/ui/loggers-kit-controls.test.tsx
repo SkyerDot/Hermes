@@ -2,8 +2,7 @@
 /**
  * RTL coverage for the shared logger components moved onto the CI UI Kit (KEA-7886, lote 6):
  * JsonTreeExpandControls (kit ghost icon buttons), CallContentProvenanceBadges (kit Badge tone),
- * ProxyLogDetail (Modal adapter → kit Dialog: Escape + axe on the open overlay) and the
- * RequestLoggerDetail overlay (kit Badge status + named icon-only controls, axe).
+ * ProxyLogDetail (Modal adapter → kit Dialog: Escape + axe on the open overlay).
  */
 import React from "react";
 import axe from "axe-core";
@@ -13,7 +12,6 @@ import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { JsonTreeExpandControls } from "@/shared/components/JsonTreeExpandControls";
 import { CallContentProvenanceBadges } from "@/shared/components/CallContentProvenanceBadges";
 import ProxyLogDetail from "@/shared/components/ProxyLogDetail";
-import RequestLoggerDetail from "@/shared/components/RequestLoggerDetail";
 import messages from "../../../src/i18n/messages/en.json";
 
 beforeAll(() => {
@@ -125,49 +123,5 @@ describe("ProxyLogDetail (Modal adapter)", () => {
       fireEvent.keyDown(dialog, { key: "Escape" });
     });
     expect(onClose).toHaveBeenCalled();
-  });
-});
-
-describe("RequestLoggerDetail overlay", () => {
-  it("names its icon-only controls, tones the HTTP status and passes axe", async () => {
-    const onClose = vi.fn();
-    const log = {
-      id: "r1",
-      status: 503,
-      method: "POST",
-      path: "/v1/chat/completions",
-      model: "gpt-test",
-      provider: "openai",
-      timestamp: "2026-10-21T00:00:00.000Z",
-      duration: 40,
-      tokens: { in: 1, out: 2 },
-    };
-    wrap(
-      <RequestLoggerDetail
-        log={log}
-        detail={{ ...log }}
-        loading={false}
-        debugEnabled={false}
-        onClose={onClose}
-        onCopy={async () => true}
-        onPrevious={() => {}}
-        onNext={() => {}}
-      />
-    );
-    const dialog = screen.getByRole("dialog", { name: detail.ariaLabel });
-    expect(within(dialog).getByText("503").closest(".ci-badge")?.getAttribute("data-tone")).toBe(
-      "danger"
-    );
-    for (const name of [detail.previousRequest, detail.nextRequest, detail.close]) {
-      expect(within(dialog).getByRole("button", { name }).className).toContain("ci-button");
-    }
-
-    const results = await runAxe(dialog);
-    expect(
-      results.violations.filter((v) => v.impact === "serious" || v.impact === "critical")
-    ).toEqual([]);
-
-    fireEvent.click(within(dialog).getByRole("button", { name: detail.close }));
-    expect(onClose).toHaveBeenCalledTimes(1);
   });
 });

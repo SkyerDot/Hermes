@@ -2,7 +2,7 @@
 
 /**
  * FilterBar — search input + one select per filter + "clear filters" (KEA-7886 adapters).
- * Used by RequestLoggerV2, ProxyLogger, and similar data tables.
+ * Used by ProxyLogger and similar data tables.
  *
  * Usage:
  *   <FilterBar

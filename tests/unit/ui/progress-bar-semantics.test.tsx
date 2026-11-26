@@ -13,8 +13,6 @@ import { NextIntlClientProvider } from "next-intl";
 import { afterEach, describe, expect, it } from "vitest";
 import messages from "../../../src/i18n/messages/en.json";
 import QuotaMiniBar from "../../../src/app/(dashboard)/dashboard/usage/components/ProviderLimits/QuotaMiniBar";
-import DimensionBar from "../../../src/app/(dashboard)/dashboard/costs/quota-share/components/DimensionBar";
-import StackedAllocationBar from "../../../src/app/(dashboard)/dashboard/costs/quota-share/components/StackedAllocationBar";
 import WeightTotalBar from "../../../src/app/(dashboard)/dashboard/combos/WeightTotalBar";
 import { WaterfallInspector } from "../../../src/app/(dashboard)/dashboard/compression/studio/WaterfallInspector";
 import type { CompressionRunModel } from "../../../src/app/(dashboard)/dashboard/compression/studio/compressionFlowModel";
@@ -79,42 +77,6 @@ describe("hand-made bars announce themselves as progressbars", () => {
     expect(bar.className).toContain("ci-progress__track");
     expect(bar.closest(".ci-progress")?.getAttribute("data-size")).toBe("xs");
     expect(bar.querySelectorAll(".ci-progress__indicator")).toHaveLength(1);
-    await expectNamedProgressbars(container);
-  });
-
-  it("DimensionBar is no longer hidden and is named by its unit and window", async () => {
-    const { container } = renderWithIntl(
-      <DimensionBar
-        dimension={{ unit: "tokens", window: "daily", limit: 200 } as never}
-        consumedTotal={50}
-      />
-    );
-    const [bar] = bars(container);
-    expect(bar.closest('[aria-hidden="true"]')).toBeNull();
-    expect(range(bar)).toMatchObject({ name: "tokens / daily", min: "0", max: "100", now: "25" });
-    await expectNamedProgressbars(container);
-  });
-
-  it("StackedAllocationBar speaks the allocated total and lists each key", async () => {
-    const { container } = renderWithIntl(
-      <StackedAllocationBar
-        allocations={[
-          { apiKeyId: "key_1", weight: 50, policy: "hard" },
-          { apiKeyId: "key_2", weight: 30, policy: "soft" },
-        ]}
-        usage={null}
-        keyLabels={{ key_1: "KeyOne", key_2: "KeyTwo" }}
-      />
-    );
-    const [bar] = bars(container);
-    expect(range(bar)).toMatchObject({
-      name: messages.quotaShare.stackedBarTitle,
-      min: "0",
-      max: "100",
-      now: "80",
-      text: "KeyOne: 50%, KeyTwo: 30%",
-    });
-    expect(bar.children).toHaveLength(2);
     await expectNamedProgressbars(container);
   });
 

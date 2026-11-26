@@ -197,7 +197,7 @@ function ObservedMetadataGrid({ log, t, emailsVisible }) {
         label={t("correlationId")}
         href={
           log.correlationId
-            ? `/dashboard/logs?correlationId=${encodeURIComponent(log.correlationId)}`
+            ? `/dashboard/activity?correlationId=${encodeURIComponent(log.correlationId)}`
             : null
         }
         title={log.correlationId}

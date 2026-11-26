@@ -51,7 +51,6 @@ describe("Breadcrumbs: no link to a route prefix without a page", () => {
     ["/dashboard/system/proxy", "/dashboard/system", en.sidebar.systemGroup],
     ["/dashboard/tools/agent-bridge", "/dashboard/tools", en.breadcrumbs.tools],
     ["/dashboard/api-manager/key-1/access", "/dashboard/api-manager/key-1", "Key-1"],
-    ["/dashboard/plugins/my-plugin/config", "/dashboard/plugins/my-plugin", "My-plugin"],
   ])("%s: the %s crumb is text, not a link", (pathname, deadHref, label) => {
     const { container } = renderAt(pathname);
     expect(container.querySelector(`a[href="${deadHref}"]`)).toBeNull();
@@ -87,10 +86,10 @@ describe("Breadcrumbs: no link to a route prefix without a page", () => {
 describe("Breadcrumbs: segments are translated", () => {
   it.each([
     ["/dashboard/log-export", en.sidebar.logExport, "Log-export"],
-    ["/dashboard/conversations", en.sidebar.conversations, null],
-    ["/dashboard/omni-skills", en.sidebar.omniSkills, "Omni-skills"],
+    ["/dashboard/quota", en.breadcrumbs.quota, null],
+    ["/dashboard/omni-skills", "Omni-skills", null],
     ["/dashboard/settings/modality-bridge", en.sidebar.settingsModalityBridge, "Modality-bridge"],
-    ["/dashboard/logs/timeline", en.sidebar.logsTimeline, null],
+    ["/dashboard/resilience/connections", en.sidebar.resilienceConnections, null],
     ["/dashboard/radar/offers", en.breadcrumbs.offers, null],
     ["/dashboard/onboarding", en.breadcrumbs.onboarding, null],
   ])("%s ends in %s", (pathname, label, rawFallback) => {
@@ -103,7 +102,7 @@ describe("Breadcrumbs: segments are translated", () => {
   it("uses the reader's locale for the labels that come from the sidebar", () => {
     // Guard against a vacuous case: these labels really differ from English in pt-BR.
     expect(ptBr.sidebar.systemGroup).not.toBe(en.sidebar.systemGroup);
-    expect(ptBr.sidebar.conversations).not.toBe(en.sidebar.conversations);
+    expect(ptBr.breadcrumbs.quota).not.toBe(en.breadcrumbs.quota);
 
     const proxy = renderAt("/dashboard/system/proxy", "pt-BR", ptBr);
     expect(crumbs(proxy.container)).toEqual([
@@ -113,8 +112,8 @@ describe("Breadcrumbs: segments are translated", () => {
     ]);
     cleanup();
 
-    const conversations = renderAt("/dashboard/conversations", "pt-BR", ptBr);
-    expect(crumbs(conversations.container).at(-1)!.text).toBe(ptBr.sidebar.conversations);
+    const quota = renderAt("/dashboard/quota", "pt-BR", ptBr);
+    expect(crumbs(quota.container).at(-1)!.text).toBe(ptBr.breadcrumbs.quota);
   });
 
   it("falls back to the capitalised segment for data (a provider id)", () => {

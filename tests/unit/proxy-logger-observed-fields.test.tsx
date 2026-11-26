@@ -137,7 +137,7 @@ describe("ProxyLogger observed fields", () => {
     expect(html).toContain("***");
     expect(html).not.toContain("203.0.113.9");
     expect(html).toContain("corr-abcdef");
-    const link = container.querySelector('a[href*="/dashboard/logs?correlationId="]');
+    const link = container.querySelector('a[href*="/dashboard/activity?correlationId="]');
     expect(link).not.toBeNull();
     expect(link!.getAttribute("href")).not.toContain("?id=");
     expect(link!.getAttribute("href")).toContain(

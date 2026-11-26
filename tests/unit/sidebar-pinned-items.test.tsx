@@ -16,17 +16,17 @@ vi.mock("next-intl", () => ({
       if (key === "pinnedSection") return "Pinned";
       if (key === "pinItem") return "Pin item";
       if (key === "unpinItem") return "Unpin item";
-      if (key === "usage") return "Usage";
-      if (key === "logs") return "Logs";
+      if (key === "cache") return "Cache";
+      if (key === "activity") return "Activity";
       return key;
     };
     translate.has = (key: string) =>
-      ["pinnedSection", "pinItem", "unpinItem", "usage", "logs"].includes(key);
+      ["pinnedSection", "pinItem", "unpinItem", "cache", "activity"].includes(key);
     return translate;
   },
 }));
 
-const navigation = vi.hoisted(() => ({ pathname: "/dashboard/analytics" }));
+const navigation = vi.hoisted(() => ({ pathname: "/dashboard/cache" }));
 vi.mock("next/navigation", () => ({
   usePathname: () => navigation.pathname,
 }));
@@ -69,7 +69,7 @@ describe("Sidebar pinned items shortcut (#pinned-items)", () => {
       globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }
     ).IS_REACT_ACT_ENVIRONMENT = true;
     localStorage.clear();
-    navigation.pathname = "/dashboard/analytics";
+    navigation.pathname = "/dashboard/cache";
     vi.stubGlobal(
       "fetch",
       vi.fn(async (url: string) => {
@@ -104,7 +104,7 @@ describe("Sidebar pinned items shortcut (#pinned-items)", () => {
   });
 
   it("hydrates and renders PINNED section when items are stored in localStorage", async () => {
-    localStorage.setItem("sidebar-pinned-items", JSON.stringify(["analytics", "logs"]));
+    localStorage.setItem("sidebar-pinned-items", JSON.stringify(["cache", "activity"]));
 
     const Harness = await loadHarness();
     const container = makeContainer();
@@ -117,9 +117,9 @@ describe("Sidebar pinned items shortcut (#pinned-items)", () => {
     const headers = Array.from(container.querySelectorAll("span")).map((s) => s.textContent);
     expect(headers).toContain("Pinned");
 
-    // The pinned shortcuts should have links to /dashboard/analytics and /dashboard/logs
-    const links = Array.from(container.querySelectorAll('a[href="/dashboard/analytics"]'));
-    // Since it exists in PINNED and in its original section (ANALYTICS), there should be 2 links
+    // The pinned shortcuts should have links to /dashboard/cache and /dashboard/activity
+    const links = Array.from(container.querySelectorAll('a[href="/dashboard/cache"]'));
+    // Since it exists in PINNED and in its original section (OmniProxy), there should be 2 links
     expect(links.length).toBe(2);
   });
 
@@ -131,17 +131,17 @@ describe("Sidebar pinned items shortcut (#pinned-items)", () => {
       root!.render(<Harness />);
     });
 
-    // Expand ANALYTICS if not expanded
-    const analyticsHeader = Array.from(container.querySelectorAll("button[aria-expanded]")).find(
-      (el) => el.textContent?.includes("analyticsSection")
+    // Expand OmniProxy if not expanded
+    const omniProxyHeader = Array.from(container.querySelectorAll("button[aria-expanded]")).find(
+      (el) => el.textContent?.includes("omniProxySection")
     );
-    if (analyticsHeader) {
+    if (omniProxyHeader) {
       await act(async () => {
-        analyticsHeader.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+        omniProxyHeader.dispatchEvent(new MouseEvent("click", { bubbles: true }));
       });
     }
 
-    // Find the pin button for analytics item
+    // Find the pin button for the cache item
     const pinButtons = Array.from(
       container.querySelectorAll('button[title*="Pin item"], button[aria-label*="Pin item"]')
     );
@@ -177,7 +177,7 @@ describe("Sidebar pinned items shortcut (#pinned-items)", () => {
   });
 
   it("renders pinned shortcuts in collapsed mode", async () => {
-    localStorage.setItem("sidebar-pinned-items", JSON.stringify(["analytics"]));
+    localStorage.setItem("sidebar-pinned-items", JSON.stringify(["cache"]));
 
     const Harness = await loadHarness();
     const container = makeContainer();
@@ -187,12 +187,12 @@ describe("Sidebar pinned items shortcut (#pinned-items)", () => {
     });
 
     // In collapsed mode, the link should still exist
-    const links = Array.from(container.querySelectorAll('a[href="/dashboard/analytics"]'));
+    const links = Array.from(container.querySelectorAll('a[href="/dashboard/cache"]'));
     expect(links.length).toBeGreaterThanOrEqual(1);
   });
 
   it("allows collapsing and expanding the PINNED section", async () => {
-    localStorage.setItem("sidebar-pinned-items", JSON.stringify(["analytics"]));
+    localStorage.setItem("sidebar-pinned-items", JSON.stringify(["cache"]));
 
     const Harness = await loadHarness();
     const container = makeContainer();
@@ -213,8 +213,8 @@ describe("Sidebar pinned items shortcut (#pinned-items)", () => {
     });
 
     // The shortcut item inside Pinned section should now be collapsed (hidden from DOM)
-    // Only 1 link (in Analytics section) remains in DOM
-    const linksCollapsed = Array.from(container.querySelectorAll('a[href="/dashboard/analytics"]'));
+    // Only 1 link (in the OmniProxy section) remains in DOM
+    const linksCollapsed = Array.from(container.querySelectorAll('a[href="/dashboard/cache"]'));
     expect(linksCollapsed.length).toBe(1);
 
     // Click to re-expand
@@ -222,12 +222,12 @@ describe("Sidebar pinned items shortcut (#pinned-items)", () => {
       pinnedHeader!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     });
 
-    const linksExpanded = Array.from(container.querySelectorAll('a[href="/dashboard/analytics"]'));
+    const linksExpanded = Array.from(container.querySelectorAll('a[href="/dashboard/cache"]'));
     expect(linksExpanded.length).toBe(2);
   });
 
   it("renders proportional pin icon sizing on nav items and clean text header for PINNED", async () => {
-    localStorage.setItem("sidebar-pinned-items", JSON.stringify(["analytics"]));
+    localStorage.setItem("sidebar-pinned-items", JSON.stringify(["cache"]));
 
     const Harness = await loadHarness();
     const container = makeContainer();

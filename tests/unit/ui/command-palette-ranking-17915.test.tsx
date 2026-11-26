@@ -1,9 +1,8 @@
 // @vitest-environment jsdom
-// #17915: the palette kept sidebar order for every match, so for "log" the Integrations
-// item "Log export" and unrelated substring hits came before
-// the Monitoring page "Logs". Results are now ranked: exact label, then label prefix or a
-// word prefix, then a label substring, then matches in the subtitle or section names.
-// The kit Command still decides which rows show; ranking only orders them.
+// #17915: the palette kept sidebar order for every match, so a broad query put unrelated
+// substring hits before the closer prefix match. Results are now ranked: exact label, then
+// label prefix or a word prefix, then a label substring, then matches in the subtitle or
+// section names. The kit Command still decides which rows show; ranking only orders them.
 import React from "react";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -77,16 +76,15 @@ function labelOf(option: HTMLElement): string {
 
 describe("CommandPalette ranking (#17915)", () => {
   it(
-    "puts the main Logs page first for a broad query and the exact match first for a specific one",
+    "puts the closest label match first for a broad query and the exact match first for a specific one",
     { timeout: 20_000 },
     async () => {
       const input = await openPalette();
 
       const expectations: Array<[string, string]> = [
-        ["log", "Logs"],
-        ["logs", "Logs"],
+        ["log", "Log export"],
         ["log export", "Log export"],
-        ["proxy logs", "Proxy Logs"],
+        ["changelog", "Changelog"],
         ["cache", "Cache"],
       ];
       for (const [query, first] of expectations) {
@@ -95,8 +93,8 @@ describe("CommandPalette ranking (#17915)", () => {
         // Weaker matches stay available, they just come later.
         if (query === "log") {
           const labels = options.map(labelOf);
-          expect(labels).toContain("Log export");
-          expect(labels.indexOf("Logs")).toBeLessThan(labels.indexOf("Log export"));
+          expect(labels).toContain("Changelog");
+          expect(labels.indexOf("Log export")).toBeLessThan(labels.indexOf("Changelog"));
         }
       }
     }
@@ -109,24 +107,21 @@ describe("CommandPalette ranking (#17915)", () => {
       const input = await openPalette();
       const options = await optionsFor(input, "log");
       const labels = options.map(labelOf);
-      expect(labels.slice(0, 2)).toEqual(["Logs", "Proxy Logs"]);
-      expect(options[0].getAttribute("aria-selected")).toBe("true");
-      expect(input.getAttribute("aria-activedescendant")).toBe(options[0].id);
+      expect(labels.slice(0, 2)).toEqual(["Log export", "Changelog"]);
+
+      // The exact query still selects the prefix match, ahead of the substring hit.
+      const exact = await optionsFor(input, "log export");
+      expect(labelOf(exact[0])).toBe("Log export");
+
+      const again = await optionsFor(input, "log");
+      expect(again[0].getAttribute("aria-selected")).toBe("true");
+      expect(input.getAttribute("aria-activedescendant")).toBe(again[0].id);
 
       fireEvent.keyDown(input, { key: "ArrowDown" });
-      expect(input.getAttribute("aria-activedescendant")).toBe(options[1].id);
+      expect(input.getAttribute("aria-activedescendant")).toBe(again[1].id);
       fireEvent.keyDown(input, { key: "Enter" });
       expect(push).toHaveBeenCalledTimes(1);
-      expect(push).toHaveBeenLastCalledWith("/dashboard/logs/proxy");
-
-      // Past the first section: "Log export" sits in Integrations, after the Monitoring rows.
-      const target = labels.indexOf("Log export");
-      expect(target).toBeGreaterThan(1);
-      for (let step = 1; step < target; step += 1) fireEvent.keyDown(input, { key: "ArrowDown" });
-      expect(input.getAttribute("aria-activedescendant")).toBe(options[target].id);
-      fireEvent.keyDown(input, { key: "Enter" });
-      expect(push).toHaveBeenCalledTimes(2);
-      expect(push).toHaveBeenLastCalledWith("/dashboard/log-export");
+      expect(push).toHaveBeenLastCalledWith("/dashboard/changelog");
     }
   );
 
@@ -138,15 +133,6 @@ describe("CommandPalette ranking (#17915)", () => {
     const input = await openPalette();
     const labels = (await optionsFor(input, "catalogo")).map(labelOf);
     expect(labels).toEqual(["Catálogo de modelos", "Cache"]);
-  });
-
-  it("keeps rows the kit finds across fields even though no field holds the whole query", async () => {
-    const input = await openPalette();
-    const labels = (await optionsFor(input, "logs monitoring")).map(labelOf);
-    expect(labels).toEqual(
-      expect.arrayContaining(["Logs", "Proxy Logs", "Console Logs", "Timeline", "Conversations"])
-    );
-    expect(labels).toHaveLength(5);
   });
 
   it("returns to the sidebar order when the query is cleared", async () => {

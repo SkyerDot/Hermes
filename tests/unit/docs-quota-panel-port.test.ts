@@ -69,10 +69,7 @@ test(".env.example has both variables commented out, so the port is off by defau
     envExample,
     /^# The port serves plain HTTP\. Keep it on 127\.0\.0\.1 and put a TLS reverse proxy in front of it\.$/m
   );
-  assert.match(
-    envExample,
-    /^# So does a value equal to the dashboard port(, the API port| or the API port)( or the live WebSocket port)?\.$/m
-  );
+  assert.match(envExample, /^# So does a value equal to the dashboard port or the API port\.$/m);
   // The example port opens a listener with the default settings.
   assert.deepEqual(panel.resolveQuotaPanelListener({ QUOTA_PANEL_PORT: port }, UNSPLIT_PORTS), {
     kind: "listen",
@@ -90,6 +87,7 @@ test("the environment reference documents both variables with the code defaults"
   const host = match(networkSection, /^\| `QUOTA_PANEL_HOST` +\| `([^`]+)` +\|/m)[1];
   assert.equal(host, panel.QUOTA_PANEL_DEFAULT_HOST);
   const row = match(networkSection, /^\| `QUOTA_PANEL_PORT` .*$/m)[0];
+  // ENVIRONMENT.md is regenerated in Task 13; until then this row still names the live WS port.
   for (const sentence of [
     "Every other path answers 404.",
     "Unset means no listener.",

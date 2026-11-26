@@ -19,11 +19,11 @@ describe("sidebar proxy expansion", () => {
     expect(omniProxy).toBeDefined();
     expect(getSectionItems(omniProxy!).some((item) => item.id === "proxy")).toBe(true);
     expect((HIDEABLE_SIDEBAR_ITEM_IDS as readonly string[]).includes("proxy")).toBe(false);
-    expect(normalizeHiddenSidebarItems(["proxy", "logs"])).toEqual(["logs"]);
+    expect(normalizeHiddenSidebarItems(["proxy", "activity"])).toEqual(["activity"]);
   });
 
   it("opening another section closes all unpinned siblings", () => {
-    const expanded = new Set<SidebarSectionId>(["omni-proxy", "analytics"]);
+    const expanded = new Set<SidebarSectionId>(["omni-proxy", "monitoring"]);
     const next = toggleExpandedSection(expanded, new Set(), "configuration");
     expect([...next]).toEqual(["configuration"]);
   });

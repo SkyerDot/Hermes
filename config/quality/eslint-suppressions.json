@@ -545,21 +545,6 @@
       "count": 1
     }
   },
-  "src/app/(dashboard)/dashboard/costs/costExplorerUtils.ts": {
-    "no-restricted-syntax": {
-      "count": 1
-    }
-  },
-  "src/app/(dashboard)/dashboard/costs/quota-share/QuotaSharePageClient.tsx": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
-  "src/app/(dashboard)/dashboard/costs/quota-share/components/PoolWizard.tsx": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
   "src/app/(dashboard)/dashboard/health/ProviderHealthAutopilotCard.tsx": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
@@ -1168,11 +1153,6 @@
       "count": 3
     }
   },
-  "src/shared/components/RequestTimeline.tsx": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
   "src/shared/constants/capabilities/capabilityFilter.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
@@ -1318,11 +1298,6 @@
       "count": 1
     }
   },
-  "tests/e2e/analytics-tabs.spec.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
   "tests/e2e/api.spec.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 3
@@ -1331,11 +1306,6 @@
   "tests/e2e/ecosystem.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 12
-    }
-  },
-  "tests/e2e/group-b-redirect-logs-activity.spec.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 2
     }
   },
   "tests/e2e/helpers/dashboardAuth.ts": {
@@ -3660,16 +3630,6 @@
   "tests/unit/tryBackedChat.test.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 2
-    }
-  },
-  "tests/unit/ui/activity-page-redirect.test.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
-  "tests/unit/ui/allocation-table.test.tsx": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
     }
   },
   "tests/unit/ui/cheaperInferenceSponsorBanner.test.tsx": {

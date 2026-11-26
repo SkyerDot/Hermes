@@ -40,7 +40,7 @@ export interface UseLiveCompressionReturn {
 }
 
 /**
- * Live WS removed; local empty state until Task 12.
+ * Live WS removed; the hook keeps a local in-memory run list only.
  */
 export function useLiveCompression(): UseLiveCompressionReturn {
   const [runs] = useState<CompressionRunModel[]>([]);

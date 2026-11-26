@@ -16,7 +16,7 @@ export default function InternalServerErrorPage() {
         t("statusPages.500.suggestion3"),
       ]}
       primaryAction={{ href: "/dashboard/health", label: t("statusPages.500.primaryAction") }}
-      secondaryAction={{ href: "/dashboard/logs", label: t("statusPages.500.secondaryAction") }}
+      secondaryAction={{ href: "/dashboard/activity", label: t("statusPages.500.secondaryAction") }}
     />
   );
 }

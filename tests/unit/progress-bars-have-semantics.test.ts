@@ -32,8 +32,6 @@ const EXCEPTIONS: Record<string, string> = {
     "skeleton text lines of varying width while the preview loads",
   "src/shared/components/NavigationProgress.tsx":
     "2 px route-loading strip fixed to the top of the viewport, not a content meter",
-  "src/shared/components/RequestTimeline.tsx":
-    "Gantt bars positioned by start time and duration on a time axis",
 };
 
 type JsxTag = ts.JsxOpeningElement | ts.JsxSelfClosingElement;

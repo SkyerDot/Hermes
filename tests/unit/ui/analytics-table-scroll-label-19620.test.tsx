@@ -29,9 +29,6 @@ const { ModelTable } = await import("@/shared/components/analytics/ModelTable");
 const { default: RequestCountTable } =
   await import("@/shared/components/analytics/RequestCountTable");
 
-const { default: CacheHealthTab } =
-  await import("@/app/(dashboard)/dashboard/analytics/CacheHealthTab");
-
 const row = { requests: 3, promptTokens: 100, completionTokens: 50, totalTokens: 150, cost: 1 };
 
 let container: HTMLElement;
@@ -120,57 +117,4 @@ describe("analytics tables name their overflowing scroll container", () => {
     );
     expectNamedScrollRegion(scroller, "Requests");
   });
-
-  it("cache health by model (analytics Cache tab)", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(async () => Response.json(cacheHealthSummary))
-    );
-    await act(async () => root.render(<CacheHealthTab />));
-    await vi.waitFor(() => {
-      const scroller = container.querySelector<HTMLElement>("[data-slot='table-container']");
-      expect(scroller).not.toBeNull();
-      expectNamedScrollRegion(scroller!, "cacheHealthByModel");
-    });
-  });
 });
-
-const cacheHealthSummary = {
-  totalCalls: 3,
-  cacheReadTotal: 500,
-  cacheWriteTotal: 150,
-  writeReadRatio: 0.3,
-  warmCalls: 2,
-  coldCalls: 1,
-  rewriteCalls: 0,
-  uncachedCalls: 0,
-  writeP50: 20,
-  writeP90: 100,
-  writeP99: 100,
-  writeMax: 100,
-  heavyWriteCalls: 0,
-  heavyWriteCallShare: 0,
-  heavyWriteTokenShare: 0,
-  heavyWriteThreshold: 1024,
-  verdict: "healthy",
-  byModel: [
-    {
-      model: "claude-sonnet",
-      calls: 3,
-      cacheReadTotal: 500,
-      cacheWriteTotal: 150,
-      writeReadRatio: 0.3,
-      heavyWriteCalls: 0,
-    },
-  ],
-  timeRange: "24h",
-  since: "2026-01-01T00:00:00Z",
-  truncated: false,
-  cacheWrite5mTotal: 30,
-  cacheWrite1hTotal: 70,
-  cacheWriteUnknownTotal: 50,
-  cacheWriteUnreportedCalls: 0,
-  cacheWriteInvalidCalls: 0,
-  cacheWriteUnpricedTotal: 50,
-  cacheWriteKnownTierCostUsd: 0.0001775,
-};

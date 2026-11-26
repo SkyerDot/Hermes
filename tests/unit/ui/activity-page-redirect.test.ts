@@ -1,76 +1,26 @@
 /**
- * Verifies that the logs/activity page calls permanentRedirect("/dashboard/activity").
- * We mock next/navigation so no Next.js runtime is needed.
+ * The old logs/activity redirect was pruned with the logs surface; the retained
+ * activity page is /dashboard/activity. These guards keep the dead redirect from
+ * coming back and check the live activity client's API contract.
  */
 
 import test from "node:test";
 import assert from "node:assert/strict";
-
-// Mock next/navigation before importing the page
-let capturedRedirectTarget: string | undefined;
-
-// Stub permanentRedirect to capture the call instead of throwing
-const mockNavigation = {
-  permanentRedirect: (target: string) => {
-    capturedRedirectTarget = target;
-    // permanentRedirect normally throws (NEXT_REDIRECT error)
-    // In tests we just record the call
-  },
-  redirect: () => {},
-  useRouter: () => ({}),
-  usePathname: () => "",
-  useSearchParams: () => new URLSearchParams(),
-};
-
-// Node.js module mock via loader is complex; instead we test by importing
-// the source and verifying the permanent redirect is invoked correctly
-// by inspecting the module's source text.
-
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-const PAGE_PATH = resolve(
-  import.meta.dirname ?? new URL(".", import.meta.url).pathname,
-  "../../../src/app/(dashboard)/dashboard/logs/activity/page.tsx"
-);
+const fromRepoRoot = (relative: string) =>
+  resolve(import.meta.dirname ?? new URL(".", import.meta.url).pathname, "../../..", relative);
 
-test("logs/activity/page.tsx contains permanentRedirect('/dashboard/activity')", () => {
-  const src = readFileSync(PAGE_PATH, "utf-8");
-  assert.ok(
-    src.includes("permanentRedirect"),
-    "page.tsx must call permanentRedirect"
-  );
-  assert.ok(
-    src.includes("/dashboard/activity"),
-    "page.tsx must redirect to /dashboard/activity"
-  );
-  assert.ok(
-    src.includes(`from "next/navigation"`),
-    "page.tsx must import from next/navigation"
-  );
-});
-
-test("logs/activity/page.tsx does NOT import AuditLogTab anymore", () => {
-  const src = readFileSync(PAGE_PATH, "utf-8");
-  assert.ok(
-    !src.includes("AuditLogTab"),
-    "page.tsx must not reference AuditLogTab after F4 cleanup"
-  );
-});
-
-test("logs/activity/page.tsx does NOT have 'use client' directive (server component)", () => {
-  const src = readFileSync(PAGE_PATH, "utf-8");
-  assert.ok(
-    !src.includes('"use client"'),
-    "redirect page must be a server component (no 'use client')"
+test("logs/activity/page.tsx stays removed (activity lives at /dashboard/activity)", () => {
+  assert.equal(
+    existsSync(fromRepoRoot("src/app/(dashboard)/dashboard/logs/activity/page.tsx")),
+    false
   );
 });
 
 test("AuditLogTab.tsx no longer exists (deleted by F4)", () => {
-  const AUDIT_LOG_TAB_PATH = resolve(
-    import.meta.dirname ?? new URL(".", import.meta.url).pathname,
-    "../../../src/app/(dashboard)/dashboard/logs/AuditLogTab.tsx"
-  );
+  const AUDIT_LOG_TAB_PATH = fromRepoRoot("src/app/(dashboard)/dashboard/logs/AuditLogTab.tsx");
   let exists = false;
   try {
     readFileSync(AUDIT_LOG_TAB_PATH);
@@ -83,10 +33,7 @@ test("AuditLogTab.tsx no longer exists (deleted by F4)", () => {
 
 // Also confirm ActivityFeedClient exists
 test("activity/ActivityFeedClient.tsx exists", () => {
-  const CLIENT_PATH = resolve(
-    import.meta.dirname ?? new URL(".", import.meta.url).pathname,
-    "../../../src/app/(dashboard)/dashboard/activity/ActivityFeedClient.tsx"
-  );
+  const CLIENT_PATH = fromRepoRoot("src/app/(dashboard)/dashboard/activity/ActivityFeedClient.tsx");
   let src: string;
   try {
     src = readFileSync(CLIENT_PATH, "utf-8");
@@ -101,6 +48,3 @@ test("activity/ActivityFeedClient.tsx exists", () => {
     "Client must request level=high"
   );
 });
-
-// Dummy to satisfy the mockNavigation reference (avoid unused var lint)
-void mockNavigation;

@@ -905,23 +905,4 @@ describe("CompressionPanel when the settings GET fails", () => {
     await flush();
     expect(settingsPuts()).toEqual([{ enabled: false }]);
   });
-
-  it("ignores an answer from the load that a retry superseded", async () => {
-    failFirstSettingsGet();
-    // The first load's mcp-accessibility GET answers only after the retried load finished.
-    const answerStale = holdNextRequest(
-      async () => new Response(JSON.stringify({ enabled: false }), { status: 200 })
-    );
-    const container = await mountPanel();
-    await act(async () => retryButton(container)!.click());
-    await flush();
-
-    await answerStale();
-    const mcpToggle = container.querySelector(
-      `[data-testid="mcp-accessibility-toggle"] [role="switch"]`
-    );
-    expect(mcpToggle?.getAttribute("aria-checked"), "the retried load reported enabled").toBe(
-      "true"
-    );
-  });
 });

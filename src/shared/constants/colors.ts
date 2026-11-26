@@ -1,7 +1,6 @@
 /**
  * Shared UI constants — single source of truth for the provider, protocol, proxy-type, level and
- * status badges drawn by the loggers (RequestLoggerV2, RequestLoggerDetail, ProxyLogger,
- * ProxyLogDetail) and the conversations list.
+ * status badges drawn by the retained loggers (ProxyLogger, ProxyLogDetail).
  *
  * Every colour is a kit token, never a literal: a badge is a kit tone, resolved per theme and
  * palette (Classic / Editions, light / dark) by the CSS variables of `packages/ui-kit/src`.
@@ -99,7 +98,7 @@ export const PROVIDER_COLORS: Record<string, LabeledBadgeColors> = {
 };
 
 // ═══════════════════════════════════════════
-// Protocol badges (RequestLoggerV2)
+// Protocol badges
 // ═══════════════════════════════════════════
 
 export const PROTOCOL_COLORS: Record<string, LabeledBadgeColors> = {

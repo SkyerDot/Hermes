@@ -76,13 +76,11 @@ test("Log Tool Sources toggle is mounted in Advanced settings next to Debug mode
   assert.match(en, /"logToolSourcesToggle": "Log Tool Sources"/);
 });
 
-test("Proxy Logs table uses the same blue row hover emphasis as Logs", () => {
+test("Proxy Logs table uses the kit info hover emphasis", () => {
   const proxyLogger = readSrc("src/shared/components/ProxyLogger.tsx");
-  const requestLogger = readSrc("src/shared/components/RequestLoggerV2.tsx");
 
   // KEA-7886: the blue (sky) hover is the kit info token, which resolves per theme.
   assert.match(proxyLogger, /hover:bg-info\/10/);
-  assert.match(requestLogger, /hover:bg-info\/10/);
   assert.doesNotMatch(proxyLogger, /hover:bg-primary\/5/);
 });
 

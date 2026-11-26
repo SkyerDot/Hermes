@@ -210,10 +210,6 @@ const RGB_HSL_ALLOWED: Allow = {
 };
 
 const STYLE_LITERAL_ALLOWED: Allow = {
-  "src/app/(dashboard)/dashboard/conversations/page.tsx": {
-    max: 1,
-    reason: `"#fff" fallback of the log status badge (block 1) — ${TRACKED}`,
-  },
   "src/app/(dashboard)/dashboard/media-providers/[kind]/page.tsx": {
     max: 1,
     reason: `#64748b brand fallback (neutral token) — ${TRACKED}`,

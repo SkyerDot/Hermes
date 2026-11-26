@@ -73,7 +73,7 @@ describe("UnpricedUsageBanner", () => {
     expect(container.querySelector('[role="alert"]')).toBeNull();
     expect(container.textContent).toContain("unpricedUsageCountAsZero");
     expect(container.textContent).not.toContain("unpricedUsageFailClosed");
-    expect(container.querySelector('a[href="/dashboard/costs/pricing"]')).not.toBeNull();
+    expect(container.querySelector('a[href="/dashboard/quota"]')).not.toBeNull();
     expect(fetch).toHaveBeenCalledWith("/api/pricing/unpriced-usage", {
       credentials: "same-origin",
     });

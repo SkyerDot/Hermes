@@ -682,7 +682,7 @@ export default function ProxyLogger() {
                       <TableCell className="px-3 py-2 font-mono text-2xs">
                         {log.correlationId ? (
                           <a
-                            href={`/dashboard/logs?correlationId=${encodeURIComponent(log.correlationId)}`}
+                            href={`/dashboard/activity?correlationId=${encodeURIComponent(log.correlationId)}`}
                             onClick={(e) => e.stopPropagation()}
                             title={log.correlationId}
                             className="text-primary hover:underline"

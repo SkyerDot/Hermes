@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import test from "node:test";
 
 /**
@@ -55,7 +55,7 @@ test("shared config no longer exports webhook or evals surface symbols", () => {
   assert.doesNotMatch(source("src/shared/network/outboundUrlGuardPolicy.ts"), /Webhook/);
 });
 
-test("analytics shell no longer renders the evals tab", () => {
-  const page = source("src/app/(dashboard)/dashboard/analytics/page.tsx");
-  assert.doesNotMatch(page, /EvalsTab|"evals"|analyticsEvals/);
+test("analytics shell is gone, so the evals tab cannot be rendered", () => {
+  const page = new URL("../../src/app/(dashboard)/dashboard/analytics/page.tsx", import.meta.url);
+  assert.equal(existsSync(page), false);
 });

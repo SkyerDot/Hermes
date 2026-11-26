@@ -67,14 +67,6 @@ const RAW_H1_ALLOWED: Record<string, string> = {
  */
 const SHELL_TITLED_ROUTES: Record<string, string> = {
   "/home": "src/app/(dashboard)/home/HomePageHeader.tsx",
-  "/dashboard/analytics": "src/app/(dashboard)/dashboard/analytics/page.tsx",
-  "/dashboard/analytics/combo-health":
-    "src/app/(dashboard)/dashboard/analytics/combo-health/page.tsx",
-  "/dashboard/analytics/compression":
-    "src/app/(dashboard)/dashboard/analytics/compression/page.tsx",
-  "/dashboard/analytics/search": "src/app/(dashboard)/dashboard/analytics/search/page.tsx",
-  "/dashboard/analytics/utilization":
-    "src/app/(dashboard)/dashboard/analytics/utilization/page.tsx",
   "/dashboard/api-endpoints": "src/app/(dashboard)/dashboard/api-endpoints/page.tsx",
   "/dashboard/batch/files": "src/app/(dashboard)/dashboard/batch/files/page.tsx",
   "/dashboard/cache": "src/app/(dashboard)/dashboard/cache/page.tsx",
@@ -85,12 +77,6 @@ const SHELL_TITLED_ROUTES: Record<string, string> = {
   "/dashboard/context/combos":
     "src/app/(dashboard)/dashboard/context/combos/CompressionCombosPageClient.tsx",
   "/dashboard/context/settings": "src/app/(dashboard)/dashboard/context/settings/page.tsx",
-  "/dashboard/conversations": "src/app/(dashboard)/dashboard/conversations/page.tsx",
-  "/dashboard/costs/budget": "src/app/(dashboard)/dashboard/costs/budget/page.tsx",
-  "/dashboard/costs/pricing": "src/app/(dashboard)/dashboard/costs/pricing/page.tsx",
-  "/dashboard/costs/teams": "src/app/(dashboard)/dashboard/costs/teams-page.tsx",
-  "/dashboard/free-tiers": "src/app/(dashboard)/dashboard/free-tiers/page.tsx",
-  "/dashboard/logs/timeline": "src/app/(dashboard)/dashboard/logs/timeline/page.tsx",
   "/dashboard/playground": "src/app/(dashboard)/dashboard/playground/PlaygroundStudio.tsx",
   "/dashboard/providers":
     "src/app/(dashboard)/dashboard/providers/components/ProvidersPageFrame.tsx",
@@ -388,7 +374,7 @@ test("every PageHeader in the dashboard is compact", () => {
       if (!tag.attributes.includes("compact")) offenders.push(`${rel(file)}:${tag.line}`);
     }
   }
-  assert.ok(seen >= 70, `only ${seen} <PageHeader> found in the dashboard tree`);
+  assert.ok(seen >= 60, `only ${seen} <PageHeader> found in the dashboard tree`);
   assert.deepEqual(offenders, [], "PageHeader without `compact` inside the dashboard");
 });
 

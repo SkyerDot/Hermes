@@ -1,7 +1,7 @@
 /**
- * Pure helpers extracted from RequestLoggerV2 so the polling + change-detection
- * logic introduced in #3109 (browser-freeze / network-saturation fix) is unit
- * testable without rendering the full dashboard component.
+ * Pure helpers for the polling + change-detection logic introduced in #3109
+ * (browser-freeze / network-saturation fix), unit-testable without rendering
+ * the full dashboard component.
  */
 
 /**

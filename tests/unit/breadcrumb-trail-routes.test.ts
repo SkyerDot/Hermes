@@ -87,7 +87,7 @@ const sampleSegments = (trail: string[]) =>
 const toHref = (segments: string[]) => "/" + segments.join("/");
 
 test("the route tree is read (sanity)", () => {
-  assert.ok(prefixes.length >= 115, `only ${prefixes.length} route prefixes found`);
+  assert.ok(prefixes.length >= 81, `only ${prefixes.length} route prefixes found`);
   assert.equal(resolvesToPage(tree, ["dashboard", "providers", "anything"]), true);
   assert.equal(resolvesToPage(tree, ["dashboard", "resilience"]), false);
 });
@@ -116,7 +116,7 @@ test("the four dead links of the review are gone, and real pages stay links", ()
     "/dashboard/system",
     "/dashboard/tools",
     "/dashboard/api-manager/key-1",
-    "/dashboard/plugins/my-plugin",
+    "/dashboard/api-manager/other",
   ]) {
     assert.equal(routeHasPage(href), false, `${href} has no page: its crumb must not be a link`);
   }
@@ -127,7 +127,7 @@ test("the four dead links of the review are gone, and real pages stay links", ()
     "/dashboard/api-manager",
     // A static folder next to the page-less `api-manager/[id]`.
     "/dashboard/api-manager/routing",
-    "/dashboard/plugins",
+    "/dashboard/quota",
     "/dashboard/settings",
     "/dashboard/resilience/connections",
   ]) {
@@ -184,9 +184,6 @@ test("a route with a sidebar entry and no breadcrumb key shows the sidebar label
   // The same segment under two parents takes the label of its own route.
   assert.deepEqual(breadcrumbLabelRefs("proxy", "/dashboard/system/proxy"), [
     { namespace: "sidebar", key: "proxy" },
-  ]);
-  assert.deepEqual(breadcrumbLabelRefs("proxy", "/dashboard/logs/proxy"), [
-    { namespace: "sidebar", key: "logsProxy" },
   ]);
   // A group prefix has no sidebar entry of its own: the group title names it.
   assert.deepEqual(breadcrumbLabelRefs("system", "/dashboard/system"), [

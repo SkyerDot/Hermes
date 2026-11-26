@@ -1,38 +1,16 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 
 function readSource(relativePath: string) {
   return readFileSync(new URL("../../" + relativePath, import.meta.url), "utf8");
 }
 
-test("analytics page exposes the restored analytics tab shell", () => {
-  const source = readSource("src/app/(dashboard)/dashboard/analytics/page.tsx");
-
-  // KEA-7886: the tablist is the kit TabsList (role="tablist" + arrow-key navigation).
-  assert.ok(source.includes('from "@omniroute/ui-kit/tabs"'));
-  assert.ok(source.includes('<TabsList aria-label={t("sectionsAria")}'));
-  for (const [labelKey, label] of [
-    ["overview", "Overview"],
-    ["search", "Search"],
-    ["utilization", "Utilization"],
-    ["comboHealth", "Combo Health"],
-    ["cacheHealth", "Cache Health"],
-    ["routeTrace", "Route Trace"],
-  ]) {
-    assert.ok(source.includes('labelKey: "' + labelKey + '"'));
-    assert.ok(source.includes('label: "' + label + '"'));
-  }
-  for (const tabId of [
-    "overview",
-    "search",
-    "utilization",
-    "combo-health",
-    "cache-health",
-    "route-trace",
-  ]) {
-    assert.ok(source.includes('id: "' + tabId + '"'));
-  }
+test("the pruned analytics tab shell stays gone (combo health lives under combos)", () => {
+  assert.equal(
+    existsSync(new URL("../../src/app/(dashboard)/dashboard/analytics/page.tsx", import.meta.url)),
+    false
+  );
 });
 
 test("settings root redirects to section pages instead of rendering a tab shell", () => {

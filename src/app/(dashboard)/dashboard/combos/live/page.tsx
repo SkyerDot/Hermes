@@ -8,7 +8,7 @@ import { useProviderBreakerHealth } from "@/hooks/useProviderBreakerHealth";
 /**
  * Combo/Routing Studio (Tela B) — live combo cascade.
  *
- * Live WS feature removed; local empty state until Task 12 re-implements.
+ * Live WS removed; the studio renders a local empty state.
  * `useProviderBreakerHealth` overlays the real circuit-breaker state
  * (U1b) from the monitoring health snapshot — fail-soft, so it never breaks the
  * cascade when the endpoint is unavailable.

@@ -216,16 +216,11 @@ test("animate-spin stays within its budget: new spinners use the Spinner adapter
   delete hits["src/shared/components/ConsoleLogViewer.tsx"];
   const SPIN_ALLOWED: Record<string, number> = {
     // Spun refresh/progress icons in files that draw charts, which the chart work owns.
-    "src/app/(dashboard)/dashboard/analytics/CompressionAnalyticsTab.tsx": 1,
     "src/app/(dashboard)/dashboard/health/TelemetryCard.tsx": 1,
     // Hand-made CSS rings, not icons: bordered spans and divs, some tinted to a status badge.
-    "src/app/(dashboard)/dashboard/analytics/components/DiversityScoreCard.tsx": 1,
-    "src/app/(dashboard)/dashboard/conversations/page.tsx": 1,
     "src/app/(dashboard)/dashboard/health/page.tsx": 1,
     "src/app/(dashboard)/dashboard/models/CatalogTestBadge.tsx": 1,
     "src/app/(dashboard)/dashboard/tools/traffic-inspector/components/chat/MessageContent.tsx": 1,
-    "src/shared/components/RequestLoggerDetail.tsx": 1,
-    "src/shared/components/RequestLoggerV2.tsx": 1,
   };
   assert.deepEqual(hits, SPIN_ALLOWED);
 });

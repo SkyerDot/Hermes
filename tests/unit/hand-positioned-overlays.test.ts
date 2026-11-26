@@ -25,9 +25,6 @@ const EXCEPTIONS: Record<string, string> = {
     "kit MultiSelectFilter does not cover it: an empty selection means all keys and a press on a " +
     "key selects only that key (the kit starts from all checked and has a none state), the " +
     "trigger shows a key icon and an active-filter variant, and the all row shows the key count",
-  "src/shared/components/RequestTimeline.tsx":
-    "sticky time-axis header inside the scroll area, and a tooltip that follows the pointer over " +
-    "the Gantt canvas (no trigger element to anchor a kit Tooltip to)",
   "src/app/(dashboard)/home/ProviderTopology.tsx":
     "toolbar pinned inside the flow canvas, always visible: not an overlay",
 };

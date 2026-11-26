@@ -1,6 +1,6 @@
 /**
  * Shared formatting utilities — DRY extraction from duplicated functions
- * across RequestLoggerV2.js, UsageAnalytics.js, ProxyLogger.js
+ * across UsageAnalytics.js and ProxyLogger.js
  *
  * Prevents copy-paste duplication and provides a single source of truth.
  */

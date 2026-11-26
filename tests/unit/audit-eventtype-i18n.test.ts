@@ -39,8 +39,3 @@ test("audit: compliance.eventTypes exists with en/pt-BR parity and key coverage"
     );
   }
 });
-
-test("audit: ComplianceTab translates action through the eventTypes catalog", () => {
-  const ct = read("src/app/(dashboard)/dashboard/audit/ComplianceTab.tsx");
-  assert.ok(ct.includes("eventTypes.${entry.action}"), "ComplianceTab uses eventTypes i18n lookup");
-});

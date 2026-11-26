@@ -2,7 +2,7 @@
 
 /**
  * ColumnToggle — table column visibility menu over the kit `DataTableColumnsMenu`.
- * Used by RequestLoggerV2, ProxyLogger, etc., which keep the visibility and persist it.
+ * Used by ProxyLogger and other tables that keep and persist their visibility.
  *
  * Usage:
  *   <ColumnToggle

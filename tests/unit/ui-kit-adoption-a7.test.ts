@@ -68,10 +68,6 @@ const SHARED_SCREEN_COMPONENTS = [
   "ReasoningRoutingRules",
   "RequestLogThroughput",
   "RequestLogTokens",
-  "RequestLoggerDetail",
-  "RequestLoggerDetail.sections",
-  "RequestLoggerV2",
-  "RequestTimeline",
   "RiskNoticeModal",
   "SkillsConceptCard",
   "TokenHealthBadge",
@@ -138,7 +134,6 @@ test("the slice covers the files it claims", () => {
   assert.ok(FILES.length > 150, `only ${FILES.length} files found`);
   for (const file of [
     "src/app/(dashboard)/home/HomeRecentRequests.tsx",
-    "src/shared/components/RequestLoggerV2.tsx",
     "src/shared/components/analytics/charts.tsx",
     "src/app/login/page.tsx",
     "src/app/not-found.tsx",

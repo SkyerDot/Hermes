@@ -14,7 +14,7 @@ import { SIDEBAR_SECTIONS, getSectionItems } from "@/shared/constants/sidebarVis
  */
 const ROUTE_PREFIXES_WITHOUT_PAGE: readonly string[] = [
   "/dashboard/api-manager/[id]",
-  "/dashboard/plugins/[name]",
+  "/dashboard/analytics",
   "/dashboard/resilience",
   "/dashboard/system",
   "/dashboard/tools",

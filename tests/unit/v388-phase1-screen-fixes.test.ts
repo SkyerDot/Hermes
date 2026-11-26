@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 // Regression guards for v3.8.8 screen-fix Phase 1 (quick wins).
@@ -43,15 +43,6 @@ test("shared Select: renders children and guards placeholder/options when childr
   );
 });
 
-test("logs: proxy/console tabs removed (dedicated menu pages exist)", () => {
-  const src = read("src/app/(dashboard)/dashboard/logs/page.tsx");
-  assert.equal(/value:\s*"proxy-logs"/.test(src), false, "proxy-logs tab removed");
-  assert.equal(/value:\s*"console"/.test(src), false, "console tab removed");
-  assert.equal(src.includes("<ProxyLogger"), false, "ProxyLogger not rendered here");
-  assert.equal(src.includes("<ConsoleLogViewer"), false, "ConsoleLogViewer not rendered here");
-  assert.equal(
-    src.includes("SegmentedControl"),
-    false,
-    "SegmentedControl removed (single tab left)"
-  );
+test("logs: the old tab shell is gone with the request-log surface", () => {
+  assert.equal(existsSync(join(root, "src/app/(dashboard)/dashboard/logs/page.tsx")), false);
 });

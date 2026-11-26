@@ -620,8 +620,6 @@ export default function ComboControlCenterClient({ comboId }: { comboId: string 
         <div className="mt-4 flex flex-wrap gap-2">
           {[
             [t("comboHealth"), "/dashboard/analytics/combo-health"],
-            [t("callLogs"), "/dashboard/logs"],
-            [t("costs"), "/dashboard/costs"],
             [t("quota"), "/dashboard/quota"],
             [t("playground"), "/dashboard/playground"],
             [t("providers"), "/dashboard/providers"],

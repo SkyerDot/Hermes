@@ -73,11 +73,11 @@ const OMNI_PROXY_ITEMS: readonly SidebarItemDefinition[] = [
     icon: "tune",
   },
   {
-    id: "costs-quota-share",
-    href: "/dashboard/costs/quota-share",
-    i18nKey: "costsQuotaShare",
-    subtitleKey: "costsQuotaShareSubtitle",
-    icon: "pie_chart",
+    id: "cache",
+    href: "/dashboard/cache",
+    i18nKey: "cache",
+    subtitleKey: "cacheSubtitle",
+    icon: "cached",
   },
 ];
 
@@ -260,58 +260,6 @@ const PROXY_ITEM: SidebarItemDefinition = {
   icon: "dns",
 };
 
-const ANALYTICS_ITEMS: readonly SidebarItemDefinition[] = [
-  {
-    id: "analytics",
-    href: "/dashboard/analytics",
-    i18nKey: "usage",
-    subtitleKey: "usageSubtitle",
-    icon: "analytics",
-  },
-  {
-    id: "analytics-combo-health",
-    href: "/dashboard/analytics/combo-health",
-    i18nKey: "analyticsComboHealth",
-    subtitleKey: "analyticsComboHealthSubtitle",
-    icon: "monitor_heart",
-  },
-  {
-    id: "analytics-utilization",
-    href: "/dashboard/analytics/utilization",
-    i18nKey: "analyticsUtilization",
-    subtitleKey: "analyticsUtilizationSubtitle",
-    icon: "bar_chart",
-  },
-  {
-    id: "cache",
-    href: "/dashboard/cache",
-    i18nKey: "cache",
-    subtitleKey: "cacheSubtitle",
-    icon: "cached",
-  },
-  {
-    id: "analytics-compression",
-    href: "/dashboard/analytics/compression",
-    i18nKey: "analyticsCompression",
-    subtitleKey: "analyticsCompressionSubtitle",
-    icon: "compress",
-  },
-  {
-    id: "analytics-search",
-    href: "/dashboard/analytics/search",
-    i18nKey: "analyticsSearch",
-    subtitleKey: "analyticsSearchSubtitle",
-    icon: "manage_search",
-  },
-  {
-    id: "provider-stats",
-    href: "/dashboard/provider-stats",
-    i18nKey: "providerStats",
-    subtitleKey: "providerStatsSubtitle",
-    icon: "speed",
-  },
-];
-
 const MONITORING_ITEMS: readonly SidebarItemDefinition[] = [
   {
     id: "activity",
@@ -321,50 +269,6 @@ const MONITORING_ITEMS: readonly SidebarItemDefinition[] = [
     icon: "timeline",
   },
 ];
-
-const LOGS_GROUP: SidebarItemGroup = {
-  type: "group",
-  id: "logs",
-  titleKey: "logsGroup",
-  titleFallback: "Logs",
-  items: [
-    {
-      id: "logs",
-      href: "/dashboard/logs",
-      i18nKey: "logs",
-      subtitleKey: "logsSubtitle",
-      icon: "description",
-    },
-    {
-      id: "logs-proxy",
-      href: "/dashboard/logs/proxy",
-      i18nKey: "logsProxy",
-      subtitleKey: "logsProxySubtitle",
-      icon: "lan",
-    },
-    {
-      id: "logs-console",
-      href: "/dashboard/logs/console",
-      i18nKey: "consoleLogs",
-      subtitleKey: "consoleLogsSubtitle",
-      icon: "terminal",
-    },
-    {
-      id: "logs-timeline",
-      href: "/dashboard/logs/timeline",
-      i18nKey: "logsTimeline",
-      subtitleKey: "logsTimelineSubtitle",
-      icon: "view_timeline",
-    },
-    {
-      id: "conversations",
-      href: "/dashboard/conversations",
-      i18nKey: "conversations",
-      subtitleKey: "conversationsSubtitle",
-      icon: "forum",
-    },
-  ],
-};
 
 const SYSTEM_GROUP: SidebarItemGroup = {
   type: "group",
@@ -399,67 +303,6 @@ const SYSTEM_GROUP: SidebarItemGroup = {
       i18nKey: "resilienceCooldowns",
       subtitleKey: "resilienceCooldownsSubtitle",
       icon: "timer_off",
-    },
-  ],
-};
-
-const COSTS_ITEMS: readonly SidebarItemDefinition[] = [
-  {
-    id: "costs",
-    href: "/dashboard/costs",
-    i18nKey: "costsOverview",
-    subtitleKey: "costsOverviewSubtitle",
-    icon: "account_balance_wallet",
-  },
-  {
-    id: "costs-pricing",
-    href: "/dashboard/costs/pricing",
-    i18nKey: "costsPricing",
-    subtitleKey: "costsPricingSubtitle",
-    icon: "price_change",
-  },
-  {
-    id: "costs-teams",
-    href: "/dashboard/costs/teams",
-    i18nKey: "costsTeams",
-    subtitleKey: "costsTeamsSubtitle",
-    icon: "groups",
-  },
-  {
-    id: "costs-budget",
-    href: "/dashboard/costs/budget",
-    i18nKey: "costsBudget",
-    subtitleKey: "costsBudgetSubtitle",
-    icon: "savings",
-  },
-  {
-    id: "costs-free-tiers",
-    href: "/dashboard/free-tiers",
-    i18nKey: "costsFreeTiers",
-    subtitleKey: "costsFreeTiersSubtitle",
-    icon: "request_quote",
-  },
-  {
-    id: "free-provider-rankings",
-    href: "/dashboard/free-provider-rankings",
-    i18nKey: "freeProviderRankings",
-    subtitleKey: "freeProviderRankingsSubtitle",
-    icon: "bar_chart",
-  },
-];
-
-const AUDIT_GROUP: SidebarItemGroup = {
-  type: "group",
-  id: "audit",
-  titleKey: "auditGroup",
-  titleFallback: "Audit",
-  items: [
-    {
-      id: "audit",
-      href: "/dashboard/audit",
-      i18nKey: "auditLog",
-      subtitleKey: "auditLogSubtitle",
-      icon: "policy",
     },
   ],
 };
@@ -670,22 +513,10 @@ export const SIDEBAR_SECTIONS: readonly SidebarSectionDefinition[] = [
     ],
   },
   {
-    id: "analytics",
-    titleKey: "analyticsSection",
-    titleFallback: "Analytics",
-    children: ANALYTICS_ITEMS,
-  },
-  {
-    id: "costs",
-    titleKey: "costsSection",
-    titleFallback: "Costs",
-    children: COSTS_ITEMS,
-  },
-  {
     id: "monitoring",
     titleKey: "monitoringSection",
     titleFallback: "Monitoring",
-    children: [...MONITORING_ITEMS, LOGS_GROUP, AUDIT_GROUP, SYSTEM_GROUP],
+    children: [...MONITORING_ITEMS, SYSTEM_GROUP],
   },
   {
     id: "devtools",
