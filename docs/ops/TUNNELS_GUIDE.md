@@ -205,15 +205,8 @@ the duration of the call. Windows uses the default service install at
 Tailscale has a richer surface than the other backends because installation,
 login, daemon, and tunnel are separate concerns.
 
-| Endpoint                              | Method | Purpose                                                         |
-| ------------------------------------- | ------ | --------------------------------------------------------------- |
-| `/api/tunnels/tailscale`              | `GET`  | Aggregated tunnel status (`phase`, `tunnelUrl`, `apiUrl`, etc.) |
-| `/api/tunnels/tailscale/check`        | `GET`  | Lower-level check: installed? logged in? daemon running?        |
-| `/api/tunnels/tailscale/install`      | `POST` | Install Tailscale (SSE-streamed progress events) — Linux/macOS  |
-| `/api/tunnels/tailscale/start-daemon` | `POST` | Start `tailscaled` on Linux/macOS                               |
-| `/api/tunnels/tailscale/login`        | `POST` | Begin login flow; returns `authUrl` to open in a browser        |
-| `/api/tunnels/tailscale/enable`       | `POST` | Start the Funnel for the API port                               |
-| `/api/tunnels/tailscale/disable`      | `POST` | Stop the Funnel                                                 |
+| Endpoint | Method | Purpose |
+| -------- | ------ | ------- |
 
 All Tailscale endpoints require management auth (see `routeUtils.ts ::
 requireTailscaleAuth`).
@@ -238,19 +231,8 @@ If Funnel is not enabled in the admin console, the response includes
 
 ## Endpoint summary
 
-| Endpoint                              | Method | Body                                | Auth       |
-| ------------------------------------- | ------ | ----------------------------------- | ---------- |
-| `/api/tunnels/cloudflared`            | `GET`  | —                                   | management |
-| `/api/tunnels/cloudflared`            | `POST` | `{action: "enable" \| "disable"}`   | management |
-| `/api/tunnels/ngrok`                  | `GET`  | —                                   | management |
-| `/api/tunnels/ngrok`                  | `POST` | `{action, authToken?}`              | management |
-| `/api/tunnels/tailscale`              | `GET`  | —                                   | management |
-| `/api/tunnels/tailscale/check`        | `GET`  | —                                   | management |
-| `/api/tunnels/tailscale/install`      | `POST` | `{sudoPassword?}` (SSE)             | management |
-| `/api/tunnels/tailscale/start-daemon` | `POST` | `{sudoPassword?}`                   | management |
-| `/api/tunnels/tailscale/login`        | `POST` | `{hostname?}`                       | management |
-| `/api/tunnels/tailscale/enable`       | `POST` | `{sudoPassword?, hostname?, port?}` | management |
-| `/api/tunnels/tailscale/disable`      | `POST` | `{sudoPassword?}`                   | management |
+| Endpoint | Method | Body | Auth |
+| -------- | ------ | ---- | ---- |
 
 There is no central `/api/settings/tunnels` endpoint — each backend is
 independent.

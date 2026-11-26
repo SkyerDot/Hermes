@@ -325,7 +325,6 @@ The Radar announcement is intentionally committed with `active: false`. Activati
 change after every item below is evidenced:
 
 - [ ] All stacked Radar PRs are merged and the release-tip CI is green
-- [ ] Deploy and smoke the OSS Radar routes with `RADAR_ENABLED` still off by default
 - [ ] Smoke `GET /planos`, `/termos`, `/privacidade`, and `/reembolso` on the named Radar host
 - [ ] Record operator identity/contact/address and owner-approved legal review in the private service
 - [ ] Exercise Stripe Checkout and the signed webhook in test mode only
@@ -349,29 +348,16 @@ Before shipping any release that includes embedded services changes, verify:
 
 ### 9Router
 
-- [ ] `POST /api/services/9router/install` returns 200 with `installedVersion` in under 2 min
-- [ ] `POST /api/services/9router/start` returns 200 and `state: "running"` in under 30 s
-- [ ] `GET /api/services/9router/status` reports `health: "healthy"`
 - [ ] `POST /v1/chat/completions` with `"model": "9router/auto/..."` returns 200 (end-to-end routing through 9Router)
 - [ ] `GET /dashboard/providers/services/9router/embed/dashboard` renders the 9Router native UI inside the proxy (no direct `127.0.0.1:port` iframe)
-- [ ] `POST /api/services/9router/rotate-key` returns `{ keyRotated: true }` and service restarts cleanly
-- [ ] `POST /api/services/9router/stop` returns 200 and `state: "stopped"`
-- [ ] `GET /api/services/9router/logs?tail=50` returns SSE stream with `snapshot` event containing recent lines
 - [ ] Install in environment without `npm` in PATH returns 500 with a friendly (non-stack-trace) error message
 
 ### CLIProxyAPI
-
-- [ ] `POST /api/services/cliproxy/install` returns 200 in under 2 min
-- [ ] `POST /api/services/cliproxy/start` returns 200 and `state: "running"` in under 30 s
-- [ ] `GET /api/services/cliproxy/status` reports `health: "healthy"`
-- [ ] `POST /api/services/cliproxy/stop` returns 200 and `state: "stopped"`
-- [ ] `GET /api/services/cliproxy/logs?tail=50` returns SSE stream
 
 ### Security regression
 
 - [ ] `curl -H "X-Forwarded-For: 1.2.3.4" http://localhost:20128/api/services/9router/start` returns `403 LOCAL_ONLY`
 - [ ] `curl -H "X-Forwarded-For: 1.2.3.4" http://localhost:20128/api/services/cliproxy/start` returns `403 LOCAL_ONLY`
-- [ ] Error responses from `/api/services/*` do not contain `err.stack` or absolute file paths
 
 ## v3.8.0+ checks
 

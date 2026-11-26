@@ -69,7 +69,6 @@ writing a root-owned auth profile on the fleet host, so it re-execs through `sud
 and has no remote mode of its own. To launch a CLI with the
 right env injected and no config written at all, use the generic
 `omniroute run <target>` launcher (claude, codex, aider, goose, opencode, qwen,
-gemini, whycodes — targets and aliases come from `bin/cli/cli-manifest.mjs`); the legacy
 per-tool launchers `omniroute launch` (Claude Code) and `omniroute launch-codex`
 (Codex) remain available. Gemini CLI is launch-only: it is an `omniroute run`
 target but has no `setup-*`/`configure` recipe.
@@ -84,19 +83,15 @@ A `setup-*` command executed inside the OmniRoute container writes into the
 container's own home, which no host CLI reads and which disappears with the
 container. OmniRoute detects that and exits `2` with instructions rather than
 writing. Two supported ways forward — install the CLI on the host and
-`omniroute connect` to the container, or bind-mount the config dirs and set
 `CLI_CONFIG_HOME` (the compose `host` profile). Every `setup-*` command, plus
-`omniroute configure` and `omniroute config set`, accepts
 `--allow-container-write` when configuring the container's own CLIs is what you
 actually meant; `OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` does the same for
 the server. See
 [Docker Guide → Configuring host CLI tools](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker).
 
-The dashboard's **apply endpoint** (`POST /api/cli-tools/apply`) enforces the
 same guard: in a container, a write whose target is not bind-mounted from the
 host answers **`422`** with `containerEphemeralTarget: true`, the safe error
 text and — for the tools with a host recipe (claude, codex, opencode, cline,
-kilo, continue) — a `hostSetupCommand` (e.g. `omniroute setup-opencode`) to run
 on the host instead; nothing is written. `dryRun: true` keeps working in container
 mode and returns a redacted preview + target path without touching disk. Preview
 content is not a credential-bearing configuration to copy or import. Apply with
@@ -104,7 +99,6 @@ the original tool/base URL/API key/model inputs on the host, or use the indicate
 host-side setup command. See [CLI configuration security](../security/CLI-CONFIGURATION.md)
 for the preview header and request contract. This behavior is
 intentional and regression-guarded by
-`tests/unit/api/cli-tools/apply-container-guard.test.ts` — never "fix" a 422
 by removing the guard.
 
 ---
@@ -131,18 +125,14 @@ Entries with `baseUrlSupport: "none"` are **not shown** in the dashboard pages �
 Not every cataloged tool is detectable, configurable or launchable. Each tier has one
 declaring source, and a drift test keeps them aligned:
 
-| Tier             | Meaning                                                            | Declared in                                                       |
-| ---------------- | ------------------------------------------------------------------ | ----------------------------------------------------------------- |
-| **Cataloged**    | Appears in the dashboard catalog (name, vendor, docs, config type) | `src/shared/constants/cliTools.ts` (`CLI_TOOLS`)                  |
-| **Detectable**   | Binary/config detection, health checks, config paths               | `src/shared/services/cliRuntime.ts` (`CLI_TOOLS` runtime catalog) |
-| **Configurable** | Supported by `omniroute configure <cli>` (setup recipe exists)     | `bin/cli/cli-manifest.mjs` (`configure: true`)                    |
-| **Launchable**   | Supported by `omniroute run <target>` (env/args injection defined) | `bin/cli/cli-manifest.mjs` (`run: true`)                          |
+| Tier           | Meaning                                                            | Declared in                                                       |
+| -------------- | ------------------------------------------------------------------ | ----------------------------------------------------------------- |
+| **Cataloged**  | Appears in the dashboard catalog (name, vendor, docs, config type) | `src/shared/constants/cliTools.ts` (`CLI_TOOLS`)                  |
+| **Detectable** | Binary/config detection, health checks, config paths               | `src/shared/services/cliRuntime.ts` (`CLI_TOOLS` runtime catalog) |
 
-`bin/cli/cli-manifest.mjs` is the canonical executable manifest for the CLI command
 surfaces: `run`, `configure` and the shell-completion generators all derive their
 target lists, alias resolution (for example `kilocode`/`kilo-code`/`kilo_cli` → `kilo`)
 and `--model` flag wiring from it. The drift guard
-`tests/unit/cli/cli-manifest-drift.test.ts` asserts that the manifest, the runtime
 catalog, the UI catalog and every consumer surface stay in sync — a target added to
 one surface without the others fails the suite instead of drifting silently.
 
@@ -208,8 +198,6 @@ Autonomous agents that appear in `/dashboard/cli-agents`:
 
 ## 3. ACP Agents (/dashboard/acp-agents)
 
-This page (renamed from `/dashboard/agents`) shows CLIs that OmniRoute can **spawn** as backend execution engines via stdio/ACP protocol. The catalog is maintained separately in `src/lib/acp/registry.ts` and is **not** the same as `CLI_TOOLS`.
-
 ---
 
 ## 4. MITM Backlog (not shown in dashboard)
@@ -231,9 +219,6 @@ See `_tasks/features-v3.8.6/refactorpages/_orchestration/_plan11-mitm-backlog.md
 
 All tool detection is aggregated via a single endpoint:
 
-**`GET /api/cli-tools/all-statuses`**
-
-- Auth: `requireCliToolsAuth(request)` (same as other `/api/cli-tools/` routes)
 - Returns: `Record<toolId, ToolBatchStatus>` (type: `src/shared/types/cliBatchStatus.ts`)
 - Strategy: `Promise.all` over all tools, 5s timeout per tool
 - Cache: in-memory LRU indexed by config file `mtime`. Cache invalidated when mtime changes. Reset on server restart.
@@ -265,16 +250,8 @@ interface ToolBatchStatus {
 
 New tools with `configType: "custom"` have dedicated settings API routes:
 
-| Route                                       | Tool                                                               |
-| ------------------------------------------- | ------------------------------------------------------------------ |
-| `POST /api/cli-tools/forge-settings`        | ForgeCode (.forge.toml)                                            |
-| `POST /api/cli-tools/jcode-settings`        | jcode (--base-url flag)                                            |
-| `POST /api/cli-tools/deepseek-tui-settings` | DeepSeek TUI (OPENAI_BASE_URL, legacy)                             |
-| `POST /api/cli-tools/codewhale-settings`    | CodeWhale (OPENAI_BASE_URL, primary + legacy `~/.deepseek` sync)   |
-| `POST /api/cli-tools/smelt-settings`        | Smelt                                                              |
-| `POST /api/cli-tools/pi-settings`           | Pi coding agent (`~/.pi/agent/models.json`, `providers.omniroute`) |
-| `POST /api/cli-tools/grok-build-settings`   | Grok Build (~/.grok/config.toml, `[model.omniroute]`)              |
-| `POST /api/cli-tools/qwen-settings`         | Qwen Code (`~/.qwen/settings.json` + dedicated `.env` key)         |
+| Route | Tool |
+| ----- | ---- |
 
 All routes use `sanitizeErrorMessage()` for error responses (Hard Rule #12).
 
@@ -312,9 +289,8 @@ All routes use `sanitizeErrorMessage()` for error responses (Hard Rule #12).
 
 ### Shared Hook (`src/shared/hooks/cli/`)
 
-| File                      | Purpose                                                              |
-| ------------------------- | -------------------------------------------------------------------- |
-| `useToolBatchStatuses.ts` | Fetches `/api/cli-tools/all-statuses`, manages loading/refresh state |
+| File | Purpose |
+| ---- | ------- |
 
 ---
 

@@ -504,8 +504,6 @@ curl -X PUT "http://localhost:20128/api/upstream-proxy/openai" \
 
 ### Tunnels API
 
-For exposing your OmniRoute instance to the public internet (Cloudflare/ngrok/Tailscale) instead of routing outbound through a proxy, see [TUNNELS_GUIDE.md](./TUNNELS_GUIDE.md). The tunnel REST API lives under `/api/tunnels/{cloudflared,ngrok,tailscale}/*` and is orthogonal to the outbound proxy chain documented above.
-
 ### 1proxy API
 
 | Method   | Endpoint                               | Description             |
@@ -636,8 +634,6 @@ Request ──▶ ProxyHealthCache.get(url)
                                           ──▶ cache for HEALTH_CACHE_TTL_MS
                                           ──▶ return result
 ```
-
-Without this, a dead proxy would block every request for the full `PROXY_TIMEOUT_MS` (default 30s) before failing.
 
 ### Tunable Environment Variables
 

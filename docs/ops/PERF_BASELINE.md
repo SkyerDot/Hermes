@@ -81,7 +81,6 @@ The JSON shape is `{ generatedAt, host, gitSha, options, measurements }`. Each m
 | `ttft`          | `/api/health`, `/v1/models`, `/api/monitoring/health` | Per endpoint, time until the response headers arrive (time to first byte), sequential requests on a keep-alive connection: `raw.medianMs`, `raw.p95Ms` (nearest rank), `raw.minMs`, `raw.maxMs`. Non-2xx marks the endpoint `failed`. |
 
 `ttft` needs a server. When no `--url` is given and `dist/server.js` does not exist, every
-`ttft` entry is `skipped` with the reason: `omniroute serve` cannot boot an unbuilt tree.
 When the bundle exists, the script boots it with `NODE_ENV=production` on an ephemeral port.
 
 ## Procedure on an idle host (VPS or the .113 runner box)
@@ -108,5 +107,3 @@ The baseline that counts for the LTS cut must come from an idle, dedicated host 
 
 - [`QUALITY_GATES.md`](../architecture/QUALITY_GATES.md): the `nightly-resilience`
   workflow runs the heap-growth gate on a schedule.
-- `bin/cold-start-bench.sh`: a budget check (listen ≤ 800 ms, warm TTFB ≤ 200 ms) for a single
-  boot, as opposed to this recorded baseline.

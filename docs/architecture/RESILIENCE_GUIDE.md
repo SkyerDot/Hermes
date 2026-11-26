@@ -254,7 +254,6 @@ waiting for an operator to press "Redeem" on the Provider Limits page.
 **Implementation:**
 
 - Pure decision (one rule set for both paths): `src/lib/usage/bankedResetPolicy.ts::decideBankedReset()`
-- Background job: `src/lib/services/bankedResetAutoApply.ts` (started in `src/instrumentation-node.ts`)
 - Claude request-path gate: `src/lib/usage/claudeSessionResetPolicy.ts`, registered through
   `setClaudeLimitResetPolicy()` in `open-sse/services/claudeLimitReset.ts`
 - History, caps and webhook: `src/lib/usage/bankedResetAudit.ts`

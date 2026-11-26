@@ -56,7 +56,6 @@ special-casing each sidecar.
 | `vibeproxy` | `external`   | —                | — (provider adapter)   | `/v1/models`  | —            |
 
 ¹ Bifrost's promotion to a `supervised` embedded service (installable/startable
-from `/api/services/bifrost/`) is tracked in
 [#5817](https://github.com/cheaper-inference/OmniRoute/pull/5817); until it merges,
 Bifrost is `external`-only (reachable solely via `BIFROST_BASE_URL`).
 
@@ -66,46 +65,12 @@ filter by what an engine can actually do rather than hard-coding per-id branches
 
 ## Axis A — embedded services (supervised process side)
 
-- **Registry of supervised processes:** `src/lib/services/bootstrap.ts` `SERVICES[]`
-  (today: `9router`, `cliproxy`).
-- **Lifecycle owner:** `src/lib/services/ServiceSupervisor.ts` — `start()` spawns the
-  child, gates on `waitForHealthy()`, taps stdout/stderr into a ring buffer;
-  `stop()` SIGTERM→SIGKILL; all serialized under a lock.
-- **State union** (`src/lib/services/types.ts`):
-  `not_installed | stopped | starting | running | stopping | error`, plus an
-  orthogonal `HealthState = healthy | unhealthy | unknown`.
 - **Why a separate process (not an in-proc SDK)?** Process isolation is what makes
   install/start/stop/health/logs independently controllable per sidecar and lets the
   loopback spawn-guard apply. Modeling an in-proc adapter is future work — the
   `native-hot-path` capability flag is where that would be expressed.
 
-### Lifecycle route contract (`/api/services/<tool>/…`)
-
-Status codes are **state/verb/path-specific by design** — this is the contract, not
-inconsistency:
-
-| Call                         | Condition                       | Status                               |
 | ---------------------------- | ------------------------------- | ------------------------------------ |
-| `POST .../start`             | service `not_installed`         | **409** (precondition)               |
-| `POST .../stop`              | already stopped                 | **200** (idempotent no-op)           |
-| `GET .../status`             | OK                              | **200** (`live ?? row ?? "unknown"`) |
-| `POST .../start`             | spawn failure                   | **503** (transient)                  |
-| `GET .../status`, `.../stop` | uncaught error                  | **500**                              |
-| `GET /api/services/<x>/logs` | unknown tool `<x>`              | **404** `Service '<x>' not found`    |
-| `GET .../status?reveal=key`  | missing `X-Reveal-Confirm: yes` | **403** (9router only)               |
-| **any** `/api/services/*`    | caller not loopback/private-LAN | **403 LOCAL_ONLY**                   |
-
-All error bodies are shaped by `createErrorResponse()` →
-`{ error: { message, type }, requestId }`, where `type` is derived from the status
-(`500→server_error`, `404→not_found`, `409→conflict`, else `invalid_request`) and is
-the machine-actionable discriminator. Messages are pre-sanitized
-(`sanitizeErrorMessage()`, Hard Rule #12).
-
-**The loopback guard** is the most common source of a `403`: `/api/services/` is in
-`LOCAL_ONLY_API_PREFIXES` (`src/server/authz/routeGuard.ts`) and
-`src/server/authz/policies/management.ts` rejects any non-loopback / non-private-LAN
-caller **before auth**, because these routes spawn child processes (Hard Rules 15
-and 17). Reaching them through a public tunnel is `403` by design.
 
 ## Axis B — relay routing backend (dispatch side)
 
@@ -131,7 +96,6 @@ which lets `auto` route only manifest-eligible providers through Bifrost.
 
 ## Dashboard integration
 
-The services dashboard polls `GET /api/services/<tool>/status` every 5s via
 `src/app/(dashboard)/dashboard/providers/services/hooks/useServiceStatus.ts`,
 returning `{ tool, state, pid, port, health, installedVersion, latestVersion,
 updateAvailable, autoStart, … }`. There is no shared availability-context provider —

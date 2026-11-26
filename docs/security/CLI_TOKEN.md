@@ -10,7 +10,6 @@ OmniRoute CLI commands authenticate against the local management API using a
 `HMAC-SHA256(machine-id, salt)` token sent via the `x-omniroute-cli-token`
 request header.
 
-This allows CLI subcommands (`omniroute status`, `omniroute providers`, etc.)
 to call management endpoints without requiring the user to supply a JWT or
 password on every invocation.
 
@@ -33,20 +32,18 @@ password on every invocation.
 
 ## Security properties
 
-| Property                         | Detail                                                                                                                                                                                 |
-| -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Loopback-only**                | Accepted only when the server's trusted peer-locality stamp (derived from the real TCP peer address) says loopback. The client-controlled `Host` header is never trusted for locality. |
-| **Constant-time compare**        | `crypto.timingSafeEqual` prevents timing attacks.                                                                                                                                      |
-| **Non-reversible**               | HMAC output cannot recover the machine-id.                                                                                                                                             |
-| **No `always`-protected bypass** | `isAlwaysProtectedPath()` is evaluated before the CLI token check. `/api/shutdown` and `/api/settings/database` always require JWT.                                                    |
-| **Non-exportable**               | Token is never written to disk or logged.                                                                                                                                              |
+| Property                  | Detail                                                                                                                                                                                 |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Loopback-only**         | Accepted only when the server's trusted peer-locality stamp (derived from the real TCP peer address) says loopback. The client-controlled `Host` header is never trusted for locality. |
+| **Constant-time compare** | `crypto.timingSafeEqual` prevents timing attacks.                                                                                                                                      |
+| **Non-reversible**        | HMAC output cannot recover the machine-id.                                                                                                                                             |
+| **Non-exportable**        | Token is never written to disk or logged.                                                                                                                                              |
 
 ## Default salt (random per install)
 
 When `OMNIROUTE_CLI_SALT` is not set, the salt is a random 64-char hex string
 generated once and persisted at `<DATA_DIR>/cli-token-salt.json` (mode `0600`) —
 not the checked-in literal `omniroute-cli-auth-v1`. Both `getActiveSalt()` in
-`src/lib/machineToken.ts` and its mirror in `bin/cli/utils/cliToken.mjs` read the
 same file, so the server and every CLI invocation on this install converge on the
 same value; the checked-in literal is used only as a last-resort fallback when no
 persisted or env salt can be established yet (for example a fresh CLI-only install
@@ -81,8 +78,7 @@ omniroute status
 ## Legacy format (SHA-256, 32-char) — still accepted
 
 Before the HMAC format above, the CLI derived its token as
-`SHA-256(machineId + salt).hex[0..32]` (a 32-char prefix) in
-`bin/cli/utils/cliToken.mjs` (`getLegacyCliTokenSync` in `src/lib/machineToken.ts`).
+`SHA-256(machineId + salt).hex[0..32]` (a 32-char prefix).
 
 For backwards compatibility the server accepts **both** formats: the verifier builds
 `expectedTokens = [getMachineTokenSync(), getLegacyCliTokenSync()]` and compares the
@@ -101,7 +97,6 @@ user on the same host could compute the same token.
 | File                                      | Purpose                                  |
 | ----------------------------------------- | ---------------------------------------- |
 | `src/lib/machineToken.ts`                 | Token derivation (`getMachineTokenSync`) |
-| `bin/cli/utils/cliToken.mjs`              | CLI-side mirror of the same derivation   |
 | `<DATA_DIR>/cli-token-salt.json`          | Persisted random per-install salt        |
 | `src/server/authz/headers.ts`             | `CLI_TOKEN_HEADER` constant              |
 | `src/server/authz/policies/management.ts` | Server-side verification                 |

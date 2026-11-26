@@ -73,7 +73,6 @@ credential-theft vector on the shared CORS path.
 
 The Cloud-Agent routes (`/api/v1/agents/{health,credentials,tasks,tasks/[id]}`) set
 their **own** CORS headers
-(`src/lib/cloudAgent/api.ts`, `getCloudAgentCorsHeaders`) and **do** emit
 `Access-Control-Allow-Origin: <origin>|*` together with
 `Access-Control-Allow-Credentials: true`. This is the single surface where
 origin-echo and credentials coexist, and it is **independent of
@@ -150,7 +149,6 @@ restart.
 
 Browsers do not apply CORS to WebSocket, so the WebSocket transports that return
 inference output check the handshake `Origin` themselves
-(`src/server/origin/wsOrigin.ts`): the Responses WebSocket (`/v1/responses`) and,
 when OmniRoute runs through `npm start` / `npm run dev`, the `/v1/ws` and
 `/api/v1/ws` bridge, which streams `/v1/chat/completions`, `/v1/messages` and
 `/v1/responses` as frames. The bridge asks `/api/v1/ws?handshake=1` for the
@@ -204,8 +202,6 @@ Security tab), not in the proxy.
 | Runtime status for the dashboard                | `src/app/api/settings/authz-inventory/route.ts`                      |
 | Dashboard warning banner                        | `src/app/(dashboard)/dashboard/settings/components/AuthzSection.tsx` |
 | CORS Allowed Origins field                      | `src/app/(dashboard)/dashboard/settings/components/SecurityTab.tsx`  |
-| Cloud-Agent per-route CORS (the exception)      | `src/lib/cloudAgent/api.ts`                                          |
-| WebSocket handshake `Origin` check              | `src/server/origin/wsOrigin.ts`                                      |
 
 ## See also
 

@@ -15,7 +15,6 @@ or small clusters) and generic k8s.
 | `deploy/kubernetes/overlays/k3s` | Traefik Ingress + `local-path` storage               |
 | `deploy/kubernetes/overlays/k8s` | ingress-nginx + cluster-default storage              |
 | `deploy/helm/omniroute/`         | Helm chart (same topology, values-driven)            |
-| `omniroute deploy k8s`           | Prints manifests built from this instance's settings |
 
 Related: [Docker guide](../guides/DOCKER_GUIDE.md) ·
 [Monitoring — probes](MONITORING_GUIDE.md#kubernetes-probe-recommendations) ·
@@ -409,7 +408,6 @@ kubectl -n omniroute cp "omniroute/$POD:/app/data/db_backups" ./omniroute-backup
 ```
 
 The dashboard exposes the same snapshots under **Settings → Database backups**
-(`/api/db-backups`), including on-demand creation and restore. That API is
 loopback-only by route guard, so drive it from the dashboard or a port-forward —
 it is not reachable through the Ingress.
 

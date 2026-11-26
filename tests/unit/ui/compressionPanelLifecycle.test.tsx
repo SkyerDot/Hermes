@@ -32,9 +32,7 @@ async function openPanel() {
       JSON.stringify(
         url.endsWith("/compression")
           ? { enabled: true, engines: {}, autoTriggerTokens: 0 }
-          : url.endsWith("/mcp-accessibility")
-            ? { enabled: true }
-            : { combos: [] }
+          : { combos: [] }
       )
     );
   });

@@ -10,7 +10,6 @@ OmniRoute separates **CLI discovery**, **native Agent Client Protocol**, and
 **legacy stdio adapters**. Finding an installed binary does not prove its
 authentication, model compatibility, or readiness to handle a prompt.
 
-The dashboard uses `GET /api/acp/agents` and `POST /api/acp/agents` for inventory
 and custom-agent registration. These are local-only management routes, not a
 public API for spawning processes or submitting prompts. The internal
 `AcpManager` does not automatically become an HTTP provider fallback.

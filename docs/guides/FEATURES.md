@@ -38,7 +38,6 @@ The v3.7.x → v3.8.0 cycle added zero-config auto routing, new providers, OAuth
 - 🚦 **Per-provider 429 classification** + `useUpstream429BreakerHints` toggle — finer breaker behavior using upstream rate-limit hints
 - 🩺 **Model cooldowns dashboard** — observe per-model lockouts and manually re-enable from the UI
 - 🔒 **MITM dynamic Linux cert detection** — works across Debian/Ubuntu, Fedora/RHEL, Arch, and other distros
-- 💻 **CLI enhancement suite** — 20+ commands including `omniroute providers`, `omniroute combos`, `omniroute doctor`, `omniroute setup`
 - 🔍 **Qdrant embedding model discovery** — automatic vector-store model probe
 - 🔑 **API Keys / Bearer keys with `manage` scope** — perform admin operations programmatically via API
 - 🏥 **Combo target health analytics** + **structured combo builder** — per-target health & UI builder for assembling `(provider, model, connection)` steps
@@ -288,11 +287,8 @@ Key features:
 
 ## 🌐 V1 WebSocket Bridge _(v3.6.6+)_
 
-OmniRoute now supports **OpenAI-compatible WebSocket clients** via the `/v1/ws` upgrade endpoint. The custom `scripts/dev/v1-ws-bridge.mjs` server wraps Next.js and upgrades WS connections to full bidirectional streaming sessions. Authentication uses the same API key or session cookie as HTTP requests.
-
 Key behaviours:
 
-- WS upgrade validated by `src/lib/ws/handshake.ts` before the connection is established
 - Streams terminated cleanly on session close or upstream error
 - Works alongside the existing HTTP+SSE streaming path simultaneously
 
@@ -301,12 +297,6 @@ Key behaviours:
 ## 🔑 Sync Tokens & Config Bundle _(v3.6.6+)_
 
 Multi-device and external operator access is now possible via **scoped sync tokens**:
-
-- **`POST /api/sync/tokens`** — Issue a new sync token (scoped, with optional expiry)
-- **`DELETE /api/sync/tokens/:id`** — Revoke a token
-- **`GET /api/sync/bundle`** — Download a versioned, ETag-keyed JSON snapshot of the config (authenticated with a sync token only). Auth settings such as the dashboard password are stripped, but provider credentials and API keys are included, so treat the file as a secret
-
-The config bundle is built by `src/lib/sync/bundle.ts`. Consumers compare the `ETag` response header to detect changes without re-downloading the full payload. From the CLI, `omniroute sync bundle <outPath> --token <syncToken>` (or `OMNIROUTE_SYNC_TOKEN`) saves it to an owner-only file.
 
 ---
 

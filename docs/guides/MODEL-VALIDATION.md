@@ -6,7 +6,6 @@ lastUpdated: 2026-09-22
 
 # Validate and add a custom chat model
 
-`omniroute models test-add` performs an opt-in validation against one explicitly selected
 provider connection, then registers the custom model only if every proof passes. These
 requests can incur provider charges. The command requires both `--allow-inference` and
 `--yes`; ordinary manual model registration remains unverified and does not run inference.
@@ -99,7 +98,6 @@ request. Specialized executor subclasses and other provider IDs return
 headers, provider proxies and credential refresh are refused. This restriction applies only
 to Test & Add: normal chat retains its existing provider, refresh, retry and pool behavior.
 
-Active runtime plugins also make strict validation unavailable (`VALIDATION_PLUGINS_UNSUPPORTED`).
 The request does not skip an installed plugin policy: it fails before running that plugin.
 A private async request guard prevents handlers activated during the proof, including delayed
 response/stream work, from executing in the validation scope. Normal requests retain their

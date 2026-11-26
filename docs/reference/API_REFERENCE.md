@@ -1644,63 +1644,37 @@ for consent, quotas and variant derivation details.
 
 ### Backup & Export/Import
 
-| Endpoint                    | Method | Description                                                             |
-| --------------------------- | ------ | ----------------------------------------------------------------------- |
-| `/api/db-backups`           | GET    | List available backups                                                  |
-| `/api/db-backups`           | PUT    | Create a manual backup                                                  |
-| `/api/db-backups`           | POST   | Restore from a specific backup                                          |
-| `/api/db-backups`           | PATCH  | Save backup retention settings (operator-only)                          |
-| `/api/db-backups`           | DELETE | Prune stored backups to the retention settings (operator-only)          |
-| `/api/db-backups/export`    | GET    | Download database as .sqlite file                                       |
-| `/api/db-backups/import`    | POST   | Upload .sqlite file to replace database (`?dryRun=true` validates only) |
-| `/api/db-backups/exportAll` | GET    | Download full backup as .tar.gz archive                                 |
+| Endpoint | Method | Description |
+| -------- | ------ | ----------- |
 
-`/api/db-backups/export`, `/api/db-backups/exportAll` and `/api/settings/export-json` hand out
 every stored credential, so they require the dashboard session or the local CLI (or login
 disabled). API keys of any scope and `oma_` access tokens get `403`. The restores hold the same
-boundary: `POST /api/db-backups/import` (`dryRun=true` included), `POST /api/db-backups` (restore
 by id) and `POST /api/settings/import-json` replace the live database or settings, so a machine
 credential gets `403` there too; `omniroute sync import` sends the local CLI credential. So do
-`DELETE /api/db-backups` (prune stored backups) and `PATCH /api/db-backups` (retention settings:
 the persisted values drive the automatic pruning after every backup). Listing (`GET`) and creating
 a manual backup (`PUT`) keep ordinary management auth.
 
 ### Cloud Sync
 
-| Endpoint               | Method  | Description           |
-| ---------------------- | ------- | --------------------- |
-| `/api/sync/cloud`      | Various | Cloud sync operations |
-| `/api/sync/initialize` | POST    | Initialize sync       |
-| `/api/cloud/*`         | Various | Cloud management      |
+| Endpoint | Method | Description |
+| -------- | ------ | ----------- |
 
 ### Tunnels
 
-| Endpoint                   | Method | Description                                                             |
-| -------------------------- | ------ | ----------------------------------------------------------------------- |
-| `/api/tunnels/cloudflared` | GET    | Read Cloudflare Quick Tunnel install/runtime status for the dashboard   |
-| `/api/tunnels/cloudflared` | POST   | Enable or disable the Cloudflare Quick Tunnel (`action=enable/disable`) |
-| `/api/tunnels/ngrok`       | GET    | Read ngrok Tunnel runtime status for the dashboard                      |
-| `/api/tunnels/ngrok`       | POST   | Enable or disable the ngrok Tunnel (`action=enable/disable`)            |
+| Endpoint | Method | Description |
+| -------- | ------ | ----------- |
 
 ### CLI Tools
 
-| Endpoint                           | Method | Description         |
-| ---------------------------------- | ------ | ------------------- |
-| `/api/cli-tools/claude-settings`   | GET    | Claude CLI status   |
-| `/api/cli-tools/codex-settings`    | GET    | Codex CLI status    |
-| `/api/cli-tools/droid-settings`    | GET    | Droid CLI status    |
-| `/api/cli-tools/openclaw-settings` | GET    | OpenClaw CLI status |
-| `/api/cli-tools/runtime/[toolId]`  | GET    | Generic CLI runtime |
+| Endpoint | Method | Description |
+| -------- | ------ | ----------- |
 
 CLI responses include: `installed`, `runnable`, `command`, `commandPath`, `runtimeMode`, `reason`.
 
 ### ACP Agents
 
-| Endpoint          | Method | Description                                              |
-| ----------------- | ------ | -------------------------------------------------------- |
-| `/api/acp/agents` | GET    | List all detected agents (built-in + custom) with status |
-| `/api/acp/agents` | POST   | Add custom agent or refresh detection cache              |
-| `/api/acp/agents` | DELETE | Remove a custom agent by `id` query param                |
+| Endpoint | Method | Description |
+| -------- | ------ | ----------- |
 
 GET response includes `agents[]` (id, name, binary, version, installed, protocol, isCustom) and `summary` (total, installed, notFound, builtIn, custom).
 
@@ -1719,9 +1693,8 @@ GET response includes `agents[]` (id, name, binary, version, installed, protocol
 
 ### Evals
 
-| Endpoint     | Method   | Description                       |
-| ------------ | -------- | --------------------------------- |
-| `/api/evals` | GET/POST | List eval suites / run evaluation |
+| Endpoint | Method | Description |
+| -------- | ------ | ----------- |
 
 ### Policies
 
@@ -1748,10 +1721,7 @@ These endpoints mirror Gemini's API format for clients that expect native Gemini
 
 | Endpoint                 | Method | Description                                            |
 | ------------------------ | ------ | ------------------------------------------------------ |
-| `/api/init`              | GET    | Start background sync services (management auth)       |
 | `/api/tags`              | GET    | Ollama-compatible model tags (for Ollama clients)      |
-| `/api/restart`           | POST   | Trigger graceful server restart                        |
-| `/api/shutdown`          | POST   | Trigger graceful server shutdown                       |
 | `/api/system/env/repair` | POST   | Repair OAuth provider environment variables            |
 | `/api/system/version`    | GET    | Current/latest version, update status, release channel |
 | `/api/system/version`    | POST   | Start a deployment-aware update to the latest version  |
@@ -2023,14 +1993,8 @@ Higher-level routing combos (already summarized under `/api/combos*`) can also b
 
 Outbound webhook subscriptions for OmniRoute events (request completion, quota exhaustion, key rotation, etc.).
 
-| Method | Path                      | Description                                                           |
-| ------ | ------------------------- | --------------------------------------------------------------------- |
-| GET    | `/api/webhooks`           | List webhooks (secrets are masked to `<prefix>...`)                   |
-| POST   | `/api/webhooks`           | Create webhook — body: `{url, events?: ["*"], secret?, description?}` |
-| GET    | `/api/webhooks/[id]`      | Retrieve a webhook                                                    |
-| PUT    | `/api/webhooks/[id]`      | Update url/events/secret/description                                  |
-| DELETE | `/api/webhooks/[id]`      | Remove a webhook                                                      |
-| POST   | `/api/webhooks/[id]/test` | Send a test payload to the webhook URL and return delivery status     |
+| Method | Path | Description |
+| ------ | ---- | ----------- |
 
 **Auth:** management session/API key (`requireManagementAuth`).
 
@@ -2141,18 +2105,8 @@ Full conceptual reference and breaker defaults: see [`CLAUDE.md`](../../CLAUDE.m
 
 Skill framework for extending OmniRoute with custom executable handlers, plus marketplace integrations.
 
-| Method | Path                              | Description                                                                                                                |
-| ------ | --------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| GET    | `/api/skills`                     | List installed skills — filterable by `?q=`, `?mode=on\|off\|auto`, `?source=skillsmp\|skillssh\|local`, paginated         |
-| GET    | `/api/skills/[id]`                | Retrieve one skill                                                                                                         |
-| PUT    | `/api/skills/[id]`                | Update skill (name, description, mode, schema, handler, tags)                                                              |
-| DELETE | `/api/skills/[id]`                | Uninstall a skill                                                                                                          |
-| POST   | `/api/skills/install`             | Install a skill from a raw manifest — body: `{name, version, description, schema:{input, output}, handlerCode, apiKeyId?}` |
-| GET    | `/api/skills/executions`          | List recent skill executions (audit trail with inputs/outputs/duration)                                                    |
-| GET    | `/api/skills/marketplace?q=...`   | Search/popular list from the SkillsMP marketplace (requires `skillsmpApiKey` setting)                                      |
-| POST   | `/api/skills/marketplace/install` | Install a skill by id from SkillsMP                                                                                        |
-| GET    | `/api/skills/skillssh?q=&limit=`  | Search the skills.sh registry                                                                                              |
-| POST   | `/api/skills/skillssh/install`    | Install a skill by id from skills.sh                                                                                       |
+| Method | Path | Description |
+| ------ | ---- | ----------- |
 
 **Auth:** management session/API key. Marketplace search routes accept either management auth or a Bearer API key (`isAuthenticated`).
 
@@ -2162,15 +2116,8 @@ Skill framework for extending OmniRoute with custom executable handlers, plus ma
 
 Persistent conversational/factual memory store, scoped per API key / session.
 
-| Method | Path                 | Description                                                                                                  |
-| ------ | -------------------- | ------------------------------------------------------------------------------------------------------------ |
-| GET    | `/api/memory`        | List memories — `?apiKeyId=`, `?type=`, `?sessionId=`, `?q=`, with `offset/limit` or `page/limit` pagination |
-| POST   | `/api/memory`        | Create memory — body validated by Zod: `{content, key, type?, sessionId?, apiKeyId?, metadata?, expiresAt?}` |
-| GET    | `/api/memory/[id]`   | Retrieve one memory                                                                                          |
-| DELETE | `/api/memory/[id]`   | Delete a memory                                                                                              |
-| GET    | `/api/memory/health` | Memory subsystem health (DB connectivity, embeddings backend, vector index status)                           |
-
-**Auth:** management session/API key (`requireManagementAuth`). `type` enum: `FACTUAL`, `EPISODIC`, `SEMANTIC`, `PROCEDURAL` (see `MemoryType` in `src/lib/memory/types.ts`).
+| Method | Path | Description |
+| ------ | ---- | ----------- |
 
 ---
 
@@ -2180,15 +2127,11 @@ OmniRoute ships an embedded Model Context Protocol server with 3 transports (std
 
 | Method | Path | Description |
 | ------ | ---------------------- | ------------------------------------------------------------------------------------------------ | -------------------- |
-| GET | `/api/mcp/status` | Heartbeat, transport, online state, last call, top tools, 24h success rate |
-| GET | `/api/mcp/tools` | List of MCP tools with `name`, `description`, `scopes`, `phase`, `auditLevel`, `sourceEndpoints` |
 | GET | `/api/mcp/sse` | Open SSE stream for the SSE transport (returns `503` if MCP disabled or transport mismatch) |
 | POST | `/api/mcp/sse` | Send JSON-RPC frame on the SSE transport |
 | GET | `/api/mcp/stream` | Open SSE side of the Streamable HTTP transport (server-initiated messages) |
 | POST | `/api/mcp/stream` | Send JSON-RPC frame on the Streamable HTTP transport |
 | DELETE | `/api/mcp/stream` | End a Streamable HTTP session |
-| GET | `/api/mcp/audit` | Query audit log — `?limit=`, `?offset=`, `?tool=`, `?success=true                                | false`, `?apiKeyId=` |
-| GET | `/api/mcp/audit/stats` | Aggregate audit stats (totals, success rate, avg duration, top tools) |
 
 **Auth:** the `sse`/`stream` transports honor the MCP-specific auth surface (Bearer API key with `mcp` scope); the `status`/`tools`/`audit*` routes are readable from the dashboard (no extra auth required beyond reaching the dashboard host).
 
@@ -2239,13 +2182,8 @@ Returns the public A2A agent card (name, description, capabilities, skill catalo
 
 ### REST helpers
 
-| Method | Path                         | Description                                                                                                     |
-| ------ | ---------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| GET    | `/api/a2a/status`            | A2A enabled + task stats + cached agent card summary                                                            |
-| GET    | `/api/a2a/tasks`             | List tasks — `?state=submitted\|working\|completed\|failed\|cancelled`, `?skill=`, `?limit=` (≤200), `?offset=` |
-| POST   | `/api/a2a/tasks`             | (Not implemented as a REST helper — create via JSON-RPC `message/send`)                                         |
-| GET    | `/api/a2a/tasks/[id]`        | Retrieve one task                                                                                               |
-| POST   | `/api/a2a/tasks/[id]/cancel` | Cancel a task                                                                                                   |
+| Method | Path | Description |
+| ------ | ---- | ----------- |
 
 **Auth:** the REST helpers run without management auth (dashboard-readable); the JSON-RPC `/a2a` route uses Bearer `OMNIROUTE_API_KEY` if configured.
 
@@ -2255,18 +2193,8 @@ Returns the public A2A agent card (name, description, capabilities, skill catalo
 
 | Method | Path | Description |
 | ------ | ------------------------------- | ------------------------------------------------------------------------------------------------- | ----------------------------- | ----------------------------------- |
-| POST | `/api/cloud/auth` | Verify a Bearer key and return masked provider connections + model aliases for cloud sync clients |
-| POST | `/api/cloud/credentials/update` | Update encrypted credentials for a cloud-synced provider |
-| POST | `/api/cloud/model/resolve` | Resolve a logical model id to a concrete provider/model using the local routing table |
-| GET | `/api/cloud/models/alias` | List model aliases as exposed to cloud sync |
 | GET | `/api/assess` | Read latest assessment categorizations (per-provider/model) |
 | POST | `/api/assess` | Run an assessment — body: `{scope: {type:"all"}                                                   | {type:"provider", providerId} | {type:"model", modelId}, trigger?}` |
-| GET | `/api/evals` | List built-in eval suites + most recent runs |
-| POST | `/api/evals` | Trigger an eval run |
-| POST | `/api/evals/suites` | Create a custom eval suite — body validated by `evalSuiteSaveSchema` |
-| GET | `/api/evals/suites/[id]` | Retrieve a custom eval suite |
-
-**Auth:** `/api/cloud/auth` validates a Bearer key directly and returns the masked key and `projectId` of each connection only for a key with the `manage` / `admin` scope; the other `/api/cloud/*`, `/api/evals/*`, and `/api/assess` routes require management session/API key. `/api/assess` POST uses `validateBody` with a discriminated-union scope schema.
 
 ---
 
@@ -2275,13 +2203,8 @@ Returns the public A2A agent card (name, description, capabilities, skill catalo
 as child processes. These endpoints manage ACP agent detection and custom agent
 registration.
 
-| Method | Path              | Description                                                                                                                                            |
-| ------ | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| GET    | `/api/acp/agents` | List all known CLI agents (built-in + custom) with installation status, version, binary                                                                |
-| POST   | `/api/acp/agents` | Register a custom ACP agent or refresh cache — body: `{id, name, binary, versionCommand, providerAlias, spawnArgs, protocol}` or `{action: "refresh"}` |
-| DELETE | `/api/acp/agents` | Remove a custom ACP agent — query param: `?id=<agentId>`                                                                                               |
-
-**Response example** (`GET /api/acp/agents`):
+| Method | Path | Description |
+| ------ | ---- | ----------- |
 
 ```json
 {
@@ -2430,16 +2353,8 @@ Admin-only endpoints for operational management.
 Manage CLI tools that integrate with OmniRoute (antigravity, commandCode,
 devin-cli, etc.). See [Provider Reference](./PROVIDER_REFERENCE.md) for the full list.
 
-| Method | Path                                    | Description                                                                                                                                       |
-| ------ | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| GET    | `/api/cli-tools/all-statuses`           | Status of all CLI tools (installed, version, last seen)                                                                                           |
-| GET    | `/api/cli-tools/status`                 | Status detail for one CLI tool (`?tool=` query)                                                                                                   |
-| POST   | `/api/cli-tools/apply`                  | Write a tool's generated config (`dryRun` previews; `422` + `containerEphemeralTarget` when containerized; `migration` notes a legacy Codex YAML) |
-| GET    | `/api/cli-tools/backups`                | List CLI tool configuration backups                                                                                                               |
-| POST   | `/api/cli-tools/backups`                | Create a backup of all CLI tool configurations                                                                                                    |
-| POST   | `/api/cli-tools/backups`                | Restore: same endpoint with `{tool, backupId}` in the body restores that backup                                                                   |
-| GET    | `/api/cli-tools/antigravity-mitm`       | Antigravity MITM proxy status (the "antigravity-mitm" CLI tool)                                                                                   |
-| POST   | `/api/cli-tools/antigravity-mitm/alias` | Configure antigravity-mitm aliases                                                                                                                |
+| Method | Path | Description |
+| ------ | ---- | ----------- |
 
 **Auth:** Requires management session.
 
@@ -2449,15 +2364,8 @@ devin-cli, etc.). See [Provider Reference](./PROVIDER_REFERENCE.md) for the full
 
 Manage AI agent skills (similar to OpenAI's custom GPTs but for agents).
 
-| Method | Path                         | Description                                                                             |
-| ------ | ---------------------------- | --------------------------------------------------------------------------------------- |
-| GET    | `/api/agent-skills`          | List all agent skills (built-in + custom)                                               |
-| GET    | `/api/agent-skills/[id]`     | Get a specific agent skill                                                              |
-| POST   | `/api/agent-skills`          | Create a custom agent skill — body: `{name, description, prompt, model?, temperature?}` |
-| PUT    | `/api/agent-skills/[id]`     | Update a custom agent skill                                                             |
-| DELETE | `/api/agent-skills/[id]`     | Delete a custom agent skill                                                             |
-| GET    | `/api/agent-skills/[id]/raw` | Get raw prompt + metadata (no execution)                                                |
-| POST   | `/api/agent-skills/generate` | AI-generate a new skill from a natural language description                             |
+| Method | Path | Description |
+| ------ | ---- | ----------- |
 
 **Auth:** Requires management session or management-scoped API key.
 
@@ -2484,14 +2392,8 @@ Manage the semantic cache and reasoning cache.
 
 Manage persistent memory (FTS5 + vector embeddings).
 
-| Method | Path               | Description                                                             |
-| ------ | ------------------ | ----------------------------------------------------------------------- |
-| GET    | `/api/memory`      | List memory entries (filter by scope, type, search query)               |
-| POST   | `/api/memory`      | Create a new memory entry — body: `{scope, type, content, metadata?}`   |
-| GET    | `/api/memory/[id]` | Get a specific memory entry                                             |
-| PUT    | `/api/memory/[id]` | Update a memory entry                                                   |
-| DELETE | `/api/memory/[id]` | Delete a memory entry                                                   |
-| GET    | `/api/memory?q=`   | Search memory (FTS5 + vector) — stats are included in the same response |
+| Method | Path | Description |
+| ------ | ---- | ----------- |
 
 **Auth:** Requires management session or management-scoped API key.
 
@@ -2501,15 +2403,8 @@ Manage persistent memory (FTS5 + vector embeddings).
 
 Manage webhook subscriptions for events.
 
-| Method | Path                            | Description                                                               |
-| ------ | ------------------------------- | ------------------------------------------------------------------------- |
-| GET    | `/api/webhooks`                 | List all webhook subscriptions                                            |
-| POST   | `/api/webhooks`                 | Create a webhook subscription — body: `{url, events[], secret?, active?}` |
-| GET    | `/api/webhooks/[id]`            | Get a specific webhook subscription                                       |
-| PUT    | `/api/webhooks/[id]`            | Update a webhook subscription                                             |
-| DELETE | `/api/webhooks/[id]`            | Delete a webhook subscription                                             |
-| GET    | `/api/webhooks/[id]/deliveries` | List delivery history for a webhook (success/failure log)                 |
-| POST   | `/api/webhooks/[id]/test`       | Send a test event to a webhook                                            |
+| Method | Path | Description |
+| ------ | ---- | ----------- |
 
 **Auth:** Requires management session.
 
@@ -2521,14 +2416,8 @@ See [Webhooks Framework](../frameworks/WEBHOOKS.md) for full event types.
 
 Manage Skills (the agentic extensions framework).
 
-| Method | Path                     | Description                                                                             |
-| ------ | ------------------------ | --------------------------------------------------------------------------------------- |
-| GET    | `/api/skills`            | List all installed skills (built-in + custom)                                           |
-| POST   | `/api/skills/install`    | Install a skill from a local path or URL                                                |
-| DELETE | `/api/skills/[id]`       | Uninstall a skill                                                                       |
-| PUT    | `/api/skills/[id]`       | Enable or disable a skill — body: `{enabled?: boolean, mode?: "on" \| "off" \| "auto"}` |
-| POST   | `/api/skills/executions` | Execute a skill — body: `{skillName, apiKeyId, input?, sessionId?}`                     |
-| GET    | `/api/skills/executions` | List execution history for all skills (filter by `?apiKeyId=`)                          |
+| Method | Path | Description |
+| ------ | ---- | ----------- |
 
 **Auth:** Requires management session or management-scoped API key.
 
@@ -2540,15 +2429,8 @@ See [Skills Framework](../frameworks/SKILLS.md) for full details.
 
 Manage OmniRoute plugins (third-party extensions).
 
-| Method | Path                               | Description                           |
-| ------ | ---------------------------------- | ------------------------------------- |
-| GET    | `/api/plugins`                     | List installed plugins                |
-| POST   | `/api/plugins/marketplace/install` | Install a plugin from the marketplace |
-| DELETE | `/api/plugins/[name]`              | Uninstall a plugin                    |
-| POST   | `/api/plugins/[name]/activate`     | Activate a plugin                     |
-| POST   | `/api/plugins/[name]/deactivate`   | Deactivate a plugin                   |
-| GET    | `/api/plugins/[name]/config`       | Get plugin configuration              |
-| PUT    | `/api/plugins/[name]/config`       | Update plugin configuration           |
+| Method | Path | Description |
+| ------ | ---- | ----------- |
 
 **Auth:** Requires management session.
 

@@ -6,7 +6,6 @@ lastUpdated: 2026-11-13
 
 # Adding a launch adapter
 
-`omniroute launch <tool>` starts a coding tool pointed at your OmniRoute gateway. Everything that
 is specific to one tool lives in one file: a launch adapter in `bin/cli/launch/adapters/<id>.mjs`.
 This page is for contributors who want to add or change one. For how to use the command, see
 [LAUNCH.md](./LAUNCH.md). For the older shared run/configure contracts, see
@@ -18,7 +17,6 @@ preflight checks, spawns the tool, runs teardown and cleans up.
 
 ## The contract
 
-Types live in `bin/cli/launch/contract.d.ts`, implementations in `bin/cli/launch/contract.mjs`.
 An adapter default-exports the result of `defineAdapter({...})`, which validates the static shape
 and freezes the data. The current contract is `{ major: 1, minor: 2 }`; declare the minor you
 need (`defineAdapter` refuses a minor above the current one).
@@ -93,9 +91,7 @@ token at spawn time.
 
 ### Errors an adapter may throw
 
-`ADAPTER_ERROR_CODES` is exactly `ModelRequired`, `ModelUnsuitable`, `ConfigConflict`,
 `UnsupportedPlatform` and `ModelNotFound`. Throw them as `new LaunchError(code, message, { hint })`.
-In `planLaunch` (`bin/cli/launch/core/plan.mjs`) any other code, or a non-`LaunchError` throw, is
 rewrapped as `Internal`. Version gating belongs in `versionGate`, which core enforces.
 
 ### Pure helpers
@@ -107,8 +103,6 @@ keys), `yaml`, `toml`, `tomlString`, `dotenv`, `isValidEnvKey`, `deepMerge`, `fi
 (`tempPath`, `statePath`, `ensureV1`, `toml`, `json`, `yaml`).
 
 ## Boundary rules
-
-These are enforced by `tests/unit/cli/launch/boundary.test.ts`:
 
 1. An adapter imports only `../contract.mjs`. No other adapter, no core module, no `node:*` module.
 2. `plan()` is pure and synchronous: no `process.*`, no `fetch(`, no `eval`/`Function`. Read the
@@ -123,19 +117,10 @@ These are enforced by `tests/unit/cli/launch/boundary.test.ts`:
 ## Registration
 
 1. Create `bin/cli/launch/adapters/<id>.mjs`.
-2. Import it in `bin/cli/launch/adapters/index.mjs` and add it to `ALL_ADAPTERS`. The list exports
-   only adapters whose tier is not `later`.
-3. Add or update the tool in `config/cli-tools-manifest.json` with `"surfaces": { "launch": true }`
-   (plus `displayName`, `aliases` and `binaries`). `bin/cli/launch/registry.mjs` orders the registry
+2. Add or update the tool in `config/cli-tools-manifest.json` with `"surfaces": { "launch": true }`
    by manifest declaration order and resolves aliases from the manifest.
-4. Update the counts in the tests: `REGISTRY_SIZE` in `boundary.test.ts`, and the id and tier counts
-   in `tests/unit/cli/launch/registry.test.ts`.
-5. `tests/unit/cli/cli-manifest-drift.test.ts` fails if `surfaces.launch` in the manifest and
-   `launchRegistry.ids()` disagree. Tools with tier `later` keep `launch: false`.
 
 ## Examples
-
-A server-view adapter, `bin/cli/launch/adapters/goose.mjs`, is env only and writes no list:
 
 ```js
 const plan = createPlan("goose", {
@@ -148,7 +133,6 @@ plan.secretSites = findTokenSites(plan);
 return plan;
 ```
 
-An inject adapter, `bin/cli/launch/adapters/crush.mjs`, writes a config file into `${STATE}` and
 passes the key by env reference:
 
 ```js
@@ -169,8 +153,7 @@ modelList: { strategy: "inject", viewHash: ctx.view.hash, injected: rows.length 
 
 ### One-shot use
 
-Pass the tool's own one-shot args after `--`. When they start with a subcommand listed in the
-adapter's `ONE_SHOT_SUBCOMMANDS`, that subcommand replaces the default interactive one:
+Pass the tool's own one-shot args after `--`.
 
 - goose: `-- run --no-session -q -t "<prompt>"` runs `goose run ...` instead of `goose session`.
 - openclaw: `-- agent --message "<prompt>"` runs `openclaw agent --local ...` instead of the TUI.
@@ -239,7 +222,6 @@ Header lines: tier (with the reason), sources read, and the docs version checked
 
 - `core`: golden-tested, listed by default. 12 adapters today.
 - `supported`: golden-tested, marked supported. 7 today.
-- `later`: not registered. `bin/cli/launch/adapters/index.mjs` and `createRegistry` both drop it.
 
 Pick `supported` for a new tool unless a maintainer agrees it should be `core`.
 
@@ -260,6 +242,5 @@ of that exists in `bin/cli` today, so every adapter is a reviewed built-in modul
    `config/cli-tools-manifest.json`.
 7. Write `tests/unit/cli/launch/adapters/<id>.test.ts`; generate goldens with `UPDATE_GOLDEN=1` and
    review them.
-8. Bump `REGISTRY_SIZE` and the registry test counts.
-9. Run the adapter test, `boundary.test.ts`, `registry.test.ts` and `cli-manifest-drift.test.ts`.
-10. Run `npm run check:docs-all` if you touched `docs/`, and add the tool to [LAUNCH.md](./LAUNCH.md).
+8. Run the adapter test, `boundary.test.ts`, `registry.test.ts` and `cli-manifest-drift.test.ts`.
+9. Run `npm run check:docs-all` if you touched `docs/`, and add the tool to [LAUNCH.md](./LAUNCH.md).

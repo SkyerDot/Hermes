@@ -7,8 +7,6 @@ lastUpdated: 2026-09-22
 # OmniRoute MCP Server Documentation
 
 > Model Context Protocol server with 110 tools across routing, cache, compression, memory, skills, proxy, pool, Radar, and context source operations.
->
-> Source of truth: `open-sse/mcp-server/server.ts` computes **110 unique tools** with `countUniqueMcpTools()`: 45 canonical definitions (including the six CCR lifecycle tools, the agent-skills trio, `omniroute_radar_catalog`, and `omniroute_x_search`), plus memory (3), skills (4), GitHub skills (3), pool (6), gamification (8), plugins (8), Notion (6), Obsidian (22), local corpus (3), and two RTK-only compression tools.
 
 ## Installation
 
@@ -40,7 +38,6 @@ omniroute mcp restart                                 # resets active sse/stream
 ```
 
 `mcp enable`/`mcp disable` PATCH the same `mcpEnabled` (and optionally `mcpTransport`) setting
-the dashboard toggles via `/api/settings`. `mcp restart` calls `POST /api/mcp/restart`: it tears
 down active `sse`/`streamable-http` sessions so the next request re-initializes cleanly, returns
 `409` if MCP is disabled, and `501` for the `stdio` transport (stdio clients own their own
 subprocess — there is no in-process handle to restart).
@@ -51,15 +48,12 @@ The MCP server exposes three transports, all backed by the same `createMcpServer
 
 | Transport         | Where                                       | When to use                                          |
 | :---------------- | :------------------------------------------ | :--------------------------------------------------- |
-| `stdio`           | `open-sse/mcp-server/server.ts`             | IDE integrations (Claude Desktop, Cursor, etc.)      |
 | `sse`             | `POST/GET /api/mcp/sse` via `httpTransport` | Browser/agent clients that need an event stream      |
 | `streamable-http` | `POST/GET/DELETE /api/mcp/stream`           | Multi-session HTTP clients (`mcp-session-id` header) |
 
 The active HTTP transport (`sse` or `streamable-http`) is selected by the `mcpTransport` setting. Switching transports closes existing sessions on the other transport.
 
 ### Remote access (manage-scope bypass)
-
-`/api/mcp/*` is in the LOCAL_ONLY tier (`src/server/authz/routeGuard.ts`) — by default only loopback hosts (`localhost`, `127.0.0.1`, `::1`) can reach it. Since v3.8.2, non-loopback clients may connect if they present an `Authorization: Bearer <api-key>` whose key carries the `manage` scope. This is the only way to reach the remote MCP server through a tunnel, reverse proxy, or public hostname.
 
 ```bash
 # Grant manage scope: open the dashboard API Keys page and toggle
@@ -75,11 +69,7 @@ curl -i \
   https://your-public-host.example/api/mcp/stream
 ```
 
-A non-manage key (or no Bearer) returns `403 LOCAL_ONLY`. The sibling prefix `/api/cli-tools/runtime/*` is intentionally NOT bypassable — see [Route Guard Tiers — Manage-scope carve-out](../security/ROUTE_GUARD_TIERS.md#manage-scope-carve-out).
-
 ### Origin validation
-
-After authentication, every request to `/api/mcp/*` — the transports and the management routes such as `status`, `tools`, `audit` and `restart` — has its `Origin` header validated, whatever the caller (API key, CLI token, dashboard session, or anonymous loopback with login disabled). This is the DNS-rebinding protection the MCP Streamable HTTP spec requires.
 
 - **No `Origin` header** → allowed. The OmniRoute CLI, SDK and IDE clients do not send one.
 - **Allowed `Origin`** → `localhost`, `127.0.0.1` or `[::1]` on any port, or OmniRoute's own public origin: `OMNIROUTE_PUBLIC_BASE_URL` / `NEXT_PUBLIC_BASE_URL` / `NEXT_PUBLIC_APP_URL`, a trusted reverse proxy's forwarded origin (`OMNIROUTE_TRUST_PROXY`, only when no base URL is set), or a direct loopback/LAN IP host. The `Host` header alone never makes an origin trusted.
@@ -199,8 +189,6 @@ the runtime compression model behind these tools.
 
 ## Memory Tools (3)
 
-Defined in `open-sse/mcp-server/tools/memoryTools.ts`. Auth/scope is enforced through the standard MCP scope pipeline.
-
 | Tool                      | Scopes         | Description                                                                         |
 | :------------------------ | :------------- | :---------------------------------------------------------------------------------- |
 | `omniroute_memory_search` | `read:memory`  | Search memories by query / type / API key with token-budget enforcement             |
@@ -208,8 +196,6 @@ Defined in `open-sse/mcp-server/tools/memoryTools.ts`. Auth/scope is enforced th
 | `omniroute_memory_clear`  | `write:memory` | Clear memories for an API key, optionally filtered by type or `olderThan` timestamp |
 
 ## Skill Tools (4)
-
-Defined in `open-sse/mcp-server/tools/skillTools.ts`. Backed by `src/lib/skills/registry` + `src/lib/skills/executor`.
 
 | Tool                          | Scopes           | Description                                                                       |
 | :---------------------------- | :--------------- | :-------------------------------------------------------------------------------- |
@@ -219,8 +205,6 @@ Defined in `open-sse/mcp-server/tools/skillTools.ts`. Backed by `src/lib/skills/
 | `omniroute_skills_executions` | `read:skills`    | List recent skill execution history                                               |
 
 ## Notion Context Source (6)
-
-Defined in `open-sse/mcp-server/tools/notionTools.ts`. Token stored in `key_value` table via `src/lib/db/notion.ts`. REST client in `src/lib/notion/api.ts`. Settings API in `src/app/api/settings/notion/route.ts`. Dashboard UI in `src/app/(dashboard)/dashboard/endpoint/components/NotionSourceCard.tsx`.
 
 Configure your Notion integration token from the **Context Sources** tab in the Endpoint dashboard, or via the REST API:
 
@@ -247,8 +231,6 @@ curl -X DELETE http://localhost:20128/api/settings/notion
 | `notion_append_blocks`       | `write:notion` | Append children blocks to a parent block (max 100 per request) |
 
 ## Agent Skill Catalog Tools (3)
-
-Defined in `open-sse/mcp-server/tools/agentSkillTools.ts`. Backed by `src/lib/agentSkills/catalog`. These tools expose the 45-entry Agent Skills documentation catalog to MCP clients and external agents. Scope: `read:catalog`.
 
 | Tool                              | Scopes         | Description                                                                                                                |
 | :-------------------------------- | :------------- | :------------------------------------------------------------------------------------------------------------------------- |
@@ -292,14 +274,10 @@ a guardrail **before** it ever reaches the MCP scope enforcement layer.
 
 ## REST API Endpoints
 
-| Endpoint               | Method                | Description                                                                                         | Auth                       |
-| :--------------------- | :-------------------- | :-------------------------------------------------------------------------------------------------- | :------------------------- |
-| `/api/mcp/status`      | `GET`                 | Server status: heartbeat, HTTP transport state, audit activity summary                              | Management (session/admin) |
-| `/api/mcp/tools`       | `GET`                 | Tool catalog (name, description, scopes, phase, source endpoints)                                   | Management                 |
-| `/api/mcp/sse`         | `GET` / `POST`        | SSE transport endpoint (gated by `mcpEnabled` + `mcpTransport === "sse"`)                           | API key + scopes           |
-| `/api/mcp/stream`      | `POST`/`GET`/`DELETE` | Streamable HTTP transport (uses `mcp-session-id` header; `DELETE` ends the session)                 | API key + scopes           |
-| `/api/mcp/audit`       | `GET`                 | Audit log entries from `mcp_tool_audit` (filters: `limit`, `offset`, `tool`, `success`, `apiKeyId`) | Management                 |
-| `/api/mcp/audit/stats` | `GET`                 | Aggregated audit stats (`totalCalls`, `successRate`, `avgDurationMs`, top tools)                    | Management                 |
+| Endpoint          | Method                | Description                                                                         | Auth             |
+| :---------------- | :-------------------- | :---------------------------------------------------------------------------------- | :--------------- |
+| `/api/mcp/sse`    | `GET` / `POST`        | SSE transport endpoint (gated by `mcpEnabled` + `mcpTransport === "sse"`)           | API key + scopes |
+| `/api/mcp/stream` | `POST`/`GET`/`DELETE` | Streamable HTTP transport (uses `mcp-session-id` header; `DELETE` ends the session) | API key + scopes |
 
 Source files: `src/app/api/mcp/{status,tools,sse,stream,audit,audit/stats}/route.ts`.
 
@@ -348,7 +326,6 @@ outside `MANAGEMENT_API_KEY_SCOPES`.
 
 | Scope                          | A pass allows                                                                                                                                                   |
 | :----------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `mcp:connect`                  | The non-loopback `/api/mcp/` LOCAL_ONLY carve-out only (`hasMcpConnectOrManageScope`). A key with `manage` or `admin` still passes that carve-out.              |
 | `self:usage`                   | `GET /api/v1/me/status` for this key (`src/app/api/v1/me/status/route.ts`). `POST /api/keys` adds this scope on create (`normalizeSelfServiceScopesForCreate`). |
 | `self:account-quota`           | Upstream account quotas inside that status payload (`src/lib/usage/apiKeySelfService.ts`). The status route still requires `self:usage`.                        |
 | `policy:bypass-provider-quota` | This key's inference calls skip the provider-quota policy (`hasProviderQuotaBypassScope` in `src/sse/handlers/chat.ts`).                                        |
@@ -356,11 +333,9 @@ outside `MANAGEMENT_API_KEY_SCOPES`.
 #### Matching
 
 The catalog is the table under [MCP tool scopes](#mcp-tool-scopes). Do not
-treat `MCP_SCOPE_LIST` in `src/shared/constants/mcpScopes.ts` as that catalog:
 it is the original typed subset. Later tools declare further scopes beside it
 (`read:notion`, `read:skills`, `read:local-corpus`, and the rest of the table).
 
-`evaluateToolScopes` in `open-sse/mcp-server/scopeEnforcement.ts` allows a call
 when every required scope matches some granted scope:
 
 - `*` matches every required scope.
@@ -393,9 +368,6 @@ rank with `inferRequiredScope` (`src/server/authz/accessScopes.ts`):
 
 - `GET`, `HEAD`, and `OPTIONS` require `read`.
 - Every other method requires `write`.
-- Paths in `ADMIN_SCOPE_PREFIXES` require `admin` for every method. `/api/mcp`
-  is on that list, so a `write` access token still cannot call the MCP HTTP
-  surface.
 - Paths in `ADMIN_MUTATION_PREFIXES` require `admin` only for mutations.
 - Paths in `ADMIN_MUTATION_EXACT_PATHS` (`/api/settings`,
   `/api/settings/require-login`) require `admin` only for mutations, and only on
@@ -408,13 +380,11 @@ A `write` or `admin` access token satisfies that route. A dashboard JWT, the
 loopback CLI machine-id token, and an API key with `manage` or `admin` take
 other branches and are not narrowed by this rank.
 
-An access token that passes `scopeSatisfies` for `/api/mcp` has cleared the
 management gate only. Tool calls still run `scopeMatches` against API-key
 scopes. The access-token rank is not an input to `scopeMatches`.
 
 ### MCP tool scopes
 
-Scope enforcement is centralized in `open-sse/mcp-server/scopeEnforcement.ts`.
 Each tool requires specific scopes:
 
 | Scope                 | Tools                                                                                                                                                                        |
@@ -457,12 +427,9 @@ Wildcard scopes are supported: `read:*` grants all read-scopes, `*` grants full 
 
 ### `mcp:connect` — narrow route capability (#7895)
 
-Reaching the HTTP/SSE MCP transport (`/api/mcp/*`) from non-loopback requires the
-`/api/mcp/` LOCAL_ONLY carve-out (see `docs/security/ROUTE_GUARD_TIERS.md`). Historically
 that carve-out only accepted a full `manage`/`admin`-scope API key — too broad for a
 caller that only needs to talk MCP. `src/shared/constants/managementScopes.ts` now
 exports `MCP_CONNECT_SCOPE = "mcp:connect"`: an additive, narrow scope (same precedent as
-`SELF_USAGE_SCOPE`) that authorizes ONLY the `/api/mcp/` bypass in
 `src/server/authz/policies/management.ts` — it grants no other management-route access
 and is deliberately kept OUT of `MANAGEMENT_API_KEY_SCOPES`. A key holding `manage`/`admin`
 still passes the carve-out unchanged; `mcp:connect` is a lower-privilege alternative for
@@ -470,8 +437,6 @@ remote MCP-only callers, checked via `hasMcpConnectOrManageScope()`.
 
 ### Per-key HTTP scope binding (#7895)
 
-Over HTTP/SSE, `open-sse/mcp-server/httpTransport.ts` now resolves the caller's real
-`api_keys.scopes` via `resolveMcpCallerAuthInfo()` (`open-sse/mcp-server/httpAuthContext.ts`)
 and passes it to the MCP SDK's `transport.handleRequest(req, { authInfo })`, so
 `extra.authInfo.scopes` reaching each tool call reflects the Bearer key's own scopes.
 `scopeEnforcement.ts`'s `resolveCallerScopeContext()` already prioritized `authInfo` over
@@ -486,13 +451,11 @@ existing `meta`/env chain unchanged. stdio has no per-caller identity (see
 **Enforcement is forced on for narrow-scoped HTTP/SSE callers regardless of
 `OMNIROUTE_MCP_ENFORCE_SCOPES`.** `OMNIROUTE_MCP_ENFORCE_SCOPES` defaulting to `false` is only
 safe for the local/stdio single-operator flow, where there is no per-caller identity to scope
-against. `open-sse/mcp-server/server.ts::withScopeEnforcement()` turns per-tool scope
 enforcement on unconditionally (`shouldForceScopeEnforcement()` in `scopeEnforcement.ts`)
 whenever `resolveCallerScopeContext()` resolved
 `source === "authInfo"` (i.e. a real per-key HTTP Authorization header, HTTP/SSE-only) AND that
 key does not hold full `manage`/`admin` scope. This closes the gap where a key holding ONLY
 the narrow `mcp:connect` bypass scope — documented above as authorizing nothing but the
-`/api/mcp/` LOCAL_ONLY carve-out — could otherwise invoke every MCP tool once an operator
 enabled remote/non-loopback MCP access, simply because `OMNIROUTE_MCP_ENFORCE_SCOPES` ships
 `false` by default. A full `manage`/`admin` key over HTTP, and every stdio/local caller, keep
 the existing `OMNIROUTE_MCP_ENFORCE_SCOPES`-gated behavior unchanged.
@@ -511,15 +474,11 @@ the existing `OMNIROUTE_MCP_ENFORCE_SCOPES`-gated behavior unchanged.
 | `OMNIROUTE_MCP_DESCRIPTION_COMPRESSION` | (unset = on)                       | Alternate alias for the same toggle as above                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | `OMNIROUTE_MCP_FETCH_TIMEOUT_MS`        | `10000`                            | Abort budget for internal management reads (health, resilience, combos, quota, usage)                                                                                                                                                                                                                                                                                                                                                                                |
 | `OMNIROUTE_MCP_UPSTREAM_TIMEOUT_MS`     | `60000`                            | Abort budget for hops that wait on a provider (`route_request`, `web_search`, `web_fetch`)                                                                                                                                                                                                                                                                                                                                                                           |
-| `MCP_TOOL_DENY`                         | (unset = no filter)                | Comma-separated tool names to drop from `tools/list` (tool-cardinality reduction — see below)                                                                                                                                                                                                                                                                                                                                                                        |
-| `MCP_TOOL_ALLOW`                        | (unset = no filter)                | Comma-separated tool names to keep exclusively (allow-list mode — see below)                                                                                                                                                                                                                                                                                                                                                                                         |
 | `DATA_DIR`                              | `~/.omniroute`                     | Heartbeat file is written to `${DATA_DIR}/runtime/mcp-heartbeat.json`                                                                                                                                                                                                                                                                                                                                                                                                |
 
 ---
 
 ## Description Compression
-
-MCP tool, prompt, and resource registries can compress descriptions at registration/list time to reduce the metadata footprint exposed to clients (and therefore the prompt context cost). The implementation lives in `open-sse/mcp-server/descriptionCompressor.ts` and is wired into the MCP server via `compressMcpRegistryMetadata` inside `createMcpServer()`.
 
 - Compression runs over the description text using the Caveman ruleset (`getRulesForContext("all", "full")`) with preserved-block extraction (code spans, fenced blocks, etc.) so structural content is not altered.
 - Toggle per-deployment via the `compression.mcpDescriptionCompressionEnabled` value in the `key_value` settings table (default: enabled) — exposed in the UI as **Analytics → MCP description compression**.
@@ -530,14 +489,10 @@ MCP tool, prompt, and resource registries can compress descriptions at registrat
 
 ## Tool Cardinality Reduction (F4.3)
 
-Description compression shrinks each tool's metadata; **tool-cardinality reduction** goes one step further by reducing _how many_ tools are announced at all. Advertising fewer tools in the `tools/list` manifest cuts the per-request token cost the client's model pays for the tool catalog ("layer 5" compression). The implementation is a pure, stateless filter in `open-sse/mcp-server/toolCardinality.ts` (`reduceToolManifest`), wired into the registration loop in `createMcpServer()` (`open-sse/mcp-server/server.ts`).
-
 **Opt-in, off by default.** The filter only runs when at least one of two environment variables is set; with neither set, all 110 tools are announced unchanged.
 
-| Variable         | Mode                                                                                    |
-| :--------------- | :-------------------------------------------------------------------------------------- |
-| `MCP_TOOL_DENY`  | Blacklist — comma-separated tool names that are always dropped from `tools/list`        |
-| `MCP_TOOL_ALLOW` | Allow-list — comma-separated tool names; only these survive, everything else is dropped |
+| Variable | Mode |
+| :------- | :--- |
 
 `deny` takes priority over `allow`. Names are comma-separated, trimmed, and empty entries are ignored. Examples:
 
@@ -556,8 +511,6 @@ The richer `ToolProfile` shape behind `reduceToolManifest` also supports scope-i
 ---
 
 ## Runtime Heartbeat
-
-The stdio transport persists liveness to `${DATA_DIR}/runtime/mcp-heartbeat.json` every 5 seconds. The dashboard (`/api/mcp/status`) reads this file plus PID liveness to derive `online`. HTTP transports report state from in-process `getMcpHttpStatus()` instead (no file write).
 
 The heartbeat snapshot contains:
 
@@ -578,45 +531,15 @@ The heartbeat snapshot contains:
 
 ## Audit Logging
 
-Every tool call is logged to the SQLite `mcp_tool_audit` table by `open-sse/mcp-server/audit.ts`:
-
 - Tool name, arguments (hashed/truncated as per-tool `auditLevel`), result
 - Duration in ms, success/failure flag, error message (when applicable)
 - API key hash, timestamp
 - Scope denials are logged as `scope_denied:<reason>` with the missing scope list
 
-Use the dashboard or the `/api/mcp/audit` and `/api/mcp/audit/stats` REST endpoints to inspect recent calls.
-
 ---
 
 ## Files
 
-| File                                                                     | Purpose                                                          |
-| :----------------------------------------------------------------------- | :--------------------------------------------------------------- |
-| `open-sse/mcp-server/server.ts`                                          | MCP server factory, stdio entry point, scoped tool registrations |
-| `open-sse/mcp-server/httpTransport.ts`                                   | SSE + Streamable HTTP transport (session management)             |
-| `open-sse/mcp-server/scopeEnforcement.ts`                                | Tool scope evaluation and caller resolution                      |
-| `open-sse/mcp-server/audit.ts`                                           | Tool call audit logging (`mcp_tool_audit`)                       |
-| `open-sse/mcp-server/runtimeHeartbeat.ts`                                | stdio heartbeat writer (`mcp-heartbeat.json`)                    |
-| `open-sse/mcp-server/descriptionCompressor.ts`                           | Description compression for tool / prompt / resource registries  |
-| `open-sse/mcp-server/schemas/tools.ts`                                   | Zod schemas + tool registry (`MCP_TOOLS`, 45 entries)            |
-| `open-sse/mcp-server/tools/advancedTools.ts`                             | Phase 2 + cache + 1proxy tool handlers                           |
-| `open-sse/mcp-server/tools/compressionTools.ts`                          | Compression tool handlers                                        |
-| `open-sse/mcp-server/tools/memoryTools.ts`                               | Memory tool definitions (3 tools)                                |
-| `open-sse/mcp-server/tools/skillTools.ts`                                | Skill tool definitions (4 tools)                                 |
-| `open-sse/mcp-server/tools/notionTools.ts`                               | Notion context source tool definitions (6 tools)                 |
-| `open-sse/mcp-server/tools/gamificationTools.ts`                         | Gamification tool definitions (8 tools)                          |
-| `open-sse/mcp-server/tools/pluginTools.ts`                               | Plugin registration and management tools (8 tools)               |
-| `src/app/api/mcp/status/route.ts`                                        | `/api/mcp/status` endpoint                                       |
-| `src/app/api/mcp/tools/route.ts`                                         | `/api/mcp/tools` endpoint                                        |
-| `src/app/api/mcp/sse/route.ts`                                           | `/api/mcp/sse` SSE transport route                               |
-| `src/app/api/mcp/stream/route.ts`                                        | `/api/mcp/stream` Streamable HTTP transport route                |
-| `src/app/api/mcp/audit/route.ts`                                         | `/api/mcp/audit` audit log query                                 |
-| `src/app/api/mcp/audit/stats/route.ts`                                   | `/api/mcp/audit/stats` aggregated audit metrics                  |
-| `src/lib/notion/api.ts`                                                  | Notion REST API client (retry, timeout, error classification)    |
-| `src/lib/db/notion.ts`                                                   | Notion token persistence (`key_value` table)                     |
-| `src/app/api/settings/notion/route.ts`                                   | Notion settings API (GET/POST/DELETE)                            |
-| `src/app/(dashboard)/dashboard/endpoint/components/NotionSourceCard.tsx` | Notion token management UI                                       |
-| `tests/unit/notion-api.test.ts`                                          | Notion API client tests (7)                                      |
-| `tests/unit/notion-tools.test.ts`                                        | Notion tools scope enforcement tests (10)                        |
-| `tests/unit/db/notion.test.mjs`                                          | Notion DB module tests (3)                                       |
+| File                                                                     | Purpose                    |
+| :----------------------------------------------------------------------- | :------------------------- |
+| `src/app/(dashboard)/dashboard/endpoint/components/NotionSourceCard.tsx` | Notion token management UI |

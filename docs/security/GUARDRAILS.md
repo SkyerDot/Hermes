@@ -1069,10 +1069,6 @@ handler makes the decision instead:
 - Some features build their own chat request instead of passing the client's
   request on. Four of them send it back through OmniRoute's `/v1/...` routes:
   - batch jobs (`src/lib/batches/dispatch.ts`)
-  - the MCP inference tools (`open-sse/mcp-server/tools/inferenceTools.ts`)
-  - A2A smart routing (`src/lib/a2a/skills/smartRouting.ts`)
-  - the vision bridge when it describes an image through OmniRoute
-    (`src/lib/guardrails/visionBridgeHelpers.ts`)
 - The Telegram chat proxy (`src/lib/telegram/chatProxy.ts`) builds its request
   in process and calls the chat handler directly.
 - Those inner requests carry OmniRoute's own headers, not the headers of the

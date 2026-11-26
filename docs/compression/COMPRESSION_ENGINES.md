@@ -70,7 +70,6 @@ runtime compression, stacked mode, tests, and future engines use the same execut
 ### MCP description compression (related)
 
 A separate registry compresses MCP tool description metadata at registry-level — see
-`open-sse/mcp-server/descriptionCompressor.ts` and [MCP-SERVER.md](../frameworks/MCP-SERVER.md). It reuses
 Caveman rules but operates on tool metadata, not request payloads.
 
 ### Additional built-in engines
@@ -374,8 +373,6 @@ Scope enforcement is always on for narrow-scoped HTTP/SSE callers. The `omnirout
 | `omniroute_ccr_inspect`  | `read:compression`  |
 | `omniroute_ccr_list`     | `read:compression`  |
 | `omniroute_ccr_stats`    | `read:compression`  |
-
-A missing scope returns an **MCP tool error result** (`isError: true`, not an HTTP 403 — the `403 LOCAL_ONLY` is the separate loopback route-guard auth): `Error: Insufficient MCP scopes for <tool>. Missing: <scope>.` A minimal remote key can hold `mcp:connect` (authorizes the `/api/mcp/` local-only carve-out) plus the specific read/write scope it needs.
 
 ### Client matrix
 

@@ -337,9 +337,6 @@ Two ways to fix it, without changing the documented default:
   this changes where your data lives:
   - a new named volume starts **empty** — on an existing install, copy
     `./data` into it first, or OmniRoute will boot as a fresh instance;
-  - `bin/snapshot-data.sh` and `bin/restore-data.sh` read/write `./data` on
-    the host directly, so they will not see a named volume's contents unless
-    you back it up separately, for example:
 
     ```bash
     docker run --rm -v omniroute-data:/data -v "$PWD":/backup alpine \
@@ -395,7 +392,6 @@ Before you expose beyond loopback:
 - [ ] `APP_BIND_HOST` left at `127.0.0.1` _unless_ behind an auth-enforcing proxy
 - [ ] TLS terminated by Caddy/Traefik/Cloudflare in front (never plain HTTP on WAN)
 - [ ] Redis not published to the host (the self-host compose already enforces this)
-- [ ] `./data` volume backed up regularly (`bin/snapshot-data.sh`)
 - [ ] Provider keys rotated per the provider's own policy
 
 For the full supply-chain / image / dependency audit dimension, see

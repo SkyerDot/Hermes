@@ -12,12 +12,11 @@ server unless they were explicitly granted `manage` or `admin` scope.
 
 Canonical implementation: `src/lib/api/requireManagementAuth.ts`.
 
-| Credential            | Typical form                        | Created where                                       | Intended use                  | Management capability                                                                  |
-| --------------------- | ----------------------------------- | --------------------------------------------------- | ----------------------------- | -------------------------------------------------------------------------------------- |
-| Dashboard JWT session | `auth_token` cookie                 | Dashboard login                                     | Browser UI                    | Full dashboard management, subject to CSRF, locality, and always-protected-route rules |
-| CLI machine-id token  | internal / local                    | CLI bootstrap (`omniroute` on the same machine)     | Local CLI                     | Local management only                                                                  |
-| Scoped Access Token   | `oma_live_…`                        | **Settings → Access Tokens** or `omniroute connect` | Remote CLI and management API | Must satisfy the route's required `read`, `write`, or `admin` scope                    |
-| Inference API key     | `sk-…` (and other API-key prefixes) | **API Manager / API Keys**                          | `/v1/*` inference             | **None** unless the key metadata includes `manage` or `admin`                          |
+| Credential            | Typical form                        | Created where                                   | Intended use      | Management capability                                                                  |
+| --------------------- | ----------------------------------- | ----------------------------------------------- | ----------------- | -------------------------------------------------------------------------------------- |
+| Dashboard JWT session | `auth_token` cookie                 | Dashboard login                                 | Browser UI        | Full dashboard management, subject to CSRF, locality, and always-protected-route rules |
+| CLI machine-id token  | internal / local                    | CLI bootstrap (`omniroute` on the same machine) | Local CLI         | Local management only                                                                  |
+| Inference API key     | `sk-…` (and other API-key prefixes) | **API Manager / API Keys**                      | `/v1/*` inference | **None** unless the key metadata includes `manage` or `admin`                          |
 
 `oma_` credentials are management/CLI credentials. They are **not** inference API keys.
 
@@ -79,10 +78,9 @@ chat client key for automation unless you deliberately granted that scope.
 ### Scoped Access Token (`oma_live_…`)
 
 1. Dashboard: **Settings → Access Tokens** → create (name + scope). **The secret is shown once.**
-2. Or CLI: `omniroute connect <host>` (password → token). See [Remote Mode](./REMOTE-MODE.md).
-3. Header: `Authorization: Bearer oma_live_…`
-4. Revoke from the same Access Tokens page (or delete the CLI context).
-5. Server stores only a hash. Treat the plaintext like a password.
+2. Header: `Authorization: Bearer oma_live_…`
+3. Revoke from the same Access Tokens page (or delete the CLI context).
+4. Server stores only a hash. Treat the plaintext like a password.
 
 ### Manage-scoped API key
 

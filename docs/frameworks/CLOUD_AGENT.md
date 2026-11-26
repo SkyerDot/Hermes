@@ -24,14 +24,9 @@ artifact, and supports follow-up messages and (in some providers) plan approval 
 
 ## Supported Agents
 
-| Provider ID    | Class              | Source                                | Upstream Base URL                       | Plan Approval |
-| -------------- | ------------------ | ------------------------------------- | --------------------------------------- | ------------- |
-| `jules`        | `JulesAgent`       | `src/lib/cloudAgent/agents/jules.ts`  | `https://jules.googleapis.com/v1alpha`  | Yes           |
-| `devin`        | `DevinAgent`       | `src/lib/cloudAgent/agents/devin.ts`  | `https://api.devin.ai/v1`               | Yes           |
-| `codex-cloud`  | `CodexCloudAgent`  | `src/lib/cloudAgent/agents/codex.ts`  | `https://api.openai.com/v1/codex/cloud` | No (auto)     |
-| `cursor-cloud` | `CursorCloudAgent` | `src/lib/cloudAgent/agents/cursor.ts` | `https://api.cursor.com/v0`             | No (auto)     |
+| Provider ID | Class | Source | Upstream Base URL | Plan Approval |
+| ----------- | ----- | ------ | ----------------- | ------------- |
 
-Registry: `src/lib/cloudAgent/registry.ts` — exports `getAgent(providerId)`,
 `getAvailableAgents()`, and `isCloudAgentProvider(providerId)`. The registry is a
 plain in-memory `Record<string, CloudAgentBase>` populated at module load.
 
@@ -69,8 +64,6 @@ There is no background poller. Dashboards that need fresh state should poll the 
 endpoint at a sensible interval.
 
 ## `CloudAgentBase` Interface
-
-Source: `src/lib/cloudAgent/baseAgent.ts`
 
 ```typescript
 export interface AgentCredentials {
@@ -133,8 +126,6 @@ be corrected without a code change.
 
 ## Domain Types
 
-Source: `src/lib/cloudAgent/types.ts`
-
 ```typescript
 export const CLOUD_AGENT_STATUS = {
   QUEUED: "queued",
@@ -195,8 +186,6 @@ exported alongside the types and are used by the route handlers.
 
 ## Database
 
-Source: `src/lib/cloudAgent/db.ts` — table is created lazily via
-`createCloudAgentTaskTable()` (also called from `src/lib/cloudAgent/index.ts` at
 module import).
 
 ```sql
@@ -312,18 +301,11 @@ upstream, terminate the task in the provider's own console.
 These auxiliary endpoints under `src/app/api/cloud/` are used by remote clients
 (the CLI, the Electron app, or sync workers) to read provider connection metadata
 and resolve model aliases. They are authenticated with an **API key**
-(via `validateApiKey`), not the management auth used by the task endpoints; what
-`/api/cloud/auth` returns depends on the key's scope (see below).
+(via `validateApiKey`), not the management auth used by the task endpoints.
 
-| Method | Path                            | Purpose                                                             |
-| ------ | ------------------------------- | ------------------------------------------------------------------- |
-| POST   | `/api/cloud/auth`               | Validate API key, return masked connection metadata + model aliases |
-| PUT    | `/api/cloud/credentials/update` | Refresh `accessToken` / `refreshToken` / `expiresAt`                |
-| POST   | `/api/cloud/model/resolve`      | Resolve a model alias to `{ provider, model }`                      |
-| GET    | `/api/cloud/models/alias`       | List all model aliases                                              |
-| PUT    | `/api/cloud/models/alias`       | Set a model alias (and auto-sync to Cloud if enabled)               |
+| Method | Path | Purpose |
+| ------ | ---- | ------- |
 
-`/api/cloud/auth` never returns raw `apiKey` / `accessToken` / `refreshToken`. It
 returns `hasApiKey`, `hasAccessToken`, `hasRefreshToken` for the active connections the key
 may use (a key restricted with `allowedConnections` only sees those). For an API key with
 the `manage` or `admin` scope, including the deployment key from `OMNIROUTE_API_KEY`, it also
@@ -332,8 +314,6 @@ key, none for 8 characters or fewer) and the connection's `projectId`. Both fiel
 out of the response for any other key.
 
 ## Credentials Resolution
-
-`getCloudAgentCredentials(providerId)` in `src/lib/cloudAgent/api.ts`:
 
 1. Loads active provider connections via `getProviderConnections({ provider: providerId, isActive: true })`.
 2. For each connection, prefers `apiKey` (trimmed). Falls back to `accessToken`.
@@ -368,13 +348,9 @@ status events to the JSON-RPC 2.0 protocol. See [A2A-SERVER.md](./A2A-SERVER.md)
 1. Create `src/lib/cloudAgent/agents/<name>.ts` extending `CloudAgentBase`.
 2. Implement `createTask`, `getStatus`, `approvePlan` (or throw if N/A),
    `sendMessage`, `listSources`. Use `this.mapStatus(...)` for status normalization.
-3. Register in `src/lib/cloudAgent/registry.ts` under a stable `providerId`.
-4. Extend the `providerId` literal union in `src/lib/cloudAgent/types.ts`
-   (`CloudAgentTask.providerId` and `CreateCloudAgentTaskSchema`).
-5. Add the provider to `src/shared/constants/providers.ts` if it needs a connection
+3. Add the provider to `src/shared/constants/providers.ts` if it needs a connection
    record. OAuth-based providers also need `src/lib/oauth/providers/`.
-6. Add tests under `tests/unit/cloud-agent-*.test.ts`.
-7. Update this doc and the dashboard's `CLOUD_AGENTS` constant.
+4. Add tests under `tests/unit/cloud-agent-*.test.ts`.
 
 ## Configuration
 

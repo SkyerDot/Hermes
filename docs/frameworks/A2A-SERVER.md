@@ -10,11 +10,6 @@ lastUpdated: 2026-06-28
 
 The A2A surface has two faces:
 
-- **JSON-RPC 2.0** at `POST /a2a` (canonical entry point, defined in `src/app/a2a/route.ts`).
-- **REST** under `/api/a2a/*` for dashboards and tooling (status, task list, cancel).
-
-Tasks are tracked by `A2ATaskManager` (`src/lib/a2a/taskManager.ts`, default 5-minute TTL). Skills are dispatched via `A2A_SKILL_HANDLERS` in `src/lib/a2a/taskExecution.ts`.
-
 ## Agent Discovery
 
 ```bash
@@ -22,8 +17,6 @@ curl http://localhost:20128/.well-known/agent.json
 ```
 
 Returns the Agent Card describing OmniRoute's capabilities, skills, and authentication requirements.
-
-The Agent Card's `version` field is sourced from `process.env.npm_package_version` (see `src/app/.well-known/agent.json/route.ts:13`), so it stays auto-synced with `package.json` on every release.
 
 ---
 
@@ -40,7 +33,6 @@ If no API key is configured on the server, authentication is bypassed.
 ## Enablement
 
 A2A is controlled by the **Endpoints → A2A** toggle and is disabled by default. When disabled,
-`GET /api/a2a/status` reports `status: "disabled"` and `online: false`; JSON-RPC calls to
 `POST /a2a` return HTTP 503 with JSON-RPC error code `-32000`.
 
 ---
@@ -154,8 +146,6 @@ curl -X POST http://localhost:20128/a2a \
 
 ## Available Skills
 
-OmniRoute exposes 6 A2A skills wired in `src/lib/a2a/taskExecution.ts::A2A_SKILL_HANDLERS`. Each skill module lives in `src/lib/a2a/skills/`.
-
 | Skill              | ID                   | Description                                                                                                                                  | Tags                       | Examples                               |
 | :----------------- | :------------------- | :------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------- | :------------------------------------- |
 | Smart Routing      | `smart-routing`      | Routes a prompt through the optimal provider/combo using OmniRoute's combo engine + scoring                                                  | routing, providers         | "Route this prompt via the best model" |
@@ -178,42 +168,26 @@ The `list-capabilities` skill is particularly useful for external agents that ne
 ...
 ```
 
-Each row includes the `rawUrl` column so agents can immediately fetch the full SKILL.md. The `metadata.totalSkills` field mirrors the catalog size (45 today). Implementation: `src/lib/a2a/skills/listCapabilities.ts`. See also [AGENT-SKILLS.md](./AGENT-SKILLS.md).
-
 ---
 
 ## REST API (auxiliary)
 
 The JSON-RPC endpoint `/a2a` is the canonical A2A entry point. The REST endpoints below provide auxiliary access for dashboards and external tooling:
 
-| Endpoint                     | Method | Description                                                       | Auth                                                                                        |
-| :--------------------------- | :----- | :---------------------------------------------------------------- | :------------------------------------------------------------------------------------------ |
-| `/api/a2a/status`            | GET    | Server status, registered skills                                  | (public)                                                                                    |
-| `/api/a2a/tasks`             | GET    | List tasks with filters                                           | management or API key (see below)                                                           |
-| `/api/a2a/tasks/[id]`        | GET    | Get task by ID                                                    | management or API key (see below)                                                           |
-| `/api/a2a/tasks/[id]/cancel` | POST   | Cancel running task                                               | management or API key (see below)                                                           |
-| `/.well-known/agent.json`    | GET    | Agent Card (A2A discovery)                                        | (public, cached 3600s)                                                                      |
-| `/api/a2a/tasks`             | POST   | Inbound delegation to the OmniConductor fleet (Conductor PRD RF5) | same as `GET`, plus `OMNIROUTE_API_KEY` if set while `REQUIRE_API_KEY` is off; `a2aEnabled` |
-
-Who gets through to the `/api/a2a/tasks*` routes depends on the login and API-key settings:
+| Endpoint                  | Method | Description                | Auth                   |
+| :------------------------ | :----- | :------------------------- | :--------------------- |
+| `/.well-known/agent.json` | GET    | Agent Card (A2A discovery) | (public, cached 3600s) |
 
 - `requireLogin=true` (default): the middleware only admits management credentials (dashboard session, `manage`-scope API key, `oma_` access token) and `OMNIROUTE_API_KEY`. A plain inference key gets `403`. In the `Authorization` header the middleware only takes `OMNIROUTE_API_KEY` as `Bearer <key>`; a bare key or a tab after `Bearer` gets `401`.
 - `requireLogin=false`, or the loopback window before onboarding: with `REQUIRE_API_KEY=true` any valid OmniRoute API key or management credential is accepted and anonymous callers get `401`; with `REQUIRE_API_KEY` off the routes are open.
-- `POST /api/a2a/tasks` additionally requires `OMNIROUTE_API_KEY` in the `Authorization` header when that variable is set and `REQUIRE_API_KEY` is off. Other headers, such as `x-api-key`, do not count there. With login off or before onboarding the key passes with or without a `Bearer` prefix; with login on, only `Bearer <key>` gets past the middleware.
 
 Where a credential is required, a `read`-scope `oma_` token only works for `GET`.
-
-**Inbound Conductor delegation (`POST /api/a2a/tasks`):** external A2A agents delegate coding work to the OmniConductor fleet through OmniRoute. Body: `{ skill: "conductor" | "conductor-cli-<profile>", messages: [{role, content}], metadata: { conductor: { repo: { url, base_ref? }, mode?, cli?, model? } } }` — only Conductor fleet skills (the ones announced on the Agent Card) are delegable; `metadata.conductor.repo.url` is required (the fleet works on git repos). The route translates to the hub's `POST /v1/tasks` using the server-side `CONDUCTOR_ORCHESTRATOR_TOKEN` (fallback `CONDUCTOR_HUB_TOKEN`) and returns `201 { conductor_task_id, state: "submitted" }`; task states flow back through the SSE→A2A mirror (RF1) and are visible via `GET /api/a2a/tasks?skill=conductor`.
 
 ---
 
 ## Adding a New Skill
 
 1. **Create skill file:** `src/lib/a2a/skills/<your-skill>.ts`
-
-   Export an async function `(task: A2ATask, caller?: A2ACallerContext) => Promise<{ artifacts, metadata }>`. Follow the shape of existing skills such as `smartRouting.ts`. If the skill calls back into OmniRoute over HTTP, build the headers with `buildSelfLoopHeaders(caller)` from `src/lib/a2a/selfLoopAuth.ts` so the call runs with the A2A caller's key, not `OMNIROUTE_API_KEY`, and pass `redirect: "error"` to `fetch` so a redirect never gets the key. The helper only builds headers; each skill sets the redirect policy itself. It throws `UnsafeSelfLoopTargetError` rather than attach a key when the resolved base URL is plain http outside the private network (loopback, a container or service name, and private addresses are fine) or holds credentials, so a skill that swallows rejected calls must rethrow that error.
-
-2. **Register handler:** in `src/lib/a2a/taskExecution.ts`, add an entry to `A2A_SKILL_HANDLERS`:
 
    ```typescript
    export const A2A_SKILL_HANDLERS = {
@@ -225,8 +199,6 @@ Where a credential is required, a `read`-scope `oma_` token only works for `GET`
    };
    ```
 
-3. **Expose in Agent Card:** in `src/lib/a2a/agentCardMetadata.ts` (shared by `/.well-known/agent.json` and `/.well-known/agent-card.json`), append to the `skills` array:
-
    ```json
    {
      "id": "your-skill",
@@ -237,15 +209,13 @@ Where a credential is required, a `read`-scope `oma_` token only works for `GET`
    }
    ```
 
-4. **Write tests:** `tests/unit/a2a-<your-skill>.test.ts`. Cover happy path + error path.
+2. **Write tests:** `tests/unit/a2a-<your-skill>.test.ts`. Cover happy path + error path.
 
-5. **Document** the new skill in this file's `Available Skills` table.
+3. **Document** the new skill in this file's `Available Skills` table.
 
 ---
 
 ## Task TTL
-
-Tasks expire after `ttlMinutes` (default 5 min) — configured in the `A2ATaskManager` constructor at `src/lib/a2a/taskManager.ts:82`. To customize, fork the `A2ATaskManager` instantiation and pass a different value (e.g., `new A2ATaskManager(15)` for 15-minute TTL). A background interval sweeps expired tasks every 60 seconds.
 
 ---
 

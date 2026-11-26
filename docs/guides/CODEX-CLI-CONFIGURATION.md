@@ -14,7 +14,6 @@ Complete guide for using the Codex CLI pointed at OmniRoute as an OpenAI-compati
 > exclusively (verified against codex-cli 0.147.0: `codex --help` documents
 > `-c/--config` overrides "loaded from `~/.codex/config.toml`"). The old
 > `~/.codex/config.yaml` belonged to the legacy npm CLI and is silently ignored.
-> The dashboard generator (`/api/cli-tools/apply`, tool `codex`) writes TOML with a
 > conservative merge — existing keys and other provider blocks are preserved, the
 > API key stays in `OMNIROUTE_API_KEY` (never in the file), and a leftover legacy
 > `config.yaml` is reported as a migration note without being touched.
@@ -334,17 +333,6 @@ omniroute launch-codex --remote http://100.x.x.x:20128/v1 --api-key sk-xxx
 
 # Pass extra args to codex
 omniroute launch-codex --profile glm52 -- --yolo "fix this bug"
-```
-
-Codex is also a target of the two generic manifest-driven entry points
-(`bin/cli/cli-manifest.mjs`):
-
-```bash
-# Interactive model picker → writes ~/.codex/<name>.config.toml (TOML, env_key)
-omniroute configure codex
-
-# Launch codex with the omniroute provider injected via -c flags (no config written)
-omniroute run codex
 ```
 
 ---

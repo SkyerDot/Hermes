@@ -122,14 +122,6 @@ function setupFetchMock(storedOverrides?: Record<string, unknown>): { puts: Capt
       const url = input.toString();
       const method = (init?.method ?? "GET").toUpperCase();
 
-      if (url.includes("/api/settings/compression/mcp-accessibility")) {
-        if (method === "PUT") {
-          puts.push({ url, body: JSON.parse(String(init?.body ?? "{}")) });
-          return json({ enabled: true });
-        }
-        return json({ enabled: true, maxTextChars: 50000 });
-      }
-
       if (url.includes("/api/settings/compression")) {
         if (method === "PUT") {
           const body = JSON.parse(String(init?.body ?? "{}"));
@@ -217,9 +209,7 @@ describe("CompressionPanel", () => {
     });
     await flush();
 
-    const settingsPuts = puts.filter(
-      (p) => p.url.includes("/api/settings/compression") && !p.url.includes("mcp-accessibility")
-    );
+    const settingsPuts = puts.filter((p) => p.url.includes("/api/settings/compression"));
     expect(settingsPuts.length).toBeGreaterThan(0);
     const lastEngines = settingsPuts
       .map((p) => p.body.engines as Record<string, { enabled: boolean }> | undefined)
@@ -305,12 +295,7 @@ describe("CompressionPanel", () => {
     vi.mocked(globalThis.fetch).mockImplementation((input, init) => {
       const url = String(input);
       const method = (init?.method ?? "GET").toUpperCase();
-      if (
-        nextGet &&
-        method === "GET" &&
-        url.includes("/api/settings/compression") &&
-        !url.includes("mcp-accessibility")
-      ) {
+      if (nextGet && method === "GET" && url.includes("/api/settings/compression")) {
         const payload = nextGet;
         nextGet = null;
         return Promise.resolve(
@@ -320,11 +305,7 @@ describe("CompressionPanel", () => {
           })
         );
       }
-      if (
-        method !== "PUT" ||
-        !url.includes("/api/settings/compression") ||
-        url.includes("mcp-accessibility")
-      ) {
+      if (method !== "PUT" || !url.includes("/api/settings/compression")) {
         return respond(input, init);
       }
       const body = JSON.parse(String(init.body));
@@ -822,8 +803,7 @@ describe("CompressionPanel when the settings GET fails", () => {
   function failFirstSettingsGet(failure: keyof typeof FAILURES = "a 500") {
     const { puts } = setupFetchMock();
     vi.mocked(globalThis.fetch).mockImplementationOnce(FAILURES[failure]);
-    // The mcp-accessibility toggle writes its own store, not the settings row.
-    return () => puts.filter((p) => !p.url.includes("mcp-accessibility")).map((p) => p.body);
+    return () => puts.map((p) => p.body);
   }
 
   // Holds the next request open until the returned function lets `answer` reply to it.

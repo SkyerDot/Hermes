@@ -62,7 +62,6 @@ Confirmed from `electron/package.json`:
 
 The `electron/` workspace also exposes:
 
-- `npm run prepare:bundle` — runs `scripts/build/prepare-electron-standalone.mjs`
 - `npm run build:mac-x64` / `build:mac-arm64` — single-arch macOS builds
 - `npm run pack` — directory-only build for local testing (no installer)
 
@@ -109,8 +108,7 @@ scripts/
     └── smoke-electron-packaged.mjs       # Post-build smoke test
 ```
 
-Both `main.js` and `preload.js` are **CommonJS `.js` files**, not TypeScript. The
-renderer-side typings live in `electron/types.d.ts`.
+Both `main.js` and `preload.js` are **CommonJS `.js` files**, not TypeScript.
 
 ## IPC Bridge (`preload.js`)
 
@@ -189,8 +187,7 @@ Persisted to `<DATA_DIR>/server.env`. `DATA_DIR` resolves to:
 
 ## Environment file lookup
 
-Before spawning the server, the main process (`getPreferredEnvFilePath()` in
-`electron/main.js`) picks **one** `.env` file: the first of these that exists.
+Before spawning the server, the main process picks **one** `.env` file: the first of these that exists.
 
 1. `$DATA_DIR/.env`, when `DATA_DIR` is set in the environment the app was launched with.
 2. `<resolved DATA_DIR>/.env`, using the same defaults as above: `%APPDATA%\omniroute\.env` on
@@ -258,8 +255,6 @@ NSIS settings: `oneClick: false`, lets the user choose the install directory, cr
 npm run electron:smoke:packaged
 ```
 
-`scripts/dev/smoke-electron-packaged.mjs`:
-
 - Auto-discovers the packaged binary in `electron/dist-electron/` for the current platform.
 - Launches with isolated `HOME`/`APPDATA`/`XDG_*` directories so it doesn't touch developer data.
 - Polls `http://127.0.0.1:20128/login` for HTTP 200 within 45 s.
@@ -321,5 +316,3 @@ Releases are published to GitHub Releases (`diegosouzapw/OmniRoute`), which is a
 
 - [SETUP_GUIDE.md](./SETUP_GUIDE.md)
 - [RELEASE_CHECKLIST.md](../ops/RELEASE_CHECKLIST.md)
-- Source: `electron/main.js`, `electron/preload.js`, `electron/package.json`
-- Helpers: `scripts/build/prepare-electron-standalone.mjs`, `scripts/dev/smoke-electron-packaged.mjs`

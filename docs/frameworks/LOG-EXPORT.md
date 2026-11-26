@@ -161,7 +161,6 @@ already in `pipeline_provider_response` and `pipeline_client_response`.
 | Google SA auth       | `src/lib/logExport/googleServiceAccount.ts`  |
 | Call-log source      | `src/lib/usage/callLogExportSource.ts`       |
 | Persistence          | `src/lib/db/logExportDestinations.ts`        |
-| Cron job             | `src/lib/jobs/logExportJob.ts`               |
 | REST layer           | `src/app/api/log-export/`                    |
 | Dashboard page       | `src/app/(dashboard)/dashboard/log-export/`  |
 

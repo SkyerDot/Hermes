@@ -65,9 +65,6 @@ lastUpdated: 2026-11-03
   `html:root:has([data-ci-appearance="editions"])`, so one descendant would switch the whole document.
   The Editions `data-ci-editions-variant="landing"` variant is for marketing pages, not the dashboard.
   Browser chrome: the server renders the default, Editions, in `viewport.themeColor` (one tag per
-  `prefers-color-scheme`) and the web manifest — `PWA_THEME_COLORS` in
-  `src/shared/constants/pwaThemeColors.ts`, the one mirror of the Editions `--ci-color-background`
-  (`#f3f1e9` / `#11120f`), pinned to `ci-editions.css` by `tests/unit/pwa-theme-colors.test.ts`. The live
   `<meta name="theme-color">` then follows the stored palette and mode: `THEME_BOOT_SCRIPT` rewrites the
   tags before paint and the theme store's actions do it on every change (`resolveThemeColor()` /
   `applyThemeColor()` in `src/shared/utils/themeColorMeta.ts`, with `CLASSIC_PAGE_BACKGROUND` read from
@@ -116,7 +113,6 @@ lastUpdated: 2026-11-03
   white-label operators, their own `name`/`logoSrc`. Product-switcher destinations live in
   `src/shared/constants/keakProducts.ts` (`KEAK_PRODUCT_LINKS`, `KEAK_ACTIVE_PRODUCT`). The standalone
   screens — `src/app/login/page.tsx`, `src/app/status/page.tsx`, `src/app/maintenance/page.tsx`,
-  `src/app/offline/page.tsx`, `src/app/not-found.tsx` and `src/shared/components/ErrorPageScaffold.tsx`
   — show the lockup; `tests/unit/brand-pages-static.test.ts` guards it.
 
 ## 2. Rules
@@ -318,7 +314,6 @@ generator's output (job `test-unit`).
   `scripts/dev/codemod-material-icons.mjs`
 - `src/shared/components/OmniRouteLogo.tsx`, `src/shared/constants/keakProducts.ts`
 - `src/store/themeStore.ts`, `src/shared/utils/themeBootScript.ts`, `src/shared/constants/appearancePalette.ts`,
-  `src/shared/constants/pwaThemeColors.ts`, `src/shared/constants/appConfig.ts`,
   `src/shared/constants/statusColors.ts`
 - `tests/unit/design-kit-bridge.test.ts`, `tests/unit/dashboard-kit-sweep.test.ts`,
   `tests/unit/icon-map-coverage.test.ts`, `tests/unit/icon-map-object-values.test.ts`,

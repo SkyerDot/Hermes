@@ -162,4 +162,3 @@ For Anthropic-style clients that send `x-api-key` + `anthropic-version`, OmniRou
 - [API reference](../reference/API_REFERENCE.md) — full OmniRoute REST surface
 - [Auto-Combo](../routing/AUTO-COMBO.md) — what `model: "auto"` means
 - [`@omniroute/opencode-provider` README](../../@omniroute/opencode-provider/README.md)
-- Source: `src/shared/services/opencodeConfig.ts`, `src/lib/cli-helper/config-generator/opencode.ts`, `@omniroute/opencode-provider/src/index.ts`

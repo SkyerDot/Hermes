@@ -604,8 +604,7 @@ Restore from backup:
 omniroute backup restore <backup-id>
 ```
 
-`omniroute sync pull [outPath]` only downloads a full `.tar.gz` archive from a running server
-(`GET /api/db-backups/exportAll`, operator credential required); it does not restore anything.
+`omniroute sync pull [outPath]` only downloads a full `.tar.gz` archive from a running server; it does not restore anything.
 
 ### Scenario 3: Encryption Key Lost
 

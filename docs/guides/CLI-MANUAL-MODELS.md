@@ -6,14 +6,12 @@ lastUpdated: "2026-09-21"
 
 # CLI model catalog and manual metadata
 
-`omniroute models` reads the selected server's public model catalog first, including
 its custom and synchronized entries. `--output json` and `--output jsonl` return all
 matching rows, without a table truncation message. Interactive tables show at most
 50 rows. JSON preserves public context limits, modalities, capabilities, model source
 when supplied by the server, and API-format metadata; credentials and compatibility
 headers are not output. A legacy `/api/models` fallback is used only when the public
 endpoint returns HTTP 404, 405 or 501, never after an authentication failure.
-`omniroute completion refresh` uses that same catalog. A failed model-catalog request
 returns a nonzero exit code and preserves the previous completion cache. Bash, Zsh
 and Fish completion scripts advertise the manual model subcommands.
 

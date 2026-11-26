@@ -90,13 +90,8 @@ The generator preserves content between `<!-- skill:custom-start -->` and `<!-- 
 
 ## REST API Discovery
 
-| Endpoint                     | Method | Description                                                      | Auth       |
-| :--------------------------- | :----- | :--------------------------------------------------------------- | :--------- |
-| `/api/agent-skills`          | GET    | List catalog (optional `?category=api\|cli\|config&area=<area>`) | none       |
-| `/api/agent-skills/{id}`     | GET    | Get single skill metadata                                        | none       |
-| `/api/agent-skills/{id}/raw` | GET    | Fetch SKILL.md as `text/markdown`                                | none       |
-| `/api/agent-skills/coverage` | GET    | Coverage stats (how many SKILL.md files exist)                   | none       |
-| `/api/agent-skills/generate` | POST   | Trigger generator (dryRun/prune/onlyIds)                         | management |
+| Endpoint | Method | Description | Auth |
+| :------- | :----- | :---------- | :--- |
 
 Example — list all API skills:
 

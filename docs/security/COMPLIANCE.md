@@ -40,7 +40,6 @@ pattern. Confirmed in-tree action types include:
 | `provider.credentials.updated`       | `src/app/api/providers/[id]/route.ts`    |
 | `provider.credentials.revoked`       | `src/app/api/providers/[id]/route.ts`    |
 | `provider.credentials.batch_revoked` | `src/app/api/providers/route.ts`         |
-| `sync.token.created`                 | `src/app/api/sync/tokens/route.ts`       |
 | `sync.token.revoked`                 | `src/app/api/sync/tokens/[id]/route.ts`  |
 | `compliance.cleanup`                 | `src/lib/compliance/index.ts`            |
 | `api_key.auth.touch`                 | `src/server/authz/policies/clientApi.ts` |
@@ -61,7 +60,6 @@ default).
 ### MCP tool calls (`mcp_tool_audit`)
 
 Every MCP tool invocation writes a row through
-`open-sse/mcp-server/audit.ts`. Schema (from
 `src/lib/db/migrations/002_mcp_a2a_tables.sql`):
 
 | Column           | Notes                               |
@@ -184,8 +182,6 @@ the request must not persist content in those subsystems either.
 | Endpoint                    | Method | Description                                | Auth       |
 | --------------------------- | ------ | ------------------------------------------ | ---------- |
 | `/api/compliance/audit-log` | `GET`  | Paginated admin audit entries with filters | management |
-| `/api/mcp/audit`            | `GET`  | Paginated MCP tool audit entries           | (open-sse) |
-| `/api/mcp/audit/stats`      | `GET`  | Aggregated MCP audit stats                 | (open-sse) |
 
 No CSV export endpoint is shipped today — export from the dashboard or query
 the SQLite database directly.
@@ -218,8 +214,6 @@ The dashboard exposes audit data at **`/dashboard/audit`**
   `/api/compliance/audit-log`. Filters by event type, severity (info / warning
   / critical, derived from action + status), and date range. Severity is
   computed client-side from the action/status strings.
-- **MCP** (`McpAuditTab.tsx`) — MCP tool audit from `/api/mcp/audit`, with
-  filters by tool name and success/failure.
 
 Both tabs paginate with page sizes of `50` (compliance) and `25` (MCP).
 

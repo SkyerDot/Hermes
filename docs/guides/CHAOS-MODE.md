@@ -7,7 +7,6 @@ lastUpdated: 2026-09-01
 # Chaos Mode
 
 > **Dashboard:** **Chaos Mode** (sidebar) → `/dashboard/chaos`  
-> **API:** `GET` / `PUT` `/api/chaos/config` · `POST /api/chaos/run` (dashboard session) · `POST /api/skills/collect/chaos` (API key)  
 > **Source:** `src/lib/chaos/chaosExecutor.ts`, `src/lib/chaos/chaosConfig.ts`
 
 Chaos Mode sends **one task to several providers at once** — every participating provider
@@ -100,47 +99,17 @@ Cookie-authenticated (the management session — see
 }
 ```
 
-### `POST /api/skills/collect/chaos` — API key
-
-Bearer-token variant for external callers. The key must carry the **Chaos Mode permission**
-(`chaosModeEnabled`), which is **off by default** — enable it per key in
-**Dashboard → API Manager → edit key → permissions → Chaos Mode**. Same body as above.
-
 ```bash
-curl -X POST http://localhost:20128/api/skills/collect/chaos \
-  -H "Authorization: Bearer $OMNIROUTE_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"task":"Compare approaches to X","mode":"parallel"}'
+
 ```
 
-Both endpoints return the same shape:
-
 ```jsonc
-{
-  "task": "…",
-  "mode": "parallel",
-  "startedAt": "2026-09-01T00:00:00.000Z",
-  "totalProviders": 3,
-  "totalResults": 3,
-  "models": [
-    {
-      "providerId": "glm",
-      "providerName": "GLM",
-      "modelId": "glm-4.7",
-      "status": "success",
-      "content": "…",
-      "durationMs": 3210,
-    },
-  ],
-  "summary": "…", // collaborative mode only
-}
+
 ```
 
 ## Troubleshooting
 
 - **`400 Chaos Mode is not enabled`** — step 2 above: the global switch is off.
-- **API key gets rejected on `/api/skills/collect/chaos`** — the key lacks the per-key
-  `chaosModeEnabled` permission (off by default; this is a setting, not an error).
 - **A provider shows `No model set for this provider`** — set its model on the Chaos Mode page
   or a default model on its connection (see Setup, step 4).
 - **A provider you expected is missing from the results** — check `providerOverrides` on the

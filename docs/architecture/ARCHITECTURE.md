@@ -266,7 +266,6 @@ Management domains:
 - Policies: `src/app/api/policies` (GET/POST)
 - Sync tokens: `src/app/api/sync/tokens` (GET/POST), `src/app/api/sync/tokens/[id]` (GET/DELETE)
 - Config bundle: `src/app/api/sync/bundle` (GET, ETag-versioned snapshot of settings/providers/combos/keys)
-- WebSocket: `src/app/api/v1/ws/route.ts` — Upgrade handler for OpenAI-compatible WS clients
 
 ## 2) SSE + Translation Core
 
@@ -326,7 +325,6 @@ Domain layer modules:
 - Fetch timeout: `src/shared/utils/fetchTimeout.ts`
 - Request telemetry: `src/shared/utils/requestTelemetry.ts`
 - Compliance/audit: `src/lib/compliance/index.ts`
-- Eval runner: `src/lib/evals/evalRunner.ts`
 - Domain state persistence: `src/lib/db/domainState.ts` — SQLite CRUD for fallback chains, budgets, cost history, lockout state, circuit breakers
 
 OAuth provider modules (27 individual files under `src/lib/oauth/providers/`):
@@ -346,9 +344,6 @@ Architecture layers:
 - **UI** (`/dashboard/providers/services`) — two-tab page with lifecycle controls,
   live log streaming, API key management, and (for 9Router) embedded native UI via
   an internal reverse proxy.
-- **API** (`/api/services/{name}/*`) — 11 endpoints for 9Router, 10 for CLIProxyAPI, 8 each for Bifrost / Mux / Dario,
-  all classified **LOCAL_ONLY** (hard rule #17). A shared `GET /api/services/[name]/logs`
-  SSE endpoint serves both services.
 - **Supervisor** (`src/lib/services/`) — generic `ServiceSupervisor` class wraps
   `child_process.spawn`, holds a 5 MB ring buffer for SSE log streaming, a health
   probe loop, an atomic operation lock, and a SIGTERM→SIGKILL graceful shutdown.
@@ -406,7 +401,6 @@ endpoints require management authentication.
   `types.ts`, `db.ts`, plus per-agent subdirectories under `agents/`)
 - Per-agent implementations: `agents/codex/`, `agents/devin/`, `agents/jules/`
 - Public endpoints: `/api/v1/agents/tasks/*` (list/create/get/cancel)
-- Management endpoints: `/api/cloud/*` (provisioning, status, batch)
 - Dashboard: `/dashboard/cloud-agents`
 - Storage: `cloud_agent_tasks` table
 
@@ -529,10 +523,6 @@ For the full stealth playbook and operational guidance, see
 ### H. Webhooks, Reasoning Cache, Read Cache
 
 - **Webhooks** — outbound dispatch for provider/account/task events.
-  - Dispatcher: `src/lib/webhookDispatcher.ts`
-  - Storage: `webhooks` SQLite table (via `src/lib/db/webhooks.ts`)
-  - Dashboard: `/dashboard/webhooks` (subscriptions, secrets, retry history)
-  - For event taxonomy and retry semantics, see [`docs/frameworks/WEBHOOKS.md`](../frameworks/WEBHOOKS.md).
 - **Reasoning Cache** — replayable reasoning blocks for providers that emit
   thinking tokens (Claude, GLMT, etc.) so consecutive turns can skip re-thinking.
   - DB layer: `src/lib/db/reasoningCache.ts`
@@ -574,8 +564,6 @@ Domain State DB (SQLite):
 - SSRF / outbound URL guard: `src/shared/network/outboundUrlGuard.ts` — host checks on provider calls and webhook targets; the mode comes from `src/shared/network/outboundUrlGuardPolicy.ts` (flags in `docs/reference/ENVIRONMENT.md`)
 - Runtime env validation: `src/lib/env/runtimeEnv.ts` — Zod schema for all environment variables, surfaced as startup errors/warnings
 - Sync tokens: `src/lib/db/syncTokens.ts` — scoped tokens for config bundle download endpoints; backed by `sync_tokens` SQLite table (migration `024_create_sync_tokens.sql`)
-- WebSocket handshake auth: `src/lib/ws/handshake.ts` — validates WS upgrade requests via API key or session cookie
-- Live dashboard WebSocket auth: `src/server/ws/liveServer.ts` — the sidecar (port `LIVE_WS_PORT`) accepts a dashboard session cookie or a Bearer API key holding a management scope (`manage`/`admin`); inference-only keys are refused. Its internal `POST /__omniroute_event` publisher endpoint accepts loopback peers only when no proxy-hop header (`x-forwarded-*`, `x-real-ip`, `forwarded`, `via`) is present
 
 ## 5) Cloud Sync
 
@@ -583,7 +571,6 @@ Domain State DB (SQLite):
 - Periodic task: `src/shared/services/cloudSyncScheduler.ts`
 - Periodic task: `src/shared/services/modelSyncScheduler.ts`
 - Periodic task (opt-in per connection): `src/shared/services/modelHealthCheckScheduler.ts` — tests a connection's models, auto-hides failures and restores only what it hid itself (`src/lib/db/modelHealthAutoHidden.ts`)
-- Control route: `src/app/api/sync/cloud/route.ts`
 
 ## Request Lifecycle (`/v1/chat/completions`)
 

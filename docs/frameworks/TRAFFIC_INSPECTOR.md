@@ -36,17 +36,12 @@ Traffic Inspector is OmniRoute's built-in HTTPS traffic debugger — a Charles P
 
 ### Architecture in one paragraph
 
-The `TrafficBuffer` (`src/mitm/inspector/buffer.ts`) is a shared in-memory ring buffer (default 1000 entries, configurable via `INSPECTOR_BUFFER_SIZE`). All capture sources write to it via `push()`. The buffer classifies each entry using `kindDetector.ts` (determines if it's an LLM request), computes a `contextKey` (SHA-256 fingerprint of the system prompt), and broadcasts to all WebSocket subscribers via `globalTrafficBuffer.subscribe()`. The dashboard connects via `GET /api/tools/traffic-inspector/ws` and receives a snapshot on connect, followed by `new`/`update`/`clear` events.
-
 ---
 
 ## §2 Capture modes
 
-Traffic Inspector supports **5 simultaneous capture sources**. Each is independently toggleable. The `source` field on every `InterceptedRequest` (`src/mitm/inspector/types.ts`) is one of `"agent-bridge"`, `"custom-host"`, `"http-proxy"`, `"system-proxy"`, or `"tproxy"`.
-
 ### Mode 1 — AgentBridge (default, always on)
 
-**Source:** AgentBridge handlers (`src/mitm/handlers/base.ts`)
 **Mechanism:** Every `intercept()` call in `MitmHandlerBase` calls `hookBufferStart()` before forwarding and `hookBufferUpdate()` on completion. Zero extra config — works as soon as AgentBridge is running.
 **Reach:** The 9 IDE agents configured in AgentBridge
 **Note:** `source` field in `InterceptedRequest` = `"agent-bridge"`
@@ -67,7 +62,6 @@ Example use cases:
 ### Mode 3 — HTTP_PROXY listener (port 8080)
 
 **Source:** Applications using `HTTP_PROXY`/`HTTPS_PROXY` environment variables
-**Mechanism:** Secondary listener at port 8080 (`src/mitm/inspector/httpProxyServer.ts`) that acts as a standard explicit HTTP/HTTPS proxy. Accepts `CONNECT` tunnels (HTTPS) and direct HTTP requests.
 **Reach:** Any application that respects `HTTP_PROXY` env — no DNS change, no sudo
 **Note:** `source` = `"http-proxy"`
 
@@ -110,8 +104,6 @@ export HTTPS_PROXY=http://127.0.0.1:8080
 **Note:** `source` = `"tproxy"`
 
 **Requirements:** Linux only (**IP_TRANSPARENT** is Linux-only), the **CAP_NET_ADMIN** capability (root), and a native N-API addon that must be built with a C toolchain (`npm run build:native:tproxy`). When unavailable, the dashboard toggle is disabled with the tooltip "TPROXY decrypt requires Linux + root + the native addon". The firewall rules apply/revert transactionally (a crash never leaves a `mangle` rule behind) and flush on reboot. An SO_MARK-based anti-loop keeps the proxy's own re-encrypted forward from being re-intercepted.
-
-This is a substantial subsystem with its own dedicated operator guide — see `docs/security/MITM-TPROXY-DECRYPT.md` (git; not compiled into `/docs`) for the full firewall recipe, the per-SNI dynamic CA + trust-store installer, the local-only route, anti-loop details, and the configuration schema. The toggle is driven by `GET / POST / DELETE /api/tools/agent-bridge/tproxy` (note: the route lives under the AgentBridge prefix, not the Traffic Inspector prefix).
 
 ### Capture mode comparison
 
@@ -194,62 +186,9 @@ This is a substantial subsystem with its own dedicated operator guide — see `d
 
 ## §4 LLM-aware features
 
-### 4.1 Kind detector (`src/mitm/inspector/kindDetector.ts`)
-
-Classifies each request as `"llm"`, `"app"`, or `"unknown"` using 4 signals:
-
-1. **Host registry** — ~18 known LLM API hostnames (OpenAI, Anthropic, Gemini, Groq, Mistral, Together, Fireworks, Cohere, Perplexity, Hugging Face, OpenRouter, xAI, Moonshot, etc.)
-2. **Path patterns** — `/v1/chat/completions`, `/v1/messages`, `/generateContent`, `/v1/responses`, etc.
-3. **Body shape** — detects `messages[]` (OpenAI/Claude), `contents[]` (Gemini), `prompt`, `input` fields
-4. **User-agent hints** — `codex`, `claude`, `gemini`, `antigravity`, `kiro`, `copilot`, `cursor` in UA string
-
-Custom hosts added via Mode 2 inherit their `kind` from the form input (defaults to `"custom"`).
-
-### 4.2 SSE merger (`src/mitm/inspector/sseMerger.ts`)
-
-**Independent clean-room implementation.** Event parsing follows the
-[WHATWG server-sent events algorithm](https://html.spec.whatwg.org/multipage/server-sent-events.html#parsing-an-event-stream),
-while reconstruction follows the public [OpenAI](https://platform.openai.com/docs/api-reference/chat/create),
-[Anthropic](https://platform.claude.com/docs/en/build-with-claude/streaming), and
-[Gemini](https://ai.google.dev/api/generate-content#method:-models.streamgeneratecontent)
-streaming schemas.
-
-Reconstructs the final assistant message from raw SSE delta events:
-
-- **Anthropic**: accumulates `content_block_delta` by index; handles `text_delta`, `input_json_delta` (tool calls), `thinking_delta`
-- **OpenAI**: accumulates Chat Completions choices/tool calls and Responses API output items
-  by index
-- **Gemini**: accumulates `candidates[i].content.parts`
-- **Unknown**: returns raw events as-is
-
-The Response tab shows a toggle: **"Raw events ↔ Merged"**.
-
-### 4.3 Conversation normalizer (`src/mitm/inspector/conversationNormalizer.ts`)
-
-**Independent clean-room implementation.** Normalization is defined by local black-box
-contracts and the public OpenAI, Anthropic, and Gemini message schemas; no upstream
-implementation source is used.
-
-Converts OpenAI, Anthropic, and Gemini message formats to a single `NormalizedConversation` before rendering:
-
 ```ts
-interface NormalizedConversation {
-  request: NormalizedTurn[]; // messages / contents / prompt from request body
-  response: NormalizedTurn[]; // assistant response (merged via sseMerger)
-  contextKey: string | null; // SHA-256 system-prompt fingerprint
-}
+
 ```
-
-Block types: `text`, `tool_use`, `tool_result`. The Conversation tab uses this shape regardless of provider.
-
-### 4.4 Context key colorization (`src/mitm/inspector/contextKey.ts`)
-
-- Computes `SHA-256` of the system prompt (first `role:system` message, or `system` field, or Gemini `systemInstruction`)
-- Returns a 12-character hex prefix (`"a3f9c2..."`)
-- Frontend maps the key to a deterministic HSL color for the left-border bar
-- **Filtro "same context"**: clicking the `ctx #a3f` chip adds a filter to show only requests with the same fingerprint
-
-This makes it easy to visually distinguish different "personas" or tasks running in the same agent session.
 
 ### 4.5 LLM metadata extraction
 
@@ -277,9 +216,6 @@ when the response (or error) arrives. The toolbar's **"Live"** toggle
 (`liveOnly`, i18n key `trafficInspector.liveOnly`) restricts the list to entries
 whose `status === "in-flight"`, letting you watch open connections in real time.
 
-The filter is a pure, client-side predicate in
-`src/lib/inspector/matchesTrafficFilter.ts`:
-
 ```ts
 if (f.liveOnly && req.status !== "in-flight") return false;
 ```
@@ -297,7 +233,6 @@ pid?: number;          // originating process id (Linux only)
 processName?: string;  // originating process name (Linux only)
 ```
 
-`src/mitm/inspector/processAttribution.ts` maps the connection's _client_
 ephemeral port to a PID + name by:
 
 1. Reading `/proc/net/tcp` and `/proc/net/tcp6` to find the socket inode for the
@@ -337,8 +272,6 @@ Each session can be exported as:
 | **HAR** (HTTP Archive 1.2) | Compatible with Chrome DevTools, Charles, Fiddler — import for offline analysis |
 | **JSONL**                  | One `InterceptedRequest` per line — compatible with `llm-interceptor` format    |
 
-Export via `GET /api/tools/traffic-inspector/sessions/{id}/export.har` or the ⬇ button in the Sessions dropdown.
-
 ---
 
 ## §6 Security
@@ -356,10 +289,9 @@ Traffic Inspector shows **all intercepted HTTPS traffic**, including authorizati
 
 ### Hard Rules applied
 
-| Rule                              | Application                                                                           |
-| --------------------------------- | ------------------------------------------------------------------------------------- |
-| **#12** `sanitizeErrorMessage`    | All HTTP error responses from Traffic Inspector routes are sanitized                  |
-| **#15 + #17** `isLocalOnlyPath()` | `/api/tools/traffic-inspector/` is LOCAL_ONLY + SPAWN_CAPABLE (system proxy commands) |
+| Rule                           | Application                                                          |
+| ------------------------------ | -------------------------------------------------------------------- |
+| **#12** `sanitizeErrorMessage` | All HTTP error responses from Traffic Inspector routes are sanitized |
 
 ### Known limitations
 
@@ -375,7 +307,6 @@ Traffic Inspector shows **all intercepted HTTPS traffic**, including authorizati
 
 If the live tail shows "Disconnected":
 
-1. Check the server is still running: `GET /api/tools/traffic-inspector/capture-modes`
 2. Reload the page — the WebSocket reconnects and receives a fresh snapshot
 3. If the server was restarted, the in-memory buffer was cleared — old entries are gone unless a session was recorded
 
@@ -432,8 +363,6 @@ When the buffer reaches `INSPECTOR_BUFFER_SIZE` (default 1000), new entries rota
 
 All routes are `LOCAL_ONLY` (loopback-only) and `SPAWN_CAPABLE` (system proxy commands). See `src/server/authz/routeGuard.ts`.
 
-Base path: `/api/tools/traffic-inspector/`
-
 ### Request management
 
 | Method | Path                        | Description                                                                        |
@@ -474,8 +403,6 @@ Base path: `/api/tools/traffic-inspector/`
 | POST   | `/capture-modes/system-proxy` | Apply/revert system-wide proxy (`{action: "apply"\|"revert"}`)            |
 
 > **TPROXY decrypt** (capture mode 5) is driven by a **separate** route under the
-> AgentBridge prefix — `GET / POST / DELETE /api/tools/agent-bridge/tproxy` — not
-> under `/api/tools/traffic-inspector/`. See
 > `docs/security/MITM-TPROXY-DECRYPT.md` (git; not compiled into `/docs`).
 
 ### Sessions

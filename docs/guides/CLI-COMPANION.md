@@ -55,7 +55,6 @@ visible for manual selection. Copying never executes it.
 
 ## Implementation boundary
 
-The server-only loader in `src/lib/cli-helper/companionTargets.ts` projects the
 executable manifest into public descriptors. The browser receives only target
 IDs, display names and capability flags, not Node modules or runtime secrets.
 Command validation and status mapping live in `src/shared/utils/cliCompanion.ts`.

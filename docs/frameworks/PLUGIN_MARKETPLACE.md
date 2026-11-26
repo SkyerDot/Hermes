@@ -42,21 +42,8 @@ Dashboard (/dashboard/plugins)
                                           → safeOutboundFetch(guard:"public-only")
 ```
 
-- **Registry layer** — `src/lib/plugins/marketplace.ts`: lists / searches the
-  catalog, falling back to the seed registry on any failure.
-- **Lifecycle layer** — `src/lib/plugins/manager.ts` (`pluginManager` singleton):
-  install, upgrade, activate, deactivate, uninstall, scan, startup load.
-- **Manifest layer** — `src/lib/plugins/manifest.ts`: Zod schema + defaults for
-  `plugin.json`.
-- **Scanner** — `src/lib/plugins/scanner.ts`: discovers plugins on disk under
-  the plugin directory.
-- **Loader** — `src/lib/plugins/loader.ts`: spawns each plugin in a separate
-  Node.js child process and brokers hook calls over IPC. The child is not a
-  sandbox (see "Plugin execution isolation" below).
-
 ## Marketplace Catalog
 
-`listMarketplacePlugins()` (`src/lib/plugins/marketplace.ts`) returns a list of
 `MarketplaceEntry` objects:
 
 | Field         | Type     | Notes                                |
@@ -74,96 +61,9 @@ Dashboard (/dashboard/plugins)
 | `verified`    | boolean  | Whether the entry is marked verified |
 | `lastUpdated` | string   | ISO-ish date string                  |
 
-When no custom registry URL is configured, the catalog is the built-in
-`SEED_REGISTRY` (currently `request-logger`, `rate-limiter`, `cost-tracker`, and
-`theme-manager`). The seed registry is always available — if a configured remote
-registry is unreachable, returns a non-`200` status, or returns an unrecognized
-body, `listMarketplacePlugins()` logs a warning and falls back to the seed list.
-
-> Note: the marketplace **catalog** (browse/search) is wired end to end, but
-> one-click marketplace **install** from the catalog is not yet implemented — the
-> dashboard's "Install" button on a marketplace entry currently shows a
-> "coming soon" notice. Installation today goes through the local-path install
-> flow (`POST /api/plugins`) and on-disk discovery (`POST /api/plugins/scan`).
-
-## REST API
-
-All endpoints require management auth (`requireManagementAuth`) **and** are
-loopback-only — `/api/plugins` and `/api/plugins/` are listed in
-`LOCAL_ONLY_API_PREFIXES` (`src/server/authz/routeGuard.ts`).
-
-| Endpoint                           | Method | Description                                         |
-| ---------------------------------- | ------ | --------------------------------------------------- |
-| `/api/plugins`                     | GET    | List installed plugins (optional `?status=` filter) |
-| `/api/plugins`                     | POST   | Install a plugin from the plugin sources directory  |
-| `/api/plugins/scan`                | POST   | Scan the plugin directory and register new plugins  |
-| `/api/plugins/marketplace`         | GET    | List marketplace catalog entries                    |
-| `/api/plugins/marketplace/install` | POST   | Install a marketplace plugin by name                |
-| `/api/plugins/[name]`              | GET    | Get installed plugin details                        |
-| `/api/plugins/[name]`              | DELETE | Uninstall a plugin                                  |
-| `/api/plugins/[name]/activate`     | POST   | Activate (load + register hooks)                    |
-| `/api/plugins/[name]/deactivate`   | POST   | Deactivate (fire `onDeactivate`, unregister hooks)  |
-| `/api/plugins/[name]/config`       | GET    | Get plugin config + config schema                   |
-| `/api/plugins/[name]/config`       | PUT    | Update plugin config (validated against schema)     |
-
-The `GET /api/plugins` `status` filter accepts one of
-`installed` / `active` / `inactive` / `error`. An invalid value returns `400`.
-
-### List installed plugins
-
-```bash
-curl http://localhost:20128/api/plugins \
-  -H "Cookie: auth_token=..."
-```
-
-### Install from a local path
-
-```bash
-curl -X POST http://localhost:20128/api/plugins \
-  -H "Cookie: auth_token=..." \
-  -H "Content-Type: application/json" \
-  -d '{ "path": "/absolute/path/to/my-plugin" }'
-```
-
-The `path` must be an **absolute** path to a directory **inside the plugin
-sources directory**: `plugin-sources` next to the plugin root, so
-`~/.omniroute/plugin-sources/` by default, or `<parent of OMNIROUTE_PLUGINS_DIR>/plugin-sources/`
-when that variable is set (`getPluginSourcesDir()` in
-`src/lib/plugins/installSource.ts`). Copy or clone the plugin there first. The
-install is refused with `400` when the path contains `..` or a null byte, lies
-outside that directory, resolves outside it through a symlink, contains a symlink
-whose target is outside it, or when the directory does not exist. The source
-directory must contain a valid `plugin.json` (or be a parent of one). On success
-the response is `201` with the installed plugin row.
-
-Unlike the other plugin routes, this one requires the management credential (a
-dashboard session or a manage-scoped API key) even when login is disabled
-(`requireLogin=false`): installing code is never an anonymous action. The same
-applies to `POST /api/plugins/marketplace/install` (body `{ "name": "<plugin>" }`).
-
-### Browse the marketplace
-
-```bash
-curl http://localhost:20128/api/plugins/marketplace \
-  -H "Cookie: auth_token=..."
-```
-
-### Update plugin config
-
-```bash
-curl -X PUT http://localhost:20128/api/plugins/my-plugin/config \
-  -H "Cookie: auth_token=..." \
-  -H "Content-Type: application/json" \
-  -d '{ "config": { "level": "debug", "maxItems": 100 } }'
-```
-
-`PUT .../config` validates the body against the plugin's `configSchema`
-(declared in the manifest) with `validatePluginConfig()` from
-`src/lib/plugins/manifest.ts`: every key must be declared in the schema, values
-must match the declared type, `number` fields honor `min`/`max`, and `select`
-fields must match the declared `enum`. Any violation returns `400` and nothing is
-stored. A plugin that declares no `configSchema` has no configurable keys, so the
-request is refused with `400` ("Plugin does not declare any configurable keys").
+When no custom registry URL is configured, the catalog uses the built-in seed
+list. A configured remote registry that is unreachable, returns a non-`200`
+status, or returns an unrecognized body falls back to that seed list.
 
 ## Configuration
 
@@ -177,7 +77,6 @@ Plugins live under the OmniRoute data directory:
   └─ index.js          # (or whatever manifest.main points to)
 ```
 
-`getDefaultPluginDir()` (`src/lib/plugins/scanner.ts`) resolves that directory in
 three steps:
 
 1. **`OMNIROUTE_PLUGINS_DIR`**, when set — used verbatim, whatever `HOME` says. This is
@@ -190,20 +89,17 @@ three steps:
 The resolved directory is logged once at startup as `scanner.dir_resolved`, naming the
 input that won (`OMNIROUTE_PLUGINS_DIR`, `home`, or `no-home-fallback`) — so an image
 that silently lands on step 3 says so, instead of only reporting an empty plugin list.
-`POST /api/plugins/scan` discovers any subdirectory there that holds a valid
 `plugin.json` and registers it; the same directory is the root that
 `pluginManager.install()` copies plugins into, so an override moves discovery and
 installation together.
 
 > **`OMNIROUTE_PLUGINS_DIR` is not `OMNIROUTE_PLUGIN_PATH`.** The latter is read only by
-> the CLI command-plugin loader (`bin/cli/plugins.mjs`) to find `omniroute-cmd-*` npm
 > packages that add `omniroute` subcommands — it has no effect on the runtime scanner
 > described here. See [PLUGINS.md](./PLUGINS.md) for that side.
 
 ### Custom marketplace registry URL
 
 The marketplace catalog source is read from the `pluginMarketplaceUrl` setting
-(`src/lib/plugins/marketplace.ts` reads `settings.pluginMarketplaceUrl`). When
 set to an `http(s)` URL, `listMarketplacePlugins()` fetches that URL and accepts
 either a top-level JSON array of entries or an object with a `plugins` array;
 entries without a string `name` are filtered out. When unset (or when the fetch
@@ -225,7 +121,6 @@ The dashboard "Marketplace" tab exposes a field for this URL (read back from
 
 ### Route tier — loopback only
 
-Plugins execute code in spawned child processes, so the entire `/api/plugins`
 surface is classified `LOCAL_ONLY` (Tier 1). Loopback enforcement runs
 unconditionally **before** any auth check, so a leaked management token reaching
 the box over a tunnel still cannot install, activate, or uninstall a plugin.
@@ -237,14 +132,6 @@ Hard Rules #15 / #17.
 A custom registry URL is attacker-influenceable configuration, so before
 fetching it `listMarketplacePlugins()` runs it through two layers:
 
-1. **`isSafeMarketplaceUrl(url)`** (`src/lib/plugins/marketplace.ts`):
-   - Rejects anything that is not `http:` / `https:`.
-   - Rejects literal private/loopback/link-local/ULA hosts (IPv4 **and** IPv6,
-     including IPv4-mapped) via the canonical `isPrivateHost`
-     (`src/shared/network/outboundUrlGuard.ts`).
-   - Resolves **both** `A` and `AAAA` records and rejects if **any** resolved
-     address is private — closing the public-hostname → private-IP bypass.
-   - **Fails closed**: a DNS resolution failure rejects the URL.
 2. **`safeOutboundFetch(url, { guard: "public-only", timeoutMs: 5000 })`**
    (`src/shared/network/safeOutboundFetch.ts`): re-applies the public-only URL
    guard at fetch time and **blocks redirects** (no public → private `30x`
@@ -263,23 +150,15 @@ silently falls back to the built-in seed registry and logs a warning.
 > permission flags, so plugin code can read and write any file that user can,
 > run programs and reach the network. `requires.permissions` only decides which
 > environment variables the child receives; the other permissions are not
-> enforced. The opt-in `PLUGIN_PERMISSION_MODEL_ENABLED` feature flag (off by
 > default) runs each plugin under the Node.js permission model built from those
 > permissions, except `network`, which Node.js cannot restrict (see
 > [`PLUGIN_SDK.md`](./PLUGIN_SDK.md#permission-system)). Install only plugins
 > you trust. The process boundary below contains crashes and hangs; it is not a
 > security boundary.
 
-- **Process isolation** — `loadPlugin()` (`src/lib/plugins/loader.ts`) spawns
-  each plugin in a separate Node.js child process and communicates over IPC.
-  Hook calls have a timeout with `SIGTERM` → `SIGKILL` escalation.
 - **Env allowlist** — the child receives only an allowlisted set of environment
   variables; the broader set is only granted when the manifest requests the
   `env` permission.
-- **Install source containment** — `POST /api/plugins` only reads from the plugin
-  sources directory (see "Install from a local path"): the path is canonicalized
-  with `realpath`, must stay strictly inside that directory, and a source tree
-  carrying a symlink that escapes it is refused before anything is copied.
 - **Path containment** — install/upgrade/uninstall assert that the plugin
   directory and `manifest.main` resolve **within** the managed plugin root
   before any copy or recursive delete (guards against tampered DB paths and
@@ -293,12 +172,9 @@ silently falls back to the built-in seed registry and logs a warning.
   a loaded plugin can do.
 - **No client credentials in hooks** — the context passed to `onRequest`,
   `onResponse` and `onError` has the `authorization`, `x-api-key`,
-  `proxy-authorization` and `cookie` headers removed, and the API key record carries no key
-  value (`redactPluginContext()` in `src/lib/plugins/hooks.ts`).
+  `proxy-authorization` and `cookie` headers removed.
 
 ## Manifest (`plugin.json`)
-
-Validated by `PluginManifestSchema` (`src/lib/plugins/manifest.ts`):
 
 | Field              | Type      | Notes                                                       |
 | ------------------ | --------- | ----------------------------------------------------------- |
@@ -384,10 +260,7 @@ The dashboard page at `/dashboard/plugins`
 (`src/app/(dashboard)/dashboard/plugins/page.tsx`) provides two tabs:
 
 - **Installed** — lists installed plugins with their declared hooks, an
-  activate/deactivate toggle, an uninstall button, and a "Scan for plugins"
-  action (`POST /api/plugins/scan`).
-- **Marketplace** — shows the catalog from `GET /api/plugins/marketplace` with a
-  field to set the custom registry URL.
+  activate/deactivate toggle and an uninstall button.
 
 The page always shows a warning that plugins run with the full privileges of
 the OmniRoute process.
@@ -398,7 +271,6 @@ A per-plugin config page lives at `/dashboard/plugins/[name]/config`
 ## See Also
 
 - [`docs/security/ROUTE_GUARD_TIERS.md`](../security/ROUTE_GUARD_TIERS.md) —
-  why `/api/plugins` is loopback-only (Tier 1)
 - [`docs/frameworks/SKILLS.md`](./SKILLS.md) — the related skills framework
   (`src/lib/skills/`); plugins may declare skills in their manifest
 - [`docs/frameworks/WEBHOOKS.md`](./WEBHOOKS.md) — event-driven outbound

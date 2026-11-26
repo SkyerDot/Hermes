@@ -31,7 +31,6 @@ omniroute serve --headless --port 20128 --daemon
 
 Accepted truthy values are `1`, `true`, `yes` and `on` (case-insensitive). Any other value,
 or an unset variable, keeps the full server. The flag is implemented in
-`bin/cli/commands/serve.mjs`; the single source of truth for the mode is
 `src/lib/system/headless.ts`.
 
 With `--headless` the CLI does not open a browser and the startup banner prints
@@ -77,8 +76,7 @@ headless mode too.
 | `live-dashboard-ws`         | Real-time dashboard WebSocket daemon (port 20132)                      |
 
 The `cloud-sync` bootstrap also starts the budget-reset, token-health and log-export jobs. In
-headless mode they do not run unless an authorized caller starts the bootstrap later with
-`GET /api/init` (`omniroute api system get-api-init`).
+headless mode they do not run automatically.
 
 Each skip is logged once at startup, for example:
 

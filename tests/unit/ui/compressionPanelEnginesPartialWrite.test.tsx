@@ -63,9 +63,6 @@ function setupFetchMock(): { settingsPuts: Array<Record<string, unknown>> } {
     async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = input.toString();
       const method = (init?.method ?? "GET").toUpperCase();
-      if (url.includes("/api/settings/compression/mcp-accessibility")) {
-        return json({ enabled: true, maxTextChars: 50000 });
-      }
       if (url.includes("/api/settings/compression")) {
         if (method === "PUT") {
           const body = JSON.parse(String(init?.body ?? "{}"));

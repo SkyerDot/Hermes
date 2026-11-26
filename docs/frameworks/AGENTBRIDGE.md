@@ -10,7 +10,6 @@ AgentBridge is OmniRoute's MITM (Man-in-the-Middle) proxy that intercepts HTTPS 
 
 **Dashboard location:** `/dashboard/tools/agent-bridge`
 **Sidebar group:** Tools (after Cloud Agents)
-**See also:** [`TRAFFIC_INSPECTOR.md`](./TRAFFIC_INSPECTOR.md) — monitor all intercepted traffic in real-time; `docs/security/MITM-TPROXY-DECRYPT.md` (git; not compiled into `/docs`) — the Linux TPROXY transparent-decrypt capture mode driven by the `/api/tools/agent-bridge/tproxy` route.
 
 ---
 
@@ -72,54 +71,9 @@ src/mitm/server.cjs  (port 443, CJS child process)
     └── No match? → TCP passthrough (no decrypt)
 ```
 
-### 2.2 MITM server (`src/mitm/server.cjs`)
-
-The core MITM server runs as a Node.js CJS child process (to avoid rewriting the existing CJS codebase). It:
-
-- Listens on port 443 (requires privilege or `authbind`/`setcap`)
-- Receives CONNECT tunnels from the OS (via `/etc/hosts` DNS redirect)
-- Generates per-SNI TLS certificates signed by the AgentBridge CA (`DATA_DIR/mitm/ca.crt`)
-- Resolves the target agent by Host header via `targets/index.ts` registry
-- Dispatches to the TypeScript handler layer via HTTP to `http://127.0.0.1:20128`
-
-`TARGET_HOSTS` is loaded from `DATA_DIR/mitm/targets.json` (written by `targets/index.ts` at boot), allowing dynamic updates without restarting the CJS server.
-
-> **Root-CA model (#6684).** The per-SNI-cert-signed-by-a-CA description above
-> is the persisted root-CA model added in #6684 (`src/mitm/cert/rootCa.ts` +
-> `src/mitm/_internal/rootCaShim.cjs`, reusing the CA/leaf crypto already
-> proven for TPROXY in `src/mitm/tproxy/dynamicCert.ts`) — it replaces the
-> older single static self-signed leaf (`src/mitm/cert/generate.ts`, still
-> scoped only to the antigravity hosts) that a bare `server.crt`/`server.key`
-> pair on disk indicates. **Migration behavior**: a fresh install (no prior
-> `server.crt`) gets the root-CA model automatically; an install that already
-> trusted the old static leaf keeps using it until the operator sets
-> `MITM_ROOT_CA_ENABLED=true` and restarts the bridge (`src/mitm/cert/migration.ts`
-> is the pure decision function — a trusted MITM CA that can sign a leaf for
-> **any** host is materially more powerful than the old fixed-SAN leaf, so the
-> switch is never silent for an already-trusted install). The CA cert installs
-> into the same `omniroute-mitm.crt` trust-store slot the old leaf used
-> (`cert/install.ts::installCaCert`) — no dual-trust cleanup needed.
-
-### 2.3 Handler base (`src/mitm/handlers/base.ts`)
-
-All agent handlers extend `MitmHandlerBase`:
-
 ```ts
-export abstract class MitmHandlerBase {
-  abstract readonly agentId: AgentId;
 
-  abstract intercept(
-    req: IncomingMessage,
-    res: ServerResponse,
-    body: Buffer,
-    mappedModel: string
-  ): Promise<void>;
-
-  // Protected helpers: fetchRouter, pipeSSE, hookBufferStart, hookBufferUpdate
-}
 ```
-
-Each handler calls `hookBufferStart()` before proxying and `hookBufferUpdate()` when complete. These push `InterceptedRequest` entries into `globalTrafficBuffer` (see [Traffic Inspector](./TRAFFIC_INSPECTOR.md) §4).
 
 ### 2.4 Targets registry (`src/mitm/targets/`)
 
@@ -139,51 +93,13 @@ export const COPILOT_TARGET: MitmTarget = {
 };
 ```
 
-The registry (`targets/index.ts`) exports `ALL_TARGETS` and emits `DATA_DIR/mitm/targets.json` on boot.
-
-### 2.5 Passthrough and bypass list (`src/mitm/passthrough.ts`)
-
-**Bypass list** (checked first, with precedence over target match):
-
-- Default patterns: banking hosts, `.gov.`, OAuth/SSO providers (Okta, Auth0), etc.
-- User patterns: stored in DB table `agent_bridge_bypass`
-- Bypassed hosts receive a transparent TCP tunnel — TLS is **never decrypted**
-
-**Passthrough default** (no target match and not in bypass):
-
-- Also receives a TCP tunnel — connections are never broken
-- Prevents the AgentBridge from disrupting general system HTTPS traffic
-
-Routing precedence:
-
-```
-bypass list → target match → passthrough
 ```
 
-### 2.6 Upstream CA cert (`src/mitm/upstreamTrust.ts`)
-
-For corporate network environments with a custom CA:
+```
 
 ```bash
-AGENTBRIDGE_UPSTREAM_CA_CERT=/path/to/corporate-ca.pem
+
 ```
-
-When set, configures `undici`'s global dispatcher with the extra CA cert, allowing AgentBridge to reach upstream providers through corporate TLS termination proxies.
-
-### 2.7 Secret masking (`src/mitm/maskSecrets.ts`)
-
-The independent clean-room scanner is applied to request bodies and credential headers
-**before** they enter the Traffic Inspector buffer or any log. It performs a single linear pass:
-
-- `sk-` / `ak-` / `pk-` prefixed tokens (OpenAI/Anthropic-style)
-- RFC 6750 `Authorization: Bearer <token>` credentials, with whole-token precedence
-- Generic long opaque tokens (≥40 chars), including dotted and padded forms
-
-`sanitizeHeaders()` lowercases retained names, joins array values deterministically, drops the
-shared hop-by-hop/framing denylist (including proxy authentication), fully redacts `cookie` and
-`set-cookie`, and delegates credential values to the scanner.
-
----
 
 ## §3 Setup
 
@@ -193,7 +109,6 @@ Use the AgentBridge Server Card at `/dashboard/tools/agent-bridge`:
 
 | Action          | Description                                                                                                                                                                                                                                                                                                                                   |
 | --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Start Server    | Spawns `src/mitm/server.cjs` on port 443. Under the root-CA model it creates `ca.crt` on first start and trusts the active cert when a sudo password is available                                                                                                                                                                             |
 | Stop Server     | Gracefully shuts down the child process                                                                                                                                                                                                                                                                                                       |
 | Restart Server  | Stop + start (picks up target changes and a regenerated cert)                                                                                                                                                                                                                                                                                 |
 | Trust Cert      | Installs the active cert into the OS trust store: `DATA_DIR/mitm/ca.crt` under the root-CA model, `DATA_DIR/mitm/server.crt` on a legacy-leaf install                                                                                                                                                                                         |
@@ -283,26 +198,14 @@ AgentBridge intercepts credentials (OAuth tokens, API keys) that the IDE uses to
 
 ### 3.6 Maintenance & Diagnostics
 
-The dashboard exposes a **Maintenance & Diagnostics** card (`AgentBridgeMaintenanceCard`, in `src/app/(dashboard)/dashboard/tools/agent-bridge/components/`) that surfaces operational MITM routes which previously had no UI. Its subtitle: _"Self-test the capture pipeline, undo leftover system state, and move your setup between machines."_ The card client helpers live in `src/lib/inspector/agentBridgeMaintenanceApi.ts`.
-
-| Button            | Route                                  | What it does                                                                                                                                                                     |
-| ----------------- | -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Diagnose**      | `GET /api/tools/agent-bridge/diagnose` | Runs the capture-pipeline self-test and shows a per-check report (✓/✗ + remediation hint).                                                                                       |
-| **Repair**        | `POST /api/tools/agent-bridge/repair`  | Undoes orphaned MITM system state (DNS spoof entries, root CA, system proxy) left behind by a crash or SIGKILL. Idempotent — reports "Nothing to repair" when state is clean.    |
-| **Remove CA**     | `DELETE /api/tools/agent-bridge/cert`  | Untrusts and removes the MITM root CA from the OS trust store (explicit, idempotent). Shown only when the CA is currently trusted; requires an inline "Remove CA?" confirmation. |
-| **Export config** | `GET /api/tools/agent-bridge/config`   | Downloads the portable config JSON (see §3.7).                                                                                                                                   |
-| **Import config** | `POST /api/tools/agent-bridge/config`  | Uploads a previously-exported config JSON (see §3.7).                                                                                                                            |
+| Button | Route | What it does |
+| ------ | ----- | ------------ |
 
 Each agent card also has its own **Restore default** button (`POST
-/api/tools/agent-bridge/agents/{id}/reset`) — a one-click, per-agent undo that un-spoofs only that
-agent's hosts, clears its saved model mappings, and resets its `dns_enabled`/`setup_completed`
-state, so the IDE talks to the real upstream again once fully restarted. It does **not** touch the
+agent's hosts, clears its saved model mappings, and resets its `dns_enabled`/`setup_completed`state, so the IDE talks to the real upstream again once fully restarted. It does **not** touch the
 shared MITM server or root CA (other agents may still depend on them) — those stay reachable
-through the Server Card and the **Remove CA** action above. On Windows it also best-effort runs
-`ipconfig /flushdns`, since the Windows DNS Client caches hosts-file entries and won't drop a
+through the Server Card and the **Remove CA** action above. On Windows it also best-effort runs`ipconfig /flushdns`, since the Windows DNS Client caches hosts-file entries and won't drop a
 just-removed spoof otherwise.
-
-**Diagnostics checks** (`summarizeDiagnostics()` in `src/mitm/inspector/diagnostics.ts`). The route runs the effectful probe for each and feeds the booleans into the pure summarizer; a single `healthy` verdict plus a per-failure hint is returned:
 
 | Check name         | What it verifies                                            | Hint on failure                                                                                                                        |
 | ------------------ | ----------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
@@ -312,15 +215,11 @@ just-removed spoof otherwise.
 | `cert-trusted`     | The MITM root CA is in the OS trust store                   | "The MITM root CA is not trusted by the OS store, so TLS interception will fail. Trust the certificate from the AgentBridge tab."      |
 | `dns-configured`   | Target hostnames are spoofed in `/etc/hosts`                | "Target hostnames are not spoofed in /etc/hosts, so traffic never reaches the proxy. Enable DNS for the agent(s) you want to capture." |
 
-**Orphaned-state banner:** when the page detects state left behind by a crash (DNS spoof / CA / system proxy), the card shows an amber banner — _"A previous session left system state behind (DNS spoof, CA, or system proxy). Run Repair to clean it up."_ — and highlights the **Repair** button. `Repair` is the application-layer analogue of ProxyBridge's `--cleanup` flag (it delegates to `repairMitm()` in `src/mitm/manager.ts`).
-
 > The MITM root CA is kept installed across stop/start to avoid repeated sudo
 > prompts (the same behavior as mitmproxy/Charles), so removing it is an explicit
 > **Remove CA** action rather than something that happens automatically on stop.
 
 ### 3.7 Portable config import/export
-
-AgentBridge can serialize the **operator-tunable** state into a versioned JSON blob so a setup can be replicated across machines. The serializer is `src/lib/inspector/configPortability.ts` (`exportConfig()` / `importConfig()`), validated by `AgentBridgeConfigSchema`.
 
 The export includes exactly three pieces (built-in defaults are intentionally **NOT** exported, so importing never duplicates or fights them):
 
@@ -339,8 +238,6 @@ The export includes exactly three pieces (built-in defaults are intentionally **
   "agentMappings": { "copilot": [{ "source": "gpt-4o", "target": "claude-sonnet-4.7" }] },
 }
 ```
-
-**Import behavior** (`POST /api/tools/agent-bridge/config`): bypass patterns and per-agent mappings **replace wholesale**; custom hosts are added **idempotently** (`INSERT OR IGNORE`). The response reports how many of each were applied:
 
 ```jsonc
 { "ok": true, "bypassPatterns": 1, "customHosts": 1, "agents": 1 }
@@ -389,11 +286,10 @@ Detection uses OS-specific paths and binary checks (e.g., `code --list-extension
 
 ### Hard Rules applied
 
-| Rule                              | Application                                                                              |
-| --------------------------------- | ---------------------------------------------------------------------------------------- |
-| **#12** `sanitizeErrorMessage`    | All handler errors are sanitized before response or buffer entry                         |
-| **#13** Shell env-passing         | `/etc/hosts` edits use `env` option — no string interpolation of paths                   |
-| **#15 + #17** `isLocalOnlyPath()` | `/api/tools/agent-bridge/` is LOCAL_ONLY + SPAWN_CAPABLE — loopback enforced before auth |
+| Rule                           | Application                                                            |
+| ------------------------------ | ---------------------------------------------------------------------- |
+| **#12** `sanitizeErrorMessage` | All handler errors are sanitized before response or buffer entry       |
+| **#13** Shell env-passing      | `/etc/hosts` edits use `env` option — no string interpolation of paths |
 
 ### Bypass list for sensitive hosts
 
@@ -408,8 +304,6 @@ Default bypass patterns include:
 User-added bypass patterns are stored in `agent_bridge_bypass` table and take precedence over everything.
 
 ### Secret masking
-
-`maskSecrets()` from `src/mitm/maskSecrets.ts` is applied:
 
 - On every request body before `TrafficBuffer.push()`
 - On every header before logging or broadcasting
@@ -508,36 +402,8 @@ If AgentBridge intercepts but all requests fail:
 
 All routes are `LOCAL_ONLY` (loopback-only, enforced before auth) and `SPAWN_CAPABLE`. See `src/server/authz/routeGuard.ts`.
 
-Base path: `/api/tools/agent-bridge/`
-
-| Method              | Path                                           | Description                                                                                                           |
-| ------------------- | ---------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| GET                 | `/api/tools/agent-bridge/state`                | Global server state + per-agent detection/status                                                                      |
-| GET                 | `/api/tools/agent-bridge/agents`               | List registered agents (id, name, hosts, viability, state)                                                            |
-| GET                 | `/api/tools/agent-bridge/agents/{id}`          | State of one agent (target config + detection + stored state)                                                         |
-| PATCH               | `/api/tools/agent-bridge/agents/{id}`          | Update `setup_completed` for agent                                                                                    |
-| GET                 | `/api/tools/agent-bridge/agents/{id}/detect`   | Run detection probe for agent (`installed`, `version?`, `path?`)                                                      |
-| POST                | `/api/tools/agent-bridge/agents/{id}/dns`      | Enable/disable DNS for agent (`{enabled: boolean}`)                                                                   |
-| GET                 | `/api/tools/agent-bridge/agents/{id}/mappings` | Model mappings for agent                                                                                              |
-| PUT                 | `/api/tools/agent-bridge/agents/{id}/mappings` | Replace model mappings                                                                                                |
-| POST                | `/api/tools/agent-bridge/agents/{id}/reset`    | Restore default: un-spoof this agent's DNS, clear its mappings, reset its state (see §3.6)                            |
-| POST                | `/api/tools/agent-bridge/server`               | Start/stop/restart server (`action: "start"\|"stop"\|"restart"\|"trust-cert"\|"regenerate-cert"`)                     |
-| GET                 | `/api/tools/agent-bridge/cert`                 | Cert status (`exists`, `trusted`, `path`)                                                                             |
-| POST                | `/api/tools/agent-bridge/cert`                 | Trust (install) the MITM root CA                                                                                      |
-| DELETE              | `/api/tools/agent-bridge/cert`                 | Untrust (remove) the MITM root CA — idempotent (see §3.6)                                                             |
-| POST                | `/api/tools/agent-bridge/cert/regenerate`      | Regenerate the active cert without changing the cert model (legacy leaf, or root-CA rotation — see §3.1)              |
-| GET                 | `/api/tools/agent-bridge/cert/download`        | Stream the active PEM cert for download (`ca.crt` under the root-CA model, `server.crt` on a legacy-leaf install)     |
-| GET                 | `/api/tools/agent-bridge/bypass`               | List bypass patterns (`default` + `user`)                                                                             |
-| POST                | `/api/tools/agent-bridge/bypass`               | Replace user-defined bypass patterns wholesale                                                                        |
-| DELETE              | `/api/tools/agent-bridge/bypass?pattern=...`   | Remove a single user-defined bypass pattern                                                                           |
-| GET                 | `/api/tools/agent-bridge/diagnose`             | Capture-pipeline self-test (see §3.6)                                                                                 |
-| POST                | `/api/tools/agent-bridge/repair`               | Undo orphaned MITM system state (see §3.6)                                                                            |
-| GET                 | `/api/tools/agent-bridge/config`               | Export portable config JSON (see §3.7)                                                                                |
-| POST                | `/api/tools/agent-bridge/config`               | Import portable config JSON (see §3.7)                                                                                |
-| GET                 | `/api/tools/agent-bridge/upstream-ca`          | Get configured upstream CA path                                                                                       |
-| POST                | `/api/tools/agent-bridge/upstream-ca`          | Validate + persist upstream CA path                                                                                   |
-| POST                | `/api/tools/agent-bridge/upstream-ca/test`     | Validate-only (dry-run) an upstream CA path — does not persist                                                        |
-| GET / POST / DELETE | `/api/tools/agent-bridge/tproxy`               | TPROXY transparent-decrypt capture mode — see `docs/security/MITM-TPROXY-DECRYPT.md` (git; not compiled into `/docs`) |
+| Method | Path | Description |
+| ------ | ---- | ----------- |
 
 Full OpenAPI schemas: `docs/openapi.yaml` → tag `AgentBridge`.
 
@@ -553,8 +419,6 @@ Trae is a relatively new AI coding assistant. Before implementing a handler:
 2. Capture traffic with mitmproxy to discover API hosts and endpoint shapes
 3. Determine authentication mechanism
 4. Assess go/no-go based on TOS and API discoverability
-
-Until investigation completes, the Trae card in the dashboard shows a "Investigating" badge with a "Report viability" link. The handler stub at `src/mitm/handlers/trae.ts` throws a structured `Not yet implemented` error.
 
 ### Backlog agents (MITM required — no custom base URL support)
 

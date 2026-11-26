@@ -6,11 +6,6 @@ lastUpdated: 2026-06-28
 
 # Notion Context Source
 
-> **Source of truth:** `src/lib/notion/api.ts` (REST client), `src/lib/db/notion.ts`
-> (token persistence), `open-sse/mcp-server/tools/notionTools.ts` (6 MCP tools),
-> `src/app/api/settings/notion/route.ts` (settings API). Tool registration and scope
-> wiring lives in `open-sse/mcp-server/server.ts`.
-
 ## What it is
 
 OmniRoute can connect to a **Notion** workspace as a **context source** — a read/write
@@ -21,8 +16,7 @@ blocks — all proxied through OmniRoute (with retry, timeout, and error classif
 so the model never touches the Notion API directly.
 
 The integration is a thin, hardened wrapper over the official Notion REST API
-(`https://api.notion.com/v1`, `Notion-Version: 2026-03-11`). The client
-(`src/lib/notion/api.ts`) adds:
+(`https://api.notion.com/v1`, `Notion-Version: 2026-03-11`).
 
 - **Retry with exponential backoff** (up to 3 attempts) for `429` and `5xx`.
 - **55-second request timeout** via `AbortController`.
@@ -36,7 +30,6 @@ The integration is a thin, hardened wrapper over the official Notion REST API
 
 There is **no environment variable** for the Notion token — it is stored in the
 SQLite `key_value` table (namespace `notion`, key `integration_token`) via
-`src/lib/db/notion.ts`. Configure it from the **Context Sources** tab of the Endpoint
 dashboard (`ObsidianSourceCard`'s sibling `NotionSourceCard`), or via the settings REST API.
 
 > [!NOTE]
@@ -66,7 +59,6 @@ returns an error object the token is cleared and the call fails with `400`.
 
 ## MCP tools (6)
 
-Defined in `open-sse/mcp-server/tools/notionTools.ts`. The token is resolved at call
 time via `getNotionToken()`; if none is configured the tool throws
 `"Notion integration token not configured. Set it in Settings > Context Sources."`
 
@@ -96,7 +88,6 @@ time via `getNotionToken()`; if none is configured the tool throws
 
 The read tools require `read:notion` and the write tool requires `write:notion`.
 Scopes are enforced by `withScopeEnforcement()` in
-`open-sse/mcp-server/server.ts` only when `OMNIROUTE_MCP_ENFORCE_SCOPES=true`; the
 caller's allowed scopes come from `OMNIROUTE_MCP_SCOPES` (comma-separated) or the
 authenticated API key's scope context. See [MCP-SERVER.md](./MCP-SERVER.md) for the
 full scope model.

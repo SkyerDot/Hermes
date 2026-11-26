@@ -6,12 +6,6 @@ lastUpdated: 2026-07-20
 
 # Local Corpus Context Source
 
-> **Source of truth:** `src/lib/localCorpus/index.ts` (bounded text index),
-> `src/lib/localCorpus/configured.ts` (configured runtime),
-> `src/lib/db/localCorpus.ts` (root-path persistence),
-> `open-sse/mcp-server/tools/localCorpusTools.ts` (3 read-only MCP tools), and
-> `src/app/api/settings/local-corpus/route.ts` (settings API).
-
 ## What it is
 
 Local Corpus lets an operator expose one explicitly approved directory of text files to

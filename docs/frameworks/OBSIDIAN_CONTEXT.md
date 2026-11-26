@@ -6,13 +6,6 @@ lastUpdated: 2026-06-28
 
 # Obsidian Context Source
 
-> **Source of truth:** `src/lib/obsidian/api.ts` (REST + sync client),
-> `src/lib/db/obsidian.ts` (token / base-URL / WebDAV persistence),
-> `src/lib/obsidianSync.ts` (WebDAV vault sync), `open-sse/mcp-server/tools/obsidianTools.ts`
-> (22 MCP tools), `src/app/api/settings/obsidian/route.ts` +
-> `src/app/api/settings/obsidian/webdav/route.ts` (settings APIs). Tool registration
-> and scope wiring lives in `open-sse/mcp-server/server.ts`.
-
 ## What it is
 
 OmniRoute connects to an **Obsidian** vault as a **context source** — a local Markdown
@@ -21,8 +14,6 @@ integration talks to the **Obsidian Local REST API** community plugin running in
 desktop app, so agents can search notes, read/write/patch files, list the vault, work
 with daily/weekly periodic notes, manage tags, run Obsidian commands, and (optionally)
 coordinate a bidirectional desktop↔mobile vault sync.
-
-The client (`src/lib/obsidian/api.ts`) wraps the Local REST API with:
 
 - **Retry with backoff** for transient `5xx`, **30-second timeout** via `AbortController`.
 - **Typed error classification** — `ObsidianAuthError` (401/403),
@@ -35,7 +26,6 @@ The client (`src/lib/obsidian/api.ts`) wraps the Local REST API with:
 
 There is **no environment variable** for the Obsidian token or base URL — both are
 stored in the SQLite `key_value` table (namespace `obsidian`) via
-`src/lib/db/obsidian.ts`. The token is **encrypted at rest** (AES-256-GCM, with
 plaintext backward-compat fallback). Configure from the **Context Sources** tab of the
 Endpoint dashboard (`ObsidianSourceCard`), or via the settings REST API.
 
@@ -76,8 +66,6 @@ and validates the token by calling the Local REST API status endpoint before per
 
 ### WebDAV vault sync
 
-`src/app/api/settings/obsidian/webdav/route.ts` manages an optional WebDAV-backed
-vault sync (driven by `src/lib/obsidianSync.ts`). Enabling it points OmniRoute at a
 local vault directory and mints a random WebDAV username/password pair:
 
 ```bash
@@ -115,7 +103,6 @@ The four `obsidian_sync_*` tools keep their separate sync-token behavior.
 
 ## MCP tools (22)
 
-Defined in `open-sse/mcp-server/tools/obsidianTools.ts`. The token/base-URL are resolved
 per call (per-API-key first, then global). Tools that hit the OmniRoute **sync server**
 (the four `obsidian_sync_*` tools) additionally require the sync auth token configured
 in OmniRoute settings.
@@ -162,7 +149,6 @@ in OmniRoute settings.
 
 Read tools require `read:obsidian`; write tools require `write:obsidian`. Enforcement
 is identical to Notion — handled by `withScopeEnforcement()` in
-`open-sse/mcp-server/server.ts`, gated on `OMNIROUTE_MCP_ENFORCE_SCOPES=true`, with
 allowed scopes sourced from `OMNIROUTE_MCP_SCOPES` or the API key's scope context. See
 [MCP-SERVER.md](./MCP-SERVER.md).
 

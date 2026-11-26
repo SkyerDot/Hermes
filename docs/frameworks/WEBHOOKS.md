@@ -6,7 +6,6 @@ lastUpdated: 2026-06-28
 
 # Webhooks
 
-> **Source of truth:** `src/lib/webhookDispatcher.ts`, `src/lib/db/webhooks.ts`, `src/app/api/webhooks/`
 > **Last updated:** 2026-06-28 — v3.8.40
 
 OmniRoute can fire HTTP webhooks on platform events. Use them to integrate with
@@ -17,8 +16,6 @@ failures, tracks delivery health per webhook, and auto-disables endpoints that
 keep failing.
 
 ## Supported Events
-
-The `WebhookEvent` type (`src/lib/webhooks/eventDescriptions.ts`, consumed by `src/lib/webhookDispatcher.ts`) currently models eight events:
 
 | Event                     | Fires when                                                                               |
 | ------------------------- | ---------------------------------------------------------------------------------------- |
@@ -126,7 +123,6 @@ Table `webhooks` (migration `011_webhooks.sql`):
 
 Delivery history is persisted in the dedicated `webhook_deliveries` table
 (migration `069_webhook_deliveries.sql`, written via
-`src/lib/db/webhookDeliveries.ts::insertDelivery` on every attempt), in addition
 to the aggregate counters on the `webhooks` row. Kind metadata (Slack / Discord /
 Telegram / custom payload transformers) was added by `070_webhooks_kind_metadata.sql`.
 
@@ -134,18 +130,9 @@ Telegram / custom payload transformers) was added by `070_webhooks_kind_metadata
 
 All endpoints require management auth (`requireManagementAuth`).
 
-| Endpoint                        | Method | Description                              |
-| ------------------------------- | ------ | ---------------------------------------- |
-| `/api/webhooks`                 | GET    | List webhooks (secrets masked)           |
-| `/api/webhooks`                 | POST   | Create webhook                           |
-| `/api/webhooks/[id]`            | GET    | Webhook detail (full secret)             |
-| `/api/webhooks/[id]`            | PUT    | Update fields                            |
-| `/api/webhooks/[id]`            | DELETE | Remove                                   |
-| `/api/webhooks/[id]/test`       | POST   | Fire a `test.ping` (no retries)          |
-| `/api/webhooks/[id]/deliveries` | GET    | Recent delivery attempts for one webhook |
-| `/api/webhooks/validate-url`    | POST   | Pre-flight URL validation (SSRF guard)   |
+| Endpoint | Method | Description |
+| -------- | ------ | ----------- |
 
-`GET /api/webhooks` masks the secret to `<first 10 chars>...` to avoid leaking
 on listing pages. Use the `[id]` GET when you actually need the secret.
 
 ### Create webhook
@@ -235,7 +222,6 @@ absence).
 - **Subscribe minimally** — list only events you actually consume; `"*"` will
   add cost on receivers you do not control.
 - **Watch `failure_count`** — endpoints are auto-disabled at 10 consecutive
-  failures; reset by calling `PUT /api/webhooks/[id]` with `enabled: true`
   after fixing the receiver.
 - **Rotate secrets periodically** — `PUT` a new `secret`, deploy the new value
   to the receiver, and confirm via the test endpoint.
@@ -245,4 +231,3 @@ absence).
 - [API_REFERENCE.md](../reference/API_REFERENCE.md) — full management API surface
 - [RESILIENCE_GUIDE.md](../architecture/RESILIENCE_GUIDE.md) — circuit breaker / cooldown
   semantics behind provider failures surfaced via `request.failed`
-- Source: `src/lib/webhookDispatcher.ts`, `src/lib/db/webhooks.ts`

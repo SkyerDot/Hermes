@@ -40,17 +40,14 @@ Eight services are embedded:
 | **CLIProxyAPI** | GitHub release binary (`cliproxy`) |     8317     | Local proxy adapter for Anthropic CLI auth flows. Provides fallback routing when OAuth tokens expire                                                                                                                                                                                                                             |
 | **Mux**         | `mux` (headless `mux server`)      |     8322     | Local agent-orchestration daemon (coder/mux). Lifecycle-managed only — not a routing target (no LLM proxying).                                                                                                                                                                                                                   |
 | **Bifrost**     | `@maximhq/bifrost`                 |     8080     | Go AI-gateway relay backend. When running, auto-selected by the relay route (`/v1/relay/`)                                                                                                                                                                                                                                       |
-| **Dario**       | `@askalf/dario`                    |     3456     | Claude-subscription proxy — alternative/failover to CLIProxyAPI for Claude-Code-shaped traffic; the injected key becomes `DARIO_ADMIN_TOKEN` gating its `/admin/*` OAuth control plane                                                                                                                                           |
 | **open-wa**     | `@open-wa/wa-automate`             |     8323     | WhatsApp Web automation (headless Chromium via Puppeteer). Lifecycle-managed only — not a routing target.                                                                                                                                                                                                                        |
 | **LLMLingua**   | `@atjsh/llmlingua-2`               |    20135     | Prompt-compression sidecar — real LLMLingua-2 ONNX model (JS/TS port of Microsoft's algorithm). `open-sse/services/compression/engines/llmlingua/index.ts` dispatches `/compress` over HTTP to it, falling back to the in-process worker-thread backend when the sidecar is down. Lifecycle-managed only — not a routing target. |
-| **sing-box**    | GitHub release binary (`singbox`)  |    20140     | TPROXY sidecar backing `applyTproxy()`'s transparent-proxy interception (`src/mitm/tproxy/setup.ts`). Installer downloads the pinned, checksum-verified release. Lifecycle-managed only — not a routing target (no LLM proxying)                                                                                                 |
 
 All eight follow the same supervisory model:
 
 - OmniRoute installs them under `DATA_DIR/services/{name}/` (isolated from OmniRoute's own `package.json`)
 - OmniRoute spawns and monitors them as child processes
 - OmniRoute injects an ephemeral API key into the child's environment and rotates it without downtime (where applicable)
-- All management routes (`/api/services/*`) are **LOCAL_ONLY** — accessible only from loopback (hard rule #17)
 
 ### Key decisions (from design plan)
 
@@ -142,23 +139,10 @@ All eight follow the same supervisory model:
 
 ### Key source files
 
-| File                                        | Role                                             |
-| ------------------------------------------- | ------------------------------------------------ |
-| `src/lib/services/ServiceSupervisor.ts`     | Core class: lifecycle, lock, health, ring buffer |
-| `src/lib/services/bootstrap.ts`             | Process-level registration and auto-start        |
-| `src/lib/services/registry.ts`              | Singleton map `tool → supervisor`                |
-| `src/lib/services/apiKey.ts`                | Key generation, AES-256-GCM encryption at-rest   |
-| `src/lib/services/modelSync.ts`             | Periodic model sync (5 min) + on-demand          |
-| `src/lib/services/ringBuffer.ts`            | 5 MB circular log buffer with SSE subscribe      |
-| `src/lib/services/healthCheck.ts`           | HTTP health probe (configurable interval)        |
-| `src/lib/services/installers/ninerouter.ts` | npm install/update/uninstall for 9Router         |
-| `src/lib/services/installers/cliproxy.ts`   | npm install/update/uninstall for CLIProxyAPI     |
-| `src/lib/services/installers/mux.ts`        | npm install/update/uninstall for Mux             |
-| `src/lib/services/installers/openwa.ts`     | npm install/update/uninstall for open-wa         |
-| `src/lib/services/installers/llmlingua.ts`  | npm install/update/uninstall for LLMLingua       |
-| `src/app/api/services/9router/_lib.ts`      | `getOrInitSupervisor()` helper                   |
-| `src/app/api/services/[name]/logs/route.ts` | Shared SSE logs endpoint                         |
-| `open-sse/executors/ninerouter.ts`          | Provider executor (Layer 4)                      |
+| File                                        | Role                        |
+| ------------------------------------------- | --------------------------- |
+| `src/app/api/services/[name]/logs/route.ts` | Shared SSE logs endpoint    |
+| `open-sse/executors/ninerouter.ts`          | Provider executor (Layer 4) |
 
 ---
 
@@ -214,226 +198,50 @@ race conditions when, for example, auto-start and a UI button fire simultaneousl
 
 ## 4. API reference
 
-All routes under `/api/services/` are **LOCAL_ONLY** (loopback only, hard rule #17).
 Non-loopback requests receive `403 LOCAL_ONLY` regardless of auth token.
 
 ### 4.1 9Router endpoints (11 routes)
 
-#### `POST /api/services/9router/install`
-
-Install 9Router from npm. Creates `DATA_DIR/services/9router/` with its own
-`package.json` and `node_modules/`. Does not conflict with OmniRoute's own deps.
-
-**Request body** (all optional):
-
 ```json
-{ "version": "latest" }
+
 ```
 
-| Field     | Type     | Default    | Description                          |
 | --------- | -------- | ---------- | ------------------------------------ |
-| `version` | `string` | `"latest"` | npm version tag or semver to install |
 
-**Responses:**
-
-| Status | Description                                            |
 | ------ | ------------------------------------------------------ |
-| `200`  | `{ ok: true, installedVersion: "x.y.z", path: "..." }` |
-| `400`  | Invalid request body (Zod validation failure)          |
-| `409`  | Already installing (lock held)                         |
-| `500`  | npm install failed — see `message` for friendly error  |
-
-**Notes:** Uses `execFile('npm', [...])` — no shell, no interpolation (hard rule #13).
-EACCES errors are surfaced as friendly messages.
-
----
-
-#### `POST /api/services/9router/start`
-
-Start 9Router. Registers a supervisor if not already registered, then calls
-`supervisor.start()`. Idempotent when already running.
-
-**Request body:** none
-
-**Responses:**
-
-| Status | Description                                          |
-| ------ | ---------------------------------------------------- |
-| `200`  | `ServiceStatus` object (see schema below)            |
-| `409`  | 9Router is not installed (`status: "not_installed"`) |
-| `503`  | Start failed (process error — see `lastError`)       |
-
-**ServiceStatus schema:**
+| ------ | ------------------------------------------------------ |
 
 ```json
-{
-  "tool": "9router",
-  "state": "running",
-  "pid": 12345,
-  "port": 20130,
-  "health": "healthy",
-  "startedAt": "2026-05-25T10:00:00.000Z",
-  "lastError": null
-}
+
 ```
 
----
-
-#### `POST /api/services/9router/stop`
-
-Gracefully stop 9Router. Sends SIGTERM, waits 15 s, then SIGKILL if still alive.
-Idempotent when already stopped.
-
-**Request body:** none
-
-**Responses:**
-
-| Status | Description                        |
 | ------ | ---------------------------------- |
-| `200`  | `ServiceStatus` (state: "stopped") |
-| `503`  | Stop failed unexpectedly           |
-
----
-
-#### `POST /api/services/9router/restart`
-
-Equivalent to `stop()` then `start()` under the operation lock.
-
-**Request body:** none
-
-**Responses:** same as `start` (returns final `ServiceStatus`).
-
----
-
-#### `POST /api/services/9router/update`
-
-Updates 9Router to a newer npm version. If the service is running, it is stopped
-first, npm install is run (installing the newer version in-place), and then the
-service is restarted.
-
-**Request body** (all optional):
 
 ```json
-{ "version": "latest" }
+
 ```
 
-**Responses:**
-
-| Status | Description                                                     |
 | ------ | --------------------------------------------------------------- |
-| `200`  | `{ ok: true, previousVersion: "...", installedVersion: "..." }` |
-| `400`  | Invalid body                                                    |
-| `500`  | npm update failed                                               |
-
----
-
-#### `POST /api/services/9router/rotate-key`
-
-Generates a new API key for 9Router, encrypts it at-rest, and restarts the service
-(if running) so it picks up the new key from its environment. The old key is
-invalidated immediately.
-
-**Request body:** none
-
-**Responses:**
-
-| Status | Description                                |
-| ------ | ------------------------------------------ |
-| `200`  | `{ keyRotated: true, restarted: boolean }` |
-| `500`  | Rotation failed                            |
-
-**Security:** The new key is never returned in the response (no credential leak).
-It is stored encrypted (AES-256-GCM) in the `version_manager` table.
-
----
-
-#### `GET /api/services/9router/status`
-
-Returns combined live + DB status including version metadata and API key preview.
-
-**Responses:**
-
-| Status | Description        |
-| ------ | ------------------ |
-| `200`  | See schema below   |
-| `500`  | Status read failed |
-
-**Response schema:**
+| ------ | --------------------------------------------------------------- |
+| ------ | ------------------                                              |
 
 ```json
-{
-  "tool": "9router",
-  "state": "running",
-  "pid": 12345,
-  "port": 20130,
-  "health": "healthy",
-  "startedAt": "2026-05-25T10:00:00.000Z",
-  "lastError": null,
-  "installedVersion": "1.2.3",
-  "latestVersion": "1.2.4",
-  "updateAvailable": true,
-  "apiKeyMasked": "nr_****abcd",
-  "autoStart": false,
-  "providerExpose": false
-}
+
 ```
-
----
-
-#### `POST /api/services/9router/auto-start`
-
-Toggle the auto-start flag. When `enabled: true`, the service starts automatically
-the next time OmniRoute boots (if the service is installed).
-
-**Request body:**
 
 ```json
-{ "enabled": true }
+
 ```
 
-**Responses:**
-
-| Status | Description           |
 | ------ | --------------------- |
-| `200`  | `{ autoStart: true }` |
-| `400`  | Invalid body          |
-
----
-
-#### `GET /api/services/9router/logs`
-
-SSE stream of live logs from 9Router's stdout/stderr ring buffer.
-
-**Query parameters:**
-
-| Param    | Type      | Default | Description                                               |
 | -------- | --------- | ------- | --------------------------------------------------------- |
-| `tail`   | `integer` | 200     | How many historical lines to send first (max 1000)        |
-| `filter` | `string`  | none    | Case-insensitive substring filter (no regex — ReDoS-safe) |
-
-**SSE events:**
-
-| Event       | Data        | Description             |
 | ----------- | ----------- | ----------------------- |
-| `snapshot`  | `LogLine[]` | Initial historical tail |
-| `log`       | `LogLine`   | Live log line           |
-| `heartbeat` | `{}`        | Keep-alive every 15 s   |
-
-**LogLine schema:**
 
 ```json
-{ "ts": 1716633600000, "stream": "stdout", "line": "[9router] Listening on :20130" }
+
 ```
 
-**Responses:**
-
-| Status | Description                                   |
 | ------ | --------------------------------------------- |
-| `200`  | `text/event-stream`                           |
-| `400`  | `filter` parameter too long (> 200 chars)     |
-| `404`  | Service not found (supervisor not registered) |
-
----
 
 ### 4.2 CLIProxyAPI endpoints (10 routes)
 
@@ -442,17 +250,9 @@ CLIProxyAPI has the same endpoint shape as 9Router minus `rotate-key`, plus
 dedicated data-plane API key injected at spawn (`needsApiKey: true` in
 `bootstrap.ts`, used for model sync); `status` includes fewer fields.
 
-| Method | Path                                | Description                          |
-| ------ | ----------------------------------- | ------------------------------------ |
-| `POST` | `/api/services/cliproxy/install`    | Install CLIProxyAPI from npm         |
-| `POST` | `/api/services/cliproxy/start`      | Start CLIProxyAPI                    |
-| `POST` | `/api/services/cliproxy/stop`       | Stop CLIProxyAPI                     |
-| `POST` | `/api/services/cliproxy/restart`    | Restart CLIProxyAPI                  |
-| `POST` | `/api/services/cliproxy/update`     | Update to newer version              |
-| `GET`  | `/api/services/cliproxy/status`     | Live + DB status (no `apiKeyMasked`) |
-| `POST` | `/api/services/cliproxy/auto-start` | Toggle auto-start                    |
+| Method | Path | Description |
+| ------ | ---- | ----------- |
 
-The shared `GET /api/services/{name}/logs` endpoint (see §4.1) works for all
 four services using the `[name]` dynamic segment.
 
 ---
@@ -461,19 +261,11 @@ four services using the `[name]` dynamic segment.
 
 Mux has the same endpoint shape as CLIProxyAPI — no `rotate-key` route in the API
 surface (the bearer token is generated the same way as 9Router's via
-`getOrCreateApiKey("mux")` and injected via the `MUX_SERVER_AUTH_TOKEN` env var, but
 there is no dedicated rotation endpoint yet). Mux is lifecycle-managed only: unlike
 9Router, it has no Layer 4 executor and is never registered as a routing provider.
 
-| Method | Path                           | Description                        |
-| ------ | ------------------------------ | ---------------------------------- |
-| `POST` | `/api/services/mux/install`    | Install Mux from npm (`npm i mux`) |
-| `POST` | `/api/services/mux/start`      | Start Mux (`mux server`)           |
-| `POST` | `/api/services/mux/stop`       | Stop Mux                           |
-| `POST` | `/api/services/mux/restart`    | Restart Mux                        |
-| `POST` | `/api/services/mux/update`     | Update to newer npm version        |
-| `GET`  | `/api/services/mux/status`     | Live + DB status                   |
-| `POST` | `/api/services/mux/auto-start` | Toggle auto-start                  |
+| Method | Path | Description |
+| ------ | ---- | ----------- |
 
 ---
 
@@ -483,16 +275,8 @@ Bifrost is a Go AI-gateway relay backend (`@maximhq/bifrost`). It uses the same
 endpoint shape as CLIProxyAPI (no `rotate-key` — Bifrost manages its own provider
 keys in `config.json` under its `-app-dir`).
 
-| Method | Path                               | Description                                           |
-| ------ | ---------------------------------- | ----------------------------------------------------- |
-| `POST` | `/api/services/bifrost/install`    | Install Bifrost from npm (`@maximhq/bifrost`)         |
-| `POST` | `/api/services/bifrost/start`      | Start Bifrost on port 8080 (default)                  |
-| `POST` | `/api/services/bifrost/stop`       | Stop Bifrost                                          |
-| `POST` | `/api/services/bifrost/restart`    | Restart Bifrost                                       |
-| `POST` | `/api/services/bifrost/update`     | Update to newer version                               |
-| `GET`  | `/api/services/bifrost/status`     | Live + DB status                                      |
-| `POST` | `/api/services/bifrost/auto-start` | Toggle auto-start                                     |
-| `GET`  | `/api/services/bifrost/logs`       | SSE log tail (via shared `[name]/logs` dynamic route) |
+| Method | Path | Description |
+| ------ | ---- | ----------- |
 
 **Routing wiring:** When `BIFROST_BASE_URL` is unset and the supervised Bifrost
 instance is running, `getBifrostRoutingConfig()` (in `routingBackend.ts`) automatically
@@ -505,8 +289,7 @@ always takes precedence.
 
 Same lifecycle shape as the other services (`install`, `start`, `stop`, `restart`,
 `update`, `status`, `auto-start`, `auto-restart-adopted`) plus a token-gated OAuth
-control plane under `admin/`: `admin/accounts`, `admin/import-from-omniroute`,
-`admin/login-start`, `admin/login-complete` (all behind `DARIO_ADMIN_TOKEN`).
+control plane.
 
 ### 4.6 open-wa endpoints (7 routes)
 
@@ -515,18 +298,9 @@ Puppeteer) to automate WhatsApp Web. It uses the same endpoint shape as Mux (no
 `rotate-key` route yet). It is lifecycle-managed only — not a routing target,
 no Layer 4 executor/provider entry.
 
-| Method | Path                              | Description                                           |
-| ------ | --------------------------------- | ----------------------------------------------------- |
-| `POST` | `/api/services/openwa/install`    | Install open-wa from npm (`@open-wa/wa-automate`)     |
-| `POST` | `/api/services/openwa/start`      | Start open-wa on port 8323 (default)                  |
-| `POST` | `/api/services/openwa/stop`       | Stop open-wa                                          |
-| `POST` | `/api/services/openwa/restart`    | Restart open-wa                                       |
-| `POST` | `/api/services/openwa/update`     | Update to newer version                               |
-| `GET`  | `/api/services/openwa/status`     | Live + DB status                                      |
-| `POST` | `/api/services/openwa/auto-start` | Toggle auto-start                                     |
-| `GET`  | `/api/services/openwa/logs`       | SSE log tail (via shared `[name]/logs` dynamic route) |
+| Method | Path | Description |
+| ------ | ---- | ----------- |
 
-**API key:** injected as `WA_KEY` — open-wa's generic `WA_*`-prefixed env
 override maps it onto the `--key`/`-k` CLI option
 (`dist/cli/setup.js::envArgs()`, verified against the installed 4.76.0
 package). Prefixed `ow_` when generated by `generateServiceApiKey()`. open-wa
@@ -550,17 +324,8 @@ ONNX token-classification model, downloaded from Hugging Face on first
 `/compress` call). It uses the same endpoint shape as Bifrost (no API key —
 `needsApiKey: false`, it never handles credentials).
 
-| Method | Path                                           | Description                                                               |
-| ------ | ---------------------------------------------- | ------------------------------------------------------------------------- |
-| `POST` | `/api/services/llmlingua/install`              | npm-install `@atjsh/llmlingua-2` + peers, write the sidecar server script |
-| `POST` | `/api/services/llmlingua/start`                | Start the sidecar on port 20135 (default)                                 |
-| `POST` | `/api/services/llmlingua/stop`                 | Stop the sidecar                                                          |
-| `POST` | `/api/services/llmlingua/restart`              | Restart the sidecar                                                       |
-| `POST` | `/api/services/llmlingua/update`               | Update to the newer package version                                       |
-| `GET`  | `/api/services/llmlingua/status`               | Live + DB status                                                          |
-| `POST` | `/api/services/llmlingua/auto-start`           | Toggle auto-start                                                         |
-| `POST` | `/api/services/llmlingua/auto-restart-adopted` | Toggle auto-restart of an adopted (pre-existing) instance                 |
-| `GET`  | `/api/services/llmlingua/logs`                 | SSE log tail (via shared `[name]/logs` dynamic route)                     |
+| Method | Path | Description |
+| ------ | ---- | ----------- |
 
 **Sidecar contract:** the server script exposes `GET /health` (instant — does
 not wait on the model) and `POST /compress` (`{ text, rate }` →
@@ -580,24 +345,12 @@ response) falls back to the in-process worker-thread backend (`./worker.ts`).
 sing-box has the same endpoint shape as Mux — no `rotate-key` route, no API key
 injection (`needsApiKey: false` in `bootstrap.ts`). It is lifecycle-managed only:
 never a routing/LLM provider. `install()` downloads the official GitHub release
-binary (`SagerNet/sing-box`) for the pinned version (`SINGBOX_PINNED_VERSION` in
-`src/lib/services/installers/singbox.ts`) and verifies its SHA256 against a
 checksum baked into the same file before ever writing it to disk — any other
 requested version is rejected.
 
-| Method | Path                                         | Description                                               |
-| ------ | -------------------------------------------- | --------------------------------------------------------- |
-| `POST` | `/api/services/singbox/install`              | Download + verify the pinned sing-box release             |
-| `POST` | `/api/services/singbox/start`                | Start sing-box (`sing-box run -c config.json`)            |
-| `POST` | `/api/services/singbox/stop`                 | Stop sing-box                                             |
-| `POST` | `/api/services/singbox/restart`              | Restart sing-box                                          |
-| `POST` | `/api/services/singbox/update`               | Re-verify/reinstall the pinned release                    |
-| `GET`  | `/api/services/singbox/status`               | Live + DB status                                          |
-| `POST` | `/api/services/singbox/auto-start`           | Toggle auto-start                                         |
-| `POST` | `/api/services/singbox/auto-restart-adopted` | Toggle auto-restart for an adopted (pre-existing) process |
-| `GET`  | `/api/services/singbox/logs`                 | SSE log tail (via shared `[name]/logs` dynamic route)     |
+| Method | Path | Description |
+| ------ | ---- | ----------- |
 
-**TPROXY wiring:** `ensureSingboxTproxy()` (`src/mitm/tproxy/setup.ts`) writes
 `config.json` and starts the supervisor before `applyTproxy()` installs the
 TPROXY firewall rules. If the supervisor is missing or fails to reach `running`,
 it now logs at error level (rather than silently swallowing the failure) so an
@@ -624,7 +377,6 @@ This proxy:
 - Rewrites HTML responses to inject `<base href>` and normalize absolute paths (`/foo` → `/dashboard/.../embed/foo`)
 
 WebSocket upgrades for the embedded dashboard are handled by a companion server on a
-dedicated port (see `src/lib/services/embedWsProxy.ts`). Every upgrade is authorized
 before the tunnel opens, with the same rules as the HTTP embed route: the peer must be
 loopback with no reverse-proxy forwarding header, a browser `Origin` must be a dashboard
 origin (`LIVE_WS_ALLOWED_ORIGINS` / `LIVE_WS_ALLOWED_HOSTS` extend the loopback
@@ -641,7 +393,6 @@ Cloudflare/Ngrok tunnel cannot proxy into embedded services.
 
 ### LOCAL_ONLY enforcement (hard rule #17)
 
-All routes under `/api/services/` and `/dashboard/providers/services/*/embed/` are
 classified as LOCAL_ONLY in `src/server/authz/routeGuard.ts`. The loopback check
 runs unconditionally before any auth branch:
 
@@ -665,7 +416,6 @@ OmniRoute:
    service-specific prefix (`nr_` for 9Router, `mx_` for Mux).
 2. Encrypts it at-rest using AES-256-GCM (same cipher used for provider credentials).
 3. Decrypts and injects it as an environment variable at spawn time —
-   `NINEROUTER_API_KEY` for 9Router, `MUX_SERVER_AUTH_TOKEN` for Mux (never a CLI
    flag, so the token never appears in `ps`/process listings).
 4. Never returns the plaintext key in any HTTP response.
 
@@ -687,7 +437,6 @@ string. Runtime values (ports, API keys) are passed via the child's `env` object
 
 ### Error sanitization (hard rule #12)
 
-All error responses from `/api/services/*` go through `buildErrorBody()` or
 `sanitizeErrorMessage()`. Raw `err.stack` and `err.message` are never returned
 verbatim to the caller.
 
@@ -719,8 +468,6 @@ Use `runNpm(['install', NAME_PACKAGE, '--prefix', dir])` from `installers/utils.
 
 ### Step 2 — Register in bootstrap
 
-Add a `ServiceEntry` to the `SERVICES` array in `src/lib/services/bootstrap.ts`:
-
 ```typescript
 {
   tool: "myservice",
@@ -742,13 +489,11 @@ packages a backend's `bootstrap.ts` `ServiceEntry` fields and `serviceBackends.t
 manifest-template fields into one object, instead of the same backend's shape being
 expressed separately in two unrelated files. As of this writing **only `9router` is
 migrated** — `bootstrap.ts` derives its `SERVICES[]` entry from
-`getServiceProviderPlugin("9router")` (`src/lib/services/providerPlugins/registry.ts`),
 throwing a startup error if the plugin is ever missing. `cliproxy`, `mux`, and `bifrost`
 remain on the pre-existing inline `SERVICES[]` literals unchanged.
 
 `open-sse/config/providerPluginManifest.ts` also gained an additive
 `createServiceBackendManifestEntry(pluginId, template)` helper that builds a well-formed
-`ProviderPluginManifestEntry` from a `SERVICE_BACKEND_MANIFEST_TEMPLATE` entry — it is
 **not** wired into any live request path yet (neither `generateProviderPluginManifestFromRegistry()`
 nor `/v1/providers/[provider]/models`); that remains a follow-up once the contract is
 proven for a second backend.
@@ -784,15 +529,12 @@ status/route.ts    GET  — merges live + DB status
 auto-start/route.ts POST — toggles auto_start flag
 ```
 
-The shared `GET /api/services/[name]/logs` route is already wired — no changes
 needed there.
 
 Delegate all error responses through `createErrorResponse()` / `buildErrorBody()`.
 
 ### Step 5 — Add to LOCAL_ONLY_API_PREFIXES
 
-In `src/server/authz/routeGuard.ts`, verify that `/api/services/` is already listed.
-If you introduce a new prefix (e.g., `/api/tools/`), add it to both
 `LOCAL_ONLY_API_PREFIXES` and, if it spawns processes, to `SPAWN_CAPABLE_PREFIXES`.
 Add a test in `tests/unit/authz/routeGuard.test.ts`.
 
@@ -803,7 +545,6 @@ Reuse shared components:
 
 - `ServiceStatusCard` — live state + health badge
 - `ServiceLifecycleButtons` — Start / Stop / Restart / Update
-- `ServiceLogsPanel` — SSE log tail (connects to `/api/services/{name}/logs`)
 - `ApiKeyCard` — key reveal + rotate (if `needsApiKey: true`)
 
 Register the tab in `ServicesPageShell.tsx`.
@@ -837,13 +578,9 @@ If the embedded service exposes an OpenAI-compatible `/v1/chat/completions` endp
 
 **Checklist:**
 
-1. Check `GET /api/services/{name}/logs` (or the Logs panel in the dashboard). Look
-   for lines like `Error: ENOENT`, `address already in use`, or `Cannot find module`.
 2. Verify `npm` is in PATH: `which npm` from the same user account that runs OmniRoute.
-3. Verify the service is installed: check `GET /api/services/{name}/status` for
-   `installedVersion`. If `null`, run install first.
-4. Check `DATA_DIR/services/{name}/node_modules/` exists and is not empty.
-5. Check the `lastError` field in the status response for the sanitized exit reason.
+3. Check `DATA_DIR/services/{name}/node_modules/` exists and is not empty.
+4. Check the `lastError` field in the status response for the sanitized exit reason.
 
 ---
 
@@ -918,7 +655,6 @@ OmniRoute's default port 20128.
 
 **Checklist:**
 
-1. Read the full log tail: `GET /api/services/{name}/logs?tail=500`.
 2. Common cause: missing environment variables expected by the service.
 3. For 9Router: verify `NINEROUTER_DISABLE_MITM=true` and
    `NINEROUTER_DISABLE_TUNNEL=true` are in the env passed at spawn (see
@@ -934,7 +670,6 @@ No. The LOCAL_ONLY tier is intentional (hard rule #17). Routes that can invoke
 `npm install` or spawn `node` processes must not be reachable from non-loopback
 traffic, because a leaked JWT via a tunnel (Cloudflare, Ngrok, Tailscale) would
 otherwise allow arbitrary process spawning. There is no opt-out carve-out for
-`/api/services/` — unlike `/api/mcp/`, it is excluded from the manage-scope bypass
 list. See `docs/security/ROUTE_GUARD_TIERS.md`.
 
 ---
@@ -953,8 +688,6 @@ or local server where OmniRoute is deployed, not a remote cloud provider.
 2. Check structured logs in OmniRoute's pino output filtered by
    `service:supervisor` namespace.
 3. Inspect the DB row: `sqlite3 ~/.omniroute/omniroute.db "SELECT * FROM version_manager WHERE tool='9router'"`.
-4. Use `GET /api/services/9router/status` to see the current live state, PID, health,
-   and `lastError` in one call.
 
 ---
 

@@ -8,16 +8,13 @@ lastUpdated: 2026-11-13
 
 The neutral `config/cli-tools-manifest.json` contract declares canonical IDs,
 aliases, binary candidates, setup recipes, model arguments and capabilities.
-The plain Node adapter in `bin/cli/cli-manifest.mjs` and the TypeScript adapter
 in `src/shared/constants/cliIntegrationManifest.ts` read the same file.
 Runtime, catalog, configure, completion, generators and backend registration
-are checked together by `tests/unit/cli/cli-manifest-drift.test.ts`.
 Being cataloged does not mean that a tool can be launched or configured.
 In particular, 5dive remains configure-only.
 
 ## Child environment and lifecycle
 
-`omniroute run`, `omniroute launch` and `omniroute launch-codex` inherit an
 OS/terminal compatibility allowlist and inject the selected target's credentials.
 Unrelated provider and database secrets are not inherited by default.
 `--inherit-env` explicitly restores full parent-environment inheritance; only
@@ -30,21 +27,16 @@ waits for the child's close event before removing temporary configuration.
 `OMNIROUTE_CHILD_SIGNAL_TIMEOUT_MS` controls the grace period before forced
 termination (default 5000 milliseconds).
 
-`omniroute launch <tool>` (see [LAUNCH.md](./LAUNCH.md)) follows the same
 environment rules and signal forwarding, and adds:
 
 - **Gateway auto-start.** For a local target, when no gateway answers on the
-  port, the launcher starts `omniroute serve --headless --no-open` bound to
   `127.0.0.1` under a detached reaper process. Each running launch holds a
   lease in `DATA_DIR/launch/leases/` (heartbeat every 15 s, stale after 45 s or
   when its process is gone). The reaper stops the gateway it started once no
-  lease has been live for the idle grace (`OMNIROUTE_LAUNCH_IDLE_GRACE_MS`,
   default 10000 milliseconds). A gateway the user started is used but never
-  stopped. `--keep-gateway` or `omniroute gateway keep` turns a launcher
   gateway into a normal one; `--no-start` restores the old fail-if-down
   behaviour. Remote targets are probed only.
 - **Launch sessions.** Every launch mints a short-lived `olx_` session token
-  from the parent credential (`POST /api/launch/sessions`), heartbeats it while
   the tool runs, reads the usage summary and revokes it after the tool exits.
   The token is a strict subset of its parent: same permissions, the same or a
   narrower catalog, a shorter life, and it is not a dashboard credential. The
@@ -55,7 +47,6 @@ environment rules and signal forwarding, and adds:
 - **Per-launch config.** Tool config files are written to a private temp
   directory (mode 0700, prefix `omnirouter-`) and removed after the child
   exits. A `SIGKILL` of the launcher leaves the directory behind;
-  `omniroute launch --cleanup` removes such directories once they are older
   than a day.
 
 ## Gemini persistent setup
@@ -107,13 +98,12 @@ unpacked archive), and `omniroute serve` passes the CLI environment on to the
 server and to every tool the server runs. So a `.env` there may set only these
 keys, listed in `bin/cli/utils/untrustedCwdEnv.mjs`:
 
-| Key                             | Accepted values                                                       |
-| ------------------------------- | --------------------------------------------------------------------- |
-| `REQUIRE_API_KEY`               | `true`, `1` or `yes` in any case, the values the server treats as on  |
-| `LANG`, `LC_ALL`, `LC_MESSAGES` | up to 64 letters, digits, `_`, `.`, `@` or `-`                        |
-| `LANGUAGE`                      | the same, plus `:`                                                    |
-| `TZ`                            | up to 64 letters, digits, `_`, `+`, `-` or `/`, not starting with `/` |
-| `NO_COLOR`, `FORCE_COLOR`       | up to 16 letters and digits                                           |
+| Key                       | Accepted values                                                       |
+| ------------------------- | --------------------------------------------------------------------- |
+| `REQUIRE_API_KEY`         | `true`, `1` or `yes` in any case, the values the server treats as on  |
+| `LANGUAGE`                | the same, plus `:`                                                    |
+| `TZ`                      | up to 64 letters, digits, `_`, `+`, `-` or `/`, not starting with `/` |
+| `NO_COLOR`, `FORCE_COLOR` | up to 16 letters and digits                                           |
 
 Every value `REQUIRE_API_KEY` accepts turns the check on, so the file cannot
 turn the check off itself. It does not decide the result, though: the server

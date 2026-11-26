@@ -1317,8 +1317,6 @@ OmniRoute persists **long-term conversational memory** with hybrid retrieval:
 - **Automatic fact extraction** — entities, preferences, and decisions are summarized after each session and stored in the `memory_facts` table
 - Memories are scoped per API key and per session
 
-Manage memories in **Dashboard → Memory** (search, edit, export, purge). The HTTP surface (`/api/memory/*`) lets agents push and query facts programmatically — see [MEMORY.md](../frameworks/MEMORY.md).
-
 ---
 
 ## 🔔 Webhooks

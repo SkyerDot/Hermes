@@ -71,7 +71,6 @@ See [A2A-SERVER.md](./A2A-SERVER.md) for transport details, agent card structure
 
 ## 2. ACP — CLI Agents Registry
 
-**OmniRoute endpoint:** `GET /api/acp/agents`
 **Source:** `src/lib/acp/{index,manager,registry}.ts`
 
 ### What it is
@@ -94,12 +93,8 @@ See [ACP registry and launchers](./ACP.md) for those distinct modes and limits.
 
 ### REST API
 
-| Endpoint          | Method | Description                                                   | Auth    |
-| ----------------- | ------ | ------------------------------------------------------------- | ------- |
-| `/api/acp/agents` | GET    | List detected + custom agents (installed/total counts)        | API key |
-| `/api/acp/agents` | POST   | Add/update/remove custom agent (action discriminator in body) | API key |
-
-Body shape for POST (`customAgentBodySchema` in `src/app/api/acp/agents/route.ts`):
+| Endpoint | Method | Description | Auth |
+| -------- | ------ | ----------- | ---- |
 
 ```json
 {
@@ -129,7 +124,6 @@ Body shape for POST (`customAgentBodySchema` in `src/app/api/acp/agents/route.ts
 
 ## 3. Cloud Agents
 
-**OmniRoute endpoints:** `/api/v1/agents/tasks/*` (lifecycle) + `/api/cloud/*` (plumbing)
 **Source:** `src/lib/cloudAgent/`
 
 ### What it is
@@ -173,14 +167,13 @@ See [CLOUD_AGENT.md](./CLOUD_AGENT.md) for the `CloudAgentBase` contract, per-ag
 
 Both have "long-running tasks" but at different layers:
 
-| Aspect             | A2A                                                                               | Cloud Agents                             |
-| ------------------ | --------------------------------------------------------------------------------- | ---------------------------------------- |
-| Standard           | Open A2A v0.3                                                                     | OmniRoute-specific                       |
-| Where compute runs | Inside OmniRoute (uses configured combos)                                         | External (Codex / Devin / Jules servers) |
-| Task duration      | Default TTL 5 min (configurable in `TaskManager`)                                 | Minutes to hours                         |
-| Repo-aware         | No (passes prompts only)                                                          | Yes (repo URL + branch)                  |
-| Use case           | Cross-agent collab, smart routing as a service                                    | Delegate "implement feature X in repo Y" |
-| Auth               | Optional `OMNIROUTE_API_KEY` for `/a2a`; management for `/api/a2a/*` REST helpers | Always management                        |
+| Aspect             | A2A                                               | Cloud Agents                             |
+| ------------------ | ------------------------------------------------- | ---------------------------------------- |
+| Standard           | Open A2A v0.3                                     | OmniRoute-specific                       |
+| Where compute runs | Inside OmniRoute (uses configured combos)         | External (Codex / Devin / Jules servers) |
+| Task duration      | Default TTL 5 min (configurable in `TaskManager`) | Minutes to hours                         |
+| Repo-aware         | No (passes prompts only)                          | Yes (repo URL + branch)                  |
+| Use case           | Cross-agent collab, smart routing as a service    | Delegate "implement feature X in repo Y" |
 
 ## Integration Examples
 

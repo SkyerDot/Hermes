@@ -6,7 +6,6 @@ lastUpdated: 2026-06-28
 
 # Gamification & Leaderboard System
 
-> **Source of truth:** `src/lib/gamification/`, `src/lib/db/gamification.ts`, `src/app/api/gamification/`
 > **Last updated:** 2026-06-28 — v3.8.40
 
 OmniRoute includes a local-first gamification layer that rewards users for
@@ -173,38 +172,9 @@ All tables live in the main OmniRoute SQLite database, created by migration
 └─────────────────────────┘
 ```
 
-### Domain Module: `src/lib/db/gamification.ts`
-
-Follows the standard OmniRoute pattern — imports `getDbInstance()` from
-`core.ts`, exports typed CRUD functions. No raw SQL in route handlers.
-
-Key functions:
-
-| Function                   | Description                                            |
 | -------------------------- | ------------------------------------------------------ |
-| `upsertLeaderboardEntry()` | Insert or update score for (api_key_id, scope, period) |
-| `getLeaderboard()`         | Paginated rankings for a given scope/period            |
-| `getUserLevel()`           | Get or create user level record                        |
-| `updateUserLevel()`        | Set XP, level, and title atomically                    |
-| `getBadgeDefinitions()`    | All badge definitions (optionally filtered)            |
-| `getUserBadges()`          | Badges earned by a user                                |
-| `awardBadge()`             | Insert badge earn (idempotent on badge_id)             |
-| `logXpAction()`            | Append to xp_audit_log                                 |
-| `getXpAuditLog()`          | Paginated audit history for a user                     |
-| `insertLedgerEntry()`      | Double-entry transfer (in transaction)                 |
-| `getBalance()`             | Sum of received minus sent for a user                  |
-| `getTransferHistory()`     | Paginated transfer log                                 |
-| `createInviteToken()`      | Insert invite code + hashed token                      |
-| `redeemInviteToken()`      | Look up by code, validate, increment uses              |
-| `upsertCommunityServer()`  | Register or update a federation server                 |
-| `getCommunityServers()`    | List servers for a user                                |
-| `deleteCommunityServer()`  | Remove a server registration                           |
-
----
 
 ## XP / Level System
-
-**File:** `src/lib/gamification/xp.ts`
 
 ### Level Curve
 
@@ -278,8 +248,6 @@ This is O(100) — acceptable since levels cap at 100.
 ---
 
 ## Badge System
-
-**File:** `src/lib/gamification/badges.ts`
 
 ### Categories
 
@@ -384,8 +352,6 @@ keeps evaluation fast (< 5ms for most events).
 
 ## Streak Tracker
 
-**File:** `src/lib/gamification/streaks.ts`
-
 ### Data Model
 
 Streaks are stored in the `key_value` table (shared utility table) under
@@ -425,8 +391,6 @@ export async function updateStreak(
 ---
 
 ## Leaderboard
-
-**File:** `src/lib/gamification/leaderboard.ts`
 
 ### Scopes
 
@@ -478,8 +442,6 @@ reset on the 1st of each month.
 
 ### SSE Real-Time Updates
 
-**Endpoint:** `GET /api/gamification/stream`
-
 ```
 Client → GET /api/gamification/stream
   → SSE connection established
@@ -507,8 +469,6 @@ when the leaderboard data has actually changed since the last push.
 ---
 
 ## Token Sharing
-
-**File:** `src/lib/gamification/sharing.ts`
 
 ### Double-Entry Ledger
 
@@ -570,8 +530,6 @@ export async function transferTokens(
 
 ## Invite & Redeem Tokens
 
-**File:** `src/lib/gamification/invites.ts`
-
 ### Code Format
 
 - **Code**: 8-character alphanumeric (e.g., `A3K9-X7M2`), human-readable,
@@ -609,17 +567,13 @@ If either check fails, the redemption is rejected with a clear error message.
 
 ## Community Server Federation
 
-**File:** `src/lib/gamification/servers.ts`
-
 ### Connect
 
 A community server is registered via an invite token issued by the remote
 server. The local instance:
 
 1. Receives the invite token (e.g., pasted into dashboard).
-2. Calls `POST /api/gamification/federation/leaderboard` on the remote server
-   to validate the token and fetch the current leaderboard.
-3. Stores the server record with `status: connected`.
+2. Stores the server record with `status: connected`.
 
 ### Sync Model
 
@@ -667,11 +621,8 @@ paused until a manual health check succeeds.
 
 ## Anti-Cheat
 
-**File:** `src/lib/gamification/antiCheat.ts`
-
 ### Server-Side Scoring
 
-All XP calculations happen in `src/lib/gamification/xp.ts`. Clients never
 submit a score — they submit actions, and the server computes XP. The
 `leaderboard.score` column is only writable by server-side code.
 
@@ -714,8 +665,6 @@ Every XP award, transfer, badge earn, and anomaly detection is logged to
 | `metadata`   | JSON with context (action type, target, …)     |
 | `created_at` | When (ISO 8601)                                |
 
-Admins can query the full audit trail via `GET /api/gamification/anomalies`.
-
 ---
 
 ## API Routes
@@ -729,29 +678,10 @@ Route → CORS preflight → Body validation (Zod) → Auth (extractApiKey)
 
 ### Endpoints
 
-| Method | Path                                       | Description                                 | Auth       |
-| ------ | ------------------------------------------ | ------------------------------------------- | ---------- |
-| GET    | `/api/gamification/leaderboard`            | Get leaderboard (scope, period, pagination) | Optional   |
-| POST   | `/api/gamification/leaderboard`            | Force refresh leaderboard cache             | Required   |
-| GET    | `/api/gamification/stream`                 | SSE real-time leaderboard updates           | Optional   |
-| GET    | `/api/gamification/transfer`               | Get transfer history (pagination)           | Required   |
-| POST   | `/api/gamification/transfer`               | Send tokens to another user                 | Required   |
-| GET    | `/api/gamification/invite`                 | List my invite codes                        | Required   |
-| POST   | `/api/gamification/invite`                 | Generate a new invite code                  | Required   |
-| DELETE | `/api/gamification/invite`                 | Revoke an invite code                       | Required   |
-| POST   | `/api/gamification/invite/redeem`          | Redeem an invite code                       | Required   |
-| GET    | `/api/gamification/servers`                | List community servers                      | Required   |
-| POST   | `/api/gamification/servers`                | Connect to a community server               | Required   |
-| DELETE | `/api/gamification/servers`                | Disconnect from a community server          | Required   |
-| POST   | `/api/gamification/federation/score`       | Push score to remote server                 | Federation |
-| GET    | `/api/gamification/federation/leaderboard` | Pull leaderboard from remote                | Federation |
-| GET    | `/api/gamification/notifications`          | SSE badge/level-up notifications            | Required   |
-| GET    | `/api/gamification/anomalies`              | View anomaly reports (admin)                | Admin      |
-| POST   | `/api/gamification/rotate`                 | Rotate invite token secrets                 | Required   |
+| Method | Path | Description | Auth |
+| ------ | ---- | ----------- | ---- |
 
 ### Request/Response Examples
-
-**POST /api/gamification/transfer**
 
 ```json
 // Request
@@ -781,8 +711,6 @@ Route → CORS preflight → Body validation (Zod) → Auth (extractApiKey)
   "requested": 500
 }
 ```
-
-**GET /api/gamification/leaderboard?scope=weekly&limit=10**
 
 ```json
 {
@@ -944,16 +872,8 @@ The `setImmediate` + `.catch(() => {})` pattern ensures:
 
 All tests use the Node.js native test runner (`node --import tsx/esm --test`).
 
-| Test File                                     | Covers                                  | Tests |
-| --------------------------------------------- | --------------------------------------- | ----- |
-| `tests/unit/gamification/xp.test.ts`          | XP calculation, level curve, titles     | 8     |
-| `tests/unit/gamification/badges.test.ts`      | Badge criteria matching, awarding       | 10    |
-| `tests/unit/gamification/streaks.test.ts`     | Streak logic, milestones, edge cases    | 7     |
-| `tests/unit/gamification/leaderboard.test.ts` | Rank computation, pagination, rotation  | 8     |
-| `tests/unit/gamification/sharing.test.ts`     | Transfers, balance, idempotency         | 9     |
-| `tests/unit/gamification/invites.test.ts`     | Create, redeem, expiry, self-referral   | 7     |
-| `tests/unit/gamification/antiCheat.test.ts`   | Rate limits, z-score, audit logging     | 6     |
-| `tests/unit/gamification/events.test.ts`      | Event emission, fan-out, error handling | 5     |
+| Test File | Covers | Tests |
+| --------- | ------ | ----- |
 
 ### Running Tests
 
@@ -1043,27 +963,22 @@ docs/
 ### Phase 1: Backend Core (PR 1)
 
 - Migration `060_create_gamification.sql` (8 tables).
-- `src/lib/db/gamification.ts` (domain module).
-- `src/lib/gamification/xp.ts`, `streaks.ts`, `events.ts`.
 - Integration point in `chatCore.ts`.
 - Unit tests for XP, streaks, events.
 
 ### Phase 2: Badges & Leaderboard (PR 2)
 
-- `src/lib/gamification/badges.ts`, `leaderboard.ts`.
 - Badge definitions in constants.
 - Leaderboard API routes + SSE stream.
 - Unit tests for badges, leaderboard.
 
 ### Phase 3: Sharing & Invites (PR 3)
 
-- `src/lib/gamification/sharing.ts`, `invites.ts`, `antiCheat.ts`.
 - Transfer + invite API routes.
 - Unit tests for sharing, invites, anti-cheat.
 
 ### Phase 4: Federation & Dashboard (PR 4)
 
-- `src/lib/gamification/servers.ts`, `notifications.ts`.
 - Federation API routes.
 - Dashboard pages (leaderboard, profile, tokens, admin).
 - MCP tools registration.

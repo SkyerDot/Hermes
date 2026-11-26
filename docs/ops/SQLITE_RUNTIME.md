@@ -95,9 +95,6 @@ and host/storage metrics before attributing a stall to SQLite or disk failure.
 
 Implementation:
 
-- `bin/cli/runtime/magicBytes.mjs` — binary magic-byte validation helpers
-- `bin/cli/runtime/sqliteRuntime.mjs` — 5-step runtime resolver + lazy installer
-- `bin/cli/runtime/index.mjs` — startup orchestrator (`warmUpRuntimes()`)
 - `scripts/postinstall.mjs` — npm post-install hook (non-fatal warm-up)
 - `src/lib/db/core.ts` — `ensureDbInitialized()` / `getDriverInfo()` exports
 

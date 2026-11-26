@@ -219,45 +219,9 @@ exact fallback behavior.
 
 ---
 
-## Profiles (`CLAUDE_CONFIG_DIR`)
-
-Claude Code has **no native profile files** (unlike Codex's `~/.codex/<name>.config.toml`).
-The idiomatic mechanism is `CLAUDE_CONFIG_DIR` — a separate config directory per
-profile, each with its own `settings.json`, credentials, history and cache.
-
-`omniroute setup-claude` fetches the live `/v1/models` catalog and writes one
-profile per model at `~/.claude/profiles/<name>/settings.json`, reusing the
-**same names as `setup-codex`** (`glm52`, `kimi-k27`, `deepseek-pro`, …):
-
 ```jsonc
-// ~/.claude/profiles/glm52/settings.json
-{
-  "$schema": "https://json.schemastore.org/claude-code-settings.json",
-  "model": "glm/glm-5.2",
-  "effortLevel": "xhigh",
-  "env": {
-    "ANTHROPIC_BASE_URL": "http://192.168.0.15:20128",
-    "ANTHROPIC_MODEL": "glm/glm-5.2",
-    "CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY": "1",
-    "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "190000",
-  },
-}
+
 ```
-
-> **The auth token is never written to the profile.** Launch with
-> `omniroute launch --profile <name>` (it injects `ANTHROPIC_AUTH_TOKEN` from the
-> active context), or export `ANTHROPIC_AUTH_TOKEN` yourself and run
-> `CLAUDE_CONFIG_DIR=~/.claude/profiles/<name> claude`.
-
-**Auto-sync after model discovery (opt-in).** OmniRoute can regenerate these same
-`~/.claude/profiles/<name>/settings.json` files automatically whenever a provider model
-sync changes the live catalog — so new/renamed models get profiles without re-running the
-command. It is **off by default**: toggle it from the **CLI Code dashboard** ("CLI profile
-auto-sync" → Claude Code), or set `OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES=true` (it also honors
-`CLI_ALLOW_CONFIG_WRITES`, on by default). When enabled it only writes profile files; it never
-changes your active/default Claude config, auth, or the `~/.claude/settings.json`.
-
-### Generating + using profiles
 
 ```bash
 # Local OmniRoute
@@ -352,6 +316,5 @@ decided by Anthropic, not by OmniRoute.
 **Auth errors** — the profile holds no token. Use `omniroute launch --profile`
 (injects it) or export `ANTHROPIC_AUTH_TOKEN`.
 
-**Profiles don't isolate** — each profile is a distinct `CLAUDE_CONFIG_DIR`;
 verify `echo $CLAUDE_CONFIG_DIR` inside the session points at
 `~/.claude/profiles/<name>`.

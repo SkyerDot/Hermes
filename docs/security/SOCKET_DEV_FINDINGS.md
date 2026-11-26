@@ -15,7 +15,7 @@ the mitigations applied in `omniroute@3.8.6`. It exists so:
    to evaluate the findings against the actual source.
 2. Future AI scanners can pick up the maintainer-signed claim that each
    flagged path is intentional, opt-in, and documented.
-3. We have a written record of *why* each call site is shaped the way it is —
+3. We have a written record of _why_ each call site is shaped the way it is —
    so a future refactor doesn't accidentally reintroduce a fingerprint that
    was deliberately removed.
 
@@ -29,11 +29,6 @@ we will extend the attestation here.
 
 **Source files**:
 
-- `src/mitm/cert/install.ts` — public `installCert()` / `uninstallCert()`,
-  per-platform `installCertWindows/Mac/Linux`.
-- `src/mitm/systemCommands.ts` — shared `execFile` / `spawn` / PowerShell
-  helpers used by the install paths.
-
 **Trigger**: user clicks "Enable MITM proxy" in the local dashboard at
 `/dashboard/cli-tools/mitm`. The route is loopback-only — see hard rule #17 in
 `CLAUDE.md` and `src/server/authz/routeGuard.ts::isLocalOnlyPath()`. A leaked
@@ -41,12 +36,12 @@ JWT exposed via a tunnel **cannot** trigger this code path.
 
 **Privileged operations performed (per platform)**:
 
-| OS      | Command(s)                                                                                     |
-| ------- | ---------------------------------------------------------------------------------------------- |
-| Windows | `certutil -addstore Root <cert>` via UAC                                                       |
-| macOS   | `sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain <cert>`  |
-| Linux   | `sudo cp <cert> <distro-trust-dir>` + `sudo update-ca-certificates` (Debian) / `sudo update-ca-trust` (RHEL/SUSE) |
-| Linux+Firefox/Chromium | per-profile NSS DB update via `certutil -d sql:<profile>`                          |
+| OS                     | Command(s)                                                                                                        |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| Windows                | `certutil -addstore Root <cert>` via UAC                                                                          |
+| macOS                  | `sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain <cert>`                     |
+| Linux                  | `sudo cp <cert> <distro-trust-dir>` + `sudo update-ca-certificates` (Debian) / `sudo update-ca-trust` (RHEL/SUSE) |
+| Linux+Firefox/Chromium | per-profile NSS DB update via `certutil -d sql:<profile>`                                                         |
 
 These are the same commands used by `mitmproxy`, Charles Proxy, Fiddler, and
 Caddy. The fact that they exist in OmniRoute is documented at
@@ -73,10 +68,10 @@ it would break the agent-bridge feature set.
 
 **Source files**:
 
-- `src/app/api/providers/zed/discover/route.ts` *(new in v3.8.6)*
+- `src/app/api/providers/zed/discover/route.ts` _(new in v3.8.6)_
 - `src/app/api/providers/zed/import/route.ts`
 - `src/lib/zed-oauth/keychain-reader.ts`
-- `src/lib/zed-oauth/credentialFingerprint.ts` *(new in v3.8.6)*
+- `src/lib/zed-oauth/credentialFingerprint.ts` _(new in v3.8.6)_
 
 **Trigger**: user clicks "Import from Zed" in the local dashboard Providers
 page. Endpoint is gated by `requireManagementAuth`. The Zed editor itself
@@ -116,8 +111,6 @@ without re-pasting.
 
 ## §3 — `execFile` / `spawn` / elevated PowerShell (`21843.js`)
 
-**Source files**: `src/mitm/systemCommands.ts`.
-
 **Why flagged**: the chunk re-exports `execFileWithPassword`,
 `runElevatedPowerShell`, and the shared `quotePowerShell` helper. Socket.dev's
 AI classifier sees them as a generic "host execution + privilege elevation
@@ -140,30 +133,23 @@ toolkit." Within OmniRoute they are only used by the MITM cert install path
 
 **Source files**:
 
-- `src/app/api/services/9router/_lib.ts` — supervisor factory.
 - `src/app/api/services/9router/{start,stop,restart,status,install,update,auto-start}/route.ts`.
-- `src/lib/services/ServiceSupervisor.ts` — generic spawn / health-poll / log-buffer.
 
 **Trigger**: user clicks "Install" / "Start" on the embedded services page in
 the local dashboard.
 
 **Already-in-place protections**:
 
-- All `/api/services/*` routes are LOCAL_ONLY per
-  `src/server/authz/routeGuard.ts` (hard rule #17). Loopback enforcement
-  happens before any auth check — a leaked JWT cannot reach them.
 - The 9router DB row is seeded as `status='not_installed', auto_start=0` (see
   `src/lib/db/migrations/071_services.sql:19`). The service does **not** start
   on first launch.
 - `spawn()` is called with the binary path returned by
-  `resolveSpawnArgs(apiKey, PORT)` in `src/lib/services/installers/ninerouter.ts`,
   which is a fixed allowlist of supported binaries.
 - Stdout/stderr is buffered in memory (5 MB cap, see `_lib.ts`) — no on-disk
   write unless the user enables logging from the dashboard.
 
 **v3.8.6 mitigation**: no functional change. The minimal build profile
 (`OMNIROUTE_BUILD_PROFILE=minimal`) replaces
-`src/lib/services/installers/ninerouter.ts` with a stub for users who want
 the privileged paths physically removed from the bundle.
 
 **Why we keep it**: 9router is an optional locally-installable companion
@@ -194,7 +180,7 @@ provider OAuth tokens silently.
 
 1. **HMAC verification**: `verifyCloudSignature(rawBody, sigHeader)` checks
    the `X-Cloud-Sig` header (`HMAC-SHA256(OMNIROUTE_CLOUD_SYNC_SECRET,
-   rawBody)`) before parsing the JSON. If the secret is set, the signature is
+rawBody)`) before parsing the JSON. If the secret is set, the signature is
    required. If not (legacy mode), a warning is logged and the response is
    accepted — the secret will be required in v3.9.
 2. **Secret-field opt-in**: `accessToken` / `refreshToken` /
@@ -220,12 +206,10 @@ OMNIROUTE_BUILD_PROFILE=minimal npm run build
 
 The webpack `NormalModuleReplacementPlugin` aliases four modules to stubs:
 
-| Module                                              | Stub                                                         |
-| --------------------------------------------------- | ------------------------------------------------------------ |
-| `src/mitm/cert/install.ts`                          | `src/mitm/cert/install.stub.ts`                              |
-| `src/lib/zed-oauth/keychain-reader.ts`              | `src/lib/zed-oauth/keychain-reader.stub.ts`                  |
-| `src/lib/cloudSync.ts`                              | `src/lib/cloudSync.stub.ts`                                  |
-| `src/lib/services/installers/ninerouter.ts`         | `src/lib/services/installers/ninerouter.stub.ts`             |
+| Module                                 | Stub                                        |
+| -------------------------------------- | ------------------------------------------- |
+| `src/lib/zed-oauth/keychain-reader.ts` | `src/lib/zed-oauth/keychain-reader.stub.ts` |
+| `src/lib/cloudSync.ts`                 | `src/lib/cloudSync.stub.ts`                 |
 
 Each stub exports the same surface but every function throws a
 `featureDisabledError(name)` at runtime. Routes that depend on the disabled

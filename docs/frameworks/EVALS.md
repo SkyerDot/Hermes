@@ -16,15 +16,8 @@ before promoting them to production traffic.
 
 The framework is implemented as:
 
-- A pure runner (`src/lib/evals/evalRunner.ts`) that registers in-memory
-  built-in suites, evaluates outputs against expected criteria, and aggregates
-  scorecards.
 - A persistence layer (`src/lib/db/evals.ts`) for custom (user-defined) suites
   and historical runs in SQLite.
-- An orchestration layer (`src/lib/evals/runtime.ts`) that executes each case
-  by dispatching real calls to `POST /v1/chat/completions`, captures latency
-  and outputs, and persists the run.
-- REST endpoints under `/api/evals/*` (management-auth only).
 - A dashboard surface at `Dashboard → Usage → Evals` (`EvalsTab.tsx`).
 
 ## Concepts
@@ -38,8 +31,6 @@ more cases. Suites come from two sources:
 | ---------- | --------------------------------------------- | ------------------- |
 | `built-in` | Registered via `registerSuite()` at boot      | No (code-defined)   |
 | `custom`   | Stored in SQLite `eval_suites` + `eval_cases` | Yes (via API/UI)    |
-
-The current built-in suites (see `src/lib/evals/evalRunner.ts`):
 
 - `golden-set` — 10 baseline cases across greeting/math/translation/safety
 - `coding-proficiency` — Python/JS/SQL/TS/bug detection
@@ -115,15 +106,8 @@ re-registered every time `evalRunner.ts` is imported.
 All endpoints require management auth (`requireManagementAuth`) — they are not
 part of the public proxy surface.
 
-| Endpoint                      | Method   | Description                                                   |
-| ----------------------------- | -------- | ------------------------------------------------------------- |
-| `/api/evals`                  | `GET`    | List suites + recent runs + scorecard + targets + keys        |
-| `/api/evals`                  | `POST`   | Run a suite (single or compare) — schema `evalRunSuiteSchema` |
-| `/api/evals/{suiteId}`        | `GET`    | Fetch one suite (built-in or custom)                          |
-| `/api/evals/suites`           | `POST`   | Create a custom suite — schema `evalSuiteSaveSchema`          |
-| `/api/evals/suites/{suiteId}` | `GET`    | Fetch a custom suite                                          |
-| `/api/evals/suites/{suiteId}` | `PUT`    | Replace a custom suite (cases get re-inserted)                |
-| `/api/evals/suites/{suiteId}` | `DELETE` | Delete a custom suite and its cases                           |
+| Endpoint | Method | Description |
+| -------- | ------ | ----------- |
 
 ### Running a suite
 
@@ -170,8 +154,6 @@ curl -X POST http://localhost:20128/api/evals/suites \
 
 ## Dispatch Pipeline
 
-`runEvalSuiteAgainstTarget()` (`src/lib/evals/runtime.ts`):
-
 1. Resolves the suite (built-in or custom).
 2. For each case, builds a `Request` to `/v1/chat/completions` with the case's
    `messages`, the resolved `model`, `stream: false`, and `max_tokens: 512`
@@ -215,15 +197,9 @@ real-time provider health to influence routing decisions.
 There is no dedicated `eval:ci` npm script today. Two paths if you want to
 gate releases on eval results:
 
-- **HTTP path**: stand up the server, hit `POST /api/evals` with a known
-  `suiteId` + `target`, and assert `runs[].summary.passRate >= N` in the
-  response.
 - **In-process path**: import `runEvalSuiteAgainstTarget()` from
   `@/lib/evals/runtime` from a script, run against a test DB, and check the
   returned `PersistedEvalRun.summary`.
-
-Tests covering the route and history live at
-`tests/unit/evals-route.test.ts` and `tests/unit/evals-history.test.ts`.
 
 ## Extension Points
 

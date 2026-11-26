@@ -336,7 +336,6 @@ What `check:docs-counts` (`scripts/check/check-docs-counts-sync.mjs`) fails in e
 
 The agent-instruction files carry **no** derived count at all: `AGENTS.md`, `llm.txt` (and its
 `docs/i18n/*/llm.txt` copies), the bs `AGENTS.md` fork, `open-sse/services/AGENTS.md`,
-`src/shared/constants/agentSkills.ts`, `skills/README.md` and every `skills/*/SKILL.md` point to the
 source (for example `ROUTING_STRATEGY_VALUES` in `src/shared/constants/routingStrategies.ts`) and to
 `npm run facts` instead. The invariant "No derived counts (agent-instruction file …)" fails a count
 there (providers, migrations, MCP tools and scopes, routing strategies, scoring factors, mode packs)
@@ -731,7 +730,6 @@ file of a family in `config/quality/derived-paths/`:
 
 Writers (`release/v*`, `chore/derived-*`, and `chore/bank-ratchet-*` for baselines) are exempt; so is
 a PR that changes only one family plus its companions (for `generated`: the generator scripts, their
-tests, the agent-skill inputs — `src/shared/constants/agentSkills.ts`, the hand-written `skills/**`
 docs, `docs/openapi.yaml` — and `changelog.d/**`), e.g. a hero layout change with its regenerated SVG,
 or a skills fix whose test reads the regenerated `SKILL.md` files. A `SKILL.md` with a
 hand-written `<!-- skill:custom-start -->` block is not in the family: its custom block stays

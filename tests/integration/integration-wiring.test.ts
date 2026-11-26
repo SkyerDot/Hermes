@@ -211,39 +211,6 @@ describe("API Routes — dashboard and tool consumers", () => {
     assertRouteMethods("src/app/api/model-combo-mappings/[id]/route.ts", ["GET", "PUT", "DELETE"]);
   });
 
-  it.skip("keeps log APIs wired through the consolidated logs dashboard", () => {
-    const logsPage = readProjectFile("src/app/(dashboard)/dashboard/logs/page.tsx");
-    const requestLogger = readProjectFile("src/shared/components/RequestLoggerV2.tsx");
-    const proxyLogger = readProjectFile("src/shared/components/ProxyLogger.tsx");
-    const consoleLogger = readProjectFile("src/shared/components/ConsoleLogViewer.tsx");
-
-    assert.ok(logsPage, "logs page should exist");
-    assert.ok(requestLogger, "RequestLoggerV2 should exist");
-    assert.ok(proxyLogger, "ProxyLogger should exist");
-    assert.ok(consoleLogger, "ConsoleLogViewer should exist");
-    assert.match(logsPage, /RequestLoggerV2/);
-    assert.match(logsPage, /EmailPrivacyToggle/);
-    assert.match(logsPage, /ProxyLogger/);
-    assert.match(logsPage, /ConsoleLogViewer/);
-    // AuditLogTab removed: audit moved to its own /dashboard/audit page (#2859).
-    assert.match(logsPage, /\/api\/logs\/export/);
-    assert.match(requestLogger, /\/api\/usage\/call-logs/);
-    assert.match(requestLogger, /\/api\/logs\/\$\{/);
-    assert.doesNotMatch(requestLogger, /\/api\/logs\/active/);
-    assert.match(requestLogger, /\/api\/logs\/detail/);
-    assert.match(requestLogger, /useEmailPrivacyStore/);
-    assert.match(requestLogger, /maskAccount\(log\.account, emailsVisible\)/);
-    assert.match(requestLogger, /emailsVisible=\{emailsVisible\}/);
-    assert.match(proxyLogger, /\/api\/usage\/proxy-logs/);
-    assert.match(consoleLogger, /\/api\/logs\/console/);
-    assertRouteMethods("src/app/api/logs/console/route.ts", ["GET"]);
-    assertRouteMethods("src/app/api/logs/detail/route.ts", ["GET", "POST"]);
-    assertRouteMethods("src/app/api/logs/export/route.ts", ["GET"]);
-    assertRouteMethods("src/app/api/usage/proxy-logs/route.ts", ["GET", "DELETE"]);
-    assertRouteMethods("src/app/api/usage/call-logs/route.ts", ["GET"]);
-    assertRouteMethods("src/app/api/usage/call-logs/[id]/route.ts", ["GET"]);
-  });
-
   it("keeps card and surface colors opaque in both themes", () => {
     const globals = readProjectFile("src/app/globals.css");
     const kitTokens = readProjectFile("packages/ui-kit/src/ci-tokens.css");
@@ -444,31 +411,12 @@ describe("DashboardLayout Integration", () => {
   });
 });
 
-describe("Page Integration — logs page wiring", () => {
-  const src = readProjectFile("src/app/(dashboard)/dashboard/logs/page.tsx");
-
-  it.skip("should wire segmented log tabs", () => {
-    assert.ok(src, "src/app/(dashboard)/dashboard/logs/page.tsx should exist");
-    assert.match(src, /SegmentedControl/);
-    assert.match(src, /RequestLoggerV2/);
-    assert.match(src, /ProxyLogger/);
-  });
-});
-
 describe("Page Integration — settings page wiring", () => {
   const src = readProjectFile("src/app/(dashboard)/dashboard/settings/resilience/page.tsx");
-  const memorySkillsTab = readProjectFile(
-    "src/app/(dashboard)/dashboard/settings/components/MemorySkillsTab.tsx"
-  );
 
   it("should include resilience tab in advanced settings", () => {
     assert.ok(src, "src/app/(dashboard)/dashboard/settings/resilience/page.tsx should exist");
     assert.match(src, /ResilienceTab/);
-  });
-
-  it("should not label the active skills settings card as a placeholder", () => {
-    assert.ok(memorySkillsTab, "MemorySkillsTab should exist");
-    assert.doesNotMatch(memorySkillsTab, /Skills Settings \(placeholder\)/);
   });
 });
 
