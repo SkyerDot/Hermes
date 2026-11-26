@@ -432,8 +432,8 @@ export function buildCodebaseIndex(root = ROOT) {
   // Set of /api/... paths that have a route.ts handler.
   const apiRoutes = new Set();
   // Set of /api/... prefixes that are an ancestor of (or equal to) a real route.ts.
-  // A documented prefix like /api/cloud/ is valid even without a route.ts at that
-  // exact level, as long as some src/app/api/cloud/**/route.ts exists.
+  // A documented prefix like /api/usage/ is valid even without a route.ts at that
+  // exact level, as long as some src/app/api/usage/**/route.ts exists.
   const apiPrefixes = new Set();
   // Map of /api/... → methods implemented in route.ts
   const apiMethods = new Map();

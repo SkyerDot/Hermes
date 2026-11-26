@@ -28,7 +28,6 @@ import {
   getCliProviderAlias,
   listCliIntegrationIds,
 } from "../../../src/shared/constants/cliIntegrationManifest";
-import { BUILT_IN_AGENT_IDS } from "../../../src/lib/acp/registry";
 import { CONFIG_GENERATOR_IDS } from "../../../src/lib/cli-helper/config-generator";
 
 /**
@@ -46,8 +45,8 @@ test("neutral manifest is the exact union of every CLI integration surface", () 
   const observed = new Set([
     ...CLI_TOOL_IDS,
     ...listCliTools().map((tool) => tool.id),
-    ...BUILT_IN_AGENT_IDS,
     ...listCliIntegrationIds("launch"),
+    ...listCliIntegrationIds("agentBackend"),
   ]);
   assert.deepEqual([...observed].sort(), Object.keys(CLI_INTEGRATION_MANIFEST).sort());
   assert.deepEqual(manifestIds.sort(), Object.keys(CLI_INTEGRATION_MANIFEST).sort());
@@ -67,10 +66,9 @@ test("each consumer derives its exact capability set from the neutral manifest",
     listCliIntegrationIds("catalog").sort()
   );
   assert.deepEqual([...CONFIG_GENERATOR_IDS].sort(), listCliIntegrationIds("generate").sort());
-  assert.deepEqual([...BUILT_IN_AGENT_IDS].sort(), listCliIntegrationIds("agentBackend").sort());
 });
 
-test("aliases, binary candidates and ACP badges cannot drift from the neutral manifest", () => {
+test("aliases and binary candidates cannot drift from the neutral manifest", () => {
   const expectedAliases: Record<string, string> = {};
   for (const [id, entry] of Object.entries(CLI_INTEGRATION_MANIFEST)) {
     for (const alias of entry.aliases) expectedAliases[alias] = id;

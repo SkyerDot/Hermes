@@ -232,27 +232,6 @@ const TOOLS_GROUP: SidebarItemGroup = {
       icon: "terminal",
     },
     {
-      id: "cli-agents",
-      href: "/dashboard/cli-agents",
-      i18nKey: "cliAgents",
-      subtitleKey: "cliAgentsSubtitle",
-      icon: "smart_toy",
-    },
-    {
-      id: "acp-agents",
-      href: "/dashboard/acp-agents",
-      i18nKey: "acpAgents",
-      subtitleKey: "acpAgentsSubtitle",
-      icon: "device_hub",
-    },
-    {
-      id: "cloud-agents",
-      href: "/dashboard/cloud-agents",
-      i18nKey: "cloudAgents",
-      subtitleKey: "cloudAgentsSubtitle",
-      icon: "cloud",
-    },
-    {
       id: "agent-bridge",
       href: "/dashboard/tools/agent-bridge",
       i18nKey: "agentBridge",

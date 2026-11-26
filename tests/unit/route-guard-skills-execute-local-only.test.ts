@@ -15,8 +15,8 @@
  *
  * Both routes were only behind requireManagementAuth() / isAuthenticated(),
  * which waive auth whenever requireLogin=false — the identical class already
- * closed for /api/acp/agents (GHSA-hf57-cqmx-p4gr) and /api/skills/collect/.
- * Hard Rules #15 + #17. See docs/security/ROUTE_GUARD_TIERS.md.
+ * closed for the removed ACP registry surface (GHSA-hf57-cqmx-p4gr) and
+ * /api/skills/collect/. Hard Rules #15 + #17. See docs/security/ROUTE_GUARD_TIERS.md.
  */
 import test from "node:test";
 import assert from "node:assert/strict";

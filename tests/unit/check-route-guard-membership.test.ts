@@ -162,12 +162,11 @@ test("every KNOWN_UNCLASSIFIED_SOURCE_SPAWN entry carries a non-empty justificat
   }
 });
 
-test("#7948: /api/acp/agents (transitive execFileSync via registry) is classified local-only", () => {
-  // /api/acp/agents is spawn-capable only transitively (route.ts imports
-  // src/lib/acp/registry.ts, which calls execFileSync) — the source-scan
-  // subcheck above only greps the route file itself, so it cannot catch this
-  // class of gap. This assertion is the direct regression guard for #7948.
-  assert.equal(isLocalOnlyPath("/api/acp/agents"), true);
+test("Task 5: the removed ACP registry route is no longer classified local-only", () => {
+  // The registry route and its transitive execFileSync surface were removed.
+  // Keeping a LOCAL_ONLY entry for a deleted route would be an orphan guard;
+  // this assertion proves it was dropped instead of silently left behind.
+  assert.equal(isLocalOnlyPath("/api/acp/agents"), false);
 });
 
 test("GHSA-35fw-cv32-2373: every cli-tools route that reaches getCliRuntimeStatus()/detectAllTools() is classified local-only", () => {

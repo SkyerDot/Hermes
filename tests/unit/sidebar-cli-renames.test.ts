@@ -10,18 +10,15 @@ test("HIDEABLE_SIDEBAR_ITEM_IDS includes cli-code (plan 14 rename)", () => {
   );
 });
 
-test("HIDEABLE_SIDEBAR_ITEM_IDS includes cli-agents (plan 14 new entry)", () => {
-  assert.ok(
-    (sidebarVisibility.HIDEABLE_SIDEBAR_ITEM_IDS as readonly string[]).includes("cli-agents"),
-    "expected 'cli-agents' in HIDEABLE_SIDEBAR_ITEM_IDS"
-  );
-});
-
-test("HIDEABLE_SIDEBAR_ITEM_IDS includes acp-agents (renamed from agents)", () => {
-  assert.ok(
-    (sidebarVisibility.HIDEABLE_SIDEBAR_ITEM_IDS as readonly string[]).includes("acp-agents"),
-    "expected 'acp-agents' in HIDEABLE_SIDEBAR_ITEM_IDS"
-  );
+test("HIDEABLE_SIDEBAR_ITEM_IDS no longer exposes the removed agent tabs", () => {
+  const ids = sidebarVisibility.HIDEABLE_SIDEBAR_ITEM_IDS as readonly string[];
+  for (const id of ["cli-agents", "acp-agents", "cloud-agents"]) {
+    assert.equal(
+      ids.includes(id),
+      false,
+      `expected '${id}' to be removed from HIDEABLE_SIDEBAR_ITEM_IDS`
+    );
+  }
 });
 
 test("HIDEABLE_SIDEBAR_ITEM_IDS does NOT include legacy cli-tools", () => {
@@ -36,6 +33,6 @@ test("HIDEABLE_SIDEBAR_ITEM_IDS does NOT include legacy agents", () => {
   assert.equal(
     (sidebarVisibility.HIDEABLE_SIDEBAR_ITEM_IDS as readonly string[]).includes("agents"),
     false,
-    "expected 'agents' to be removed from HIDEABLE_SIDEBAR_ITEM_IDS (plan 14 rename to acp-agents)"
+    "expected 'agents' to be removed from HIDEABLE_SIDEBAR_ITEM_IDS (agent tabs removed)"
   );
 });

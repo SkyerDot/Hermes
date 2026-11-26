@@ -9,8 +9,6 @@ import {
   findNewTranslatorPairs,
   IMPLICIT_DEFAULT_STRATEGIES,
   KNOWN_TRANSLATOR_PAIRS,
-  // (6) Cloud agents
-  diffCloudAgents,
   type ExecutorLike,
 } from "../../scripts/check/check-known-symbols.ts";
 import { reportStaleEntries } from "../../scripts/check/lib/allowlist.mjs";
@@ -291,32 +289,4 @@ test("KNOWN_TRANSLATOR_PAIRS is a non-empty, well-formed, deduped from:to snapsh
   for (const pair of KNOWN_TRANSLATOR_PAIRS) {
     assert.match(pair, /^[a-z0-9-]+:[a-z0-9-]+$/, `malformed translator pair: ${pair}`);
   }
-});
-
-// ───────────────────────────────────────────────────────────────────────────
-// (6) CLOUD AGENTS — registry keys vs agent files
-// ───────────────────────────────────────────────────────────────────────────
-
-test("diffCloudAgents returns empty when registry and files match", () => {
-  const registryKeys = new Set(["jules", "devin", "codex-cloud"]);
-  const agentFiles = new Set(["jules", "devin", "codex-cloud"]);
-  const result = diffCloudAgents(registryKeys, agentFiles);
-  assert.deepEqual(result.inRegistryNotFiles, []);
-  assert.deepEqual(result.inFilesNotRegistry, []);
-});
-
-test("diffCloudAgents flags registry key with no corresponding agent file", () => {
-  const registryKeys = new Set(["jules", "ghost-agent"]);
-  const agentFiles = new Set(["jules"]);
-  const result = diffCloudAgents(registryKeys, agentFiles);
-  assert.deepEqual(result.inRegistryNotFiles, ["ghost-agent"]);
-  assert.deepEqual(result.inFilesNotRegistry, []);
-});
-
-test("diffCloudAgents flags agent file with no registry entry", () => {
-  const registryKeys = new Set(["jules"]);
-  const agentFiles = new Set(["jules", "orphan-agent"]);
-  const result = diffCloudAgents(registryKeys, agentFiles);
-  assert.deepEqual(result.inRegistryNotFiles, []);
-  assert.deepEqual(result.inFilesNotRegistry, ["orphan-agent"]);
 });

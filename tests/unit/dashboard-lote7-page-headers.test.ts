@@ -10,7 +10,6 @@ import { fileURLToPath } from "node:url";
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
 const PAGES: Array<[string, string, string]> = [
   ["src/app/(dashboard)/dashboard/memory/page.tsx", "memory", "memorySubtitle"],
-  ["src/app/(dashboard)/dashboard/cloud-agents/page.tsx", "cloudAgents", "cloudAgentsSubtitle"],
   [
     "src/app/(dashboard)/dashboard/agent-skills/AgentSkillsPageClient.tsx",
     "agentSkills",

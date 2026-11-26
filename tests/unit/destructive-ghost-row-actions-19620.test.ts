@@ -316,7 +316,6 @@ test("the destructive row actions from the #19620 list use destructive-ghost", (
       "src/app/(dashboard)/dashboard/cache/components/CacheEntriesTab.tsx",
       "handleDelete(entry.signature)",
     ],
-    ["src/app/(dashboard)/dashboard/acp-agents/page.tsx", "handleRemoveAgent(agent.id)"],
     // Decision 1 (2026-11-14): hover-only red row/card deletes, checked in the browser.
     ["src/app/(dashboard)/dashboard/batch/BatchListTab.tsx", "setDeletingId(batch.id)"],
     ["src/app/(dashboard)/dashboard/batch/FilesListTab.tsx", "handleDeleteFile(file)"],

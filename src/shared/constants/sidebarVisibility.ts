@@ -210,8 +210,6 @@ const DEVELOPER_SHOWN: ReadonlySet<HideableSidebarItemId> = new Set([
   "context-rtk",
   "context-combos",
   "cli-code",
-  "cli-agents",
-  "acp-agents",
   "api-endpoints",
   "analytics",
   "analytics-combo-health",

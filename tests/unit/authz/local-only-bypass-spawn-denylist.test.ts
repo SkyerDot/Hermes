@@ -49,7 +49,6 @@ test.after(() => {
 /** Code-exec / spawn routes that were LOCAL_ONLY but missing from the deny-list. */
 const CODE_EXEC_ROUTES: ReadonlyArray<{ prefix: string; sample: string }> = [
   { prefix: "/api/middleware/", sample: "/api/middleware/hooks" }, // new vm.Script
-  { prefix: "/api/acp/agents", sample: "/api/acp/agents" }, // execFileSync({ shell })
   { prefix: "/api/system/version", sample: "/api/system/version" }, // git + npm install
   { prefix: "/api/db-backups/exportAll", sample: "/api/db-backups/exportAll" }, // tar
   { prefix: "/api/db/health", sample: "/api/db/health" }, // forked diagnostics
@@ -61,7 +60,6 @@ const CODE_EXEC_ROUTES: ReadonlyArray<{ prefix: string; sample: string }> = [
   { prefix: "/api/cli-tools/jcode-settings", sample: "/api/cli-tools/jcode-settings" },
   { prefix: "/dashboard/providers/services/", sample: "/dashboard/providers/services/x/embed/" },
   { prefix: "/api/discovery/", sample: "/api/discovery/scan" },
-  { prefix: "/api/issue-agent/", sample: "/api/issue-agent/runs" },
   // Not a spawn: reads host-local Kiro credential files (kiro-cli SQLite, ~/.aws/sso/cache).
   // Held to the same never-bypassable bar so a manage-scoped key cannot read them remotely.
   { prefix: "/api/oauth/kiro/auto-import", sample: "/api/oauth/kiro/auto-import" },
@@ -119,14 +117,7 @@ for (const { prefix, sample } of CALL_SITE_GATED_SPAWN_ROUTES) {
 }
 
 test("schema refuses a parent prefix that would cover a spawn-capable route", () => {
-  for (const parent of [
-    "/api/",
-    "/api/cli-tools/",
-    "/api/acp/",
-    "/api/middleware",
-    "/api/oauth/kiro/",
-    "/",
-  ]) {
+  for (const parent of ["/api/", "/api/cli-tools/", "/api/middleware", "/api/oauth/kiro/", "/"]) {
     assert.equal(schemaRejectsBypassPrefix(parent), true, parent);
   }
 });
@@ -143,7 +134,6 @@ test("runtime snapshot drops spawn-capable prefixes coming from a malformed sett
   await applyBypass([
     "/api/mcp/",
     "/api/middleware/",
-    "/api/acp/agents",
     "/api/cli-tools/runtime/",
     "/api/providers/validate",
     "/api/resilience/connections",

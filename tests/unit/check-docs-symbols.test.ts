@@ -61,8 +61,8 @@ test("flags a hallucinated route with no matching file", () => {
 });
 
 test("does NOT match when the doc path is deeper than the real route", () => {
-  const files = new Set(["src/app/api/acp/agents/route.ts"]);
-  assert.equal(resolve("/api/acp/agents/refresh", files), false);
+  const files = new Set(["src/app/api/usage/route.ts"]);
+  assert.equal(resolve("/api/usage/refresh", files), false);
 });
 
 test("static segment mismatch is not absorbed by an unrelated dynamic route", () => {

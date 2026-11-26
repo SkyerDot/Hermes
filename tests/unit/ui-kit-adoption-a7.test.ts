@@ -10,11 +10,9 @@ import test from "node:test";
 
 const DASHBOARD = "src/app/(dashboard)/dashboard";
 const DASHBOARD_AREAS = [
-  "acp-agents",
   "api-endpoints",
   "auto-combo",
   "changelog",
-  "cloud-agents",
   "conversations",
   "free-provider-rankings",
   "free-tiers",

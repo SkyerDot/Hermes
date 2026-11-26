@@ -36,8 +36,8 @@ test("classifyRoute resolves this path to MANAGEMENT, never PUBLIC (regression g
 test("does not over-match unrelated /api/providers paths", () => {
   // LOCAL_ONLY_API_PREFIXES entries are matched via plain startsWith (see
   // isLocalOnlyPath) — like every other exact-path-style sibling entry in
-  // that array (e.g. /api/system/version, /api/oauth/cursor/auto-import,
-  // /api/acp/agents), this is a bare path with no trailing slash, so it is
+  // that array (e.g. /api/system/version, /api/oauth/cursor/auto-import),
+  // this is a bare path with no trailing slash, so it is
   // NOT segment-boundary-anchored the way the regex-based /login and
   // /refresh-cursor entries in LOCAL_ONLY_API_PATTERNS are (see
   // tests/unit/route-guard-cursor-refresh.test.ts). Only paths that don't

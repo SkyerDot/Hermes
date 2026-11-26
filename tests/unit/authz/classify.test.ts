@@ -158,33 +158,21 @@ const cases: Case[] = [
     expectedClass: "PUBLIC",
   },
   {
-    name: "/api/cloud/auth POST is PUBLIC",
+    name: "removed /api/cloud/auth POST falls back to MANAGEMENT",
     path: "/api/cloud/auth",
     method: "POST",
-    expectedClass: "PUBLIC",
-  },
-  {
-    name: "/api/cloud/model/resolve POST is PUBLIC",
-    path: "/api/cloud/model/resolve",
-    method: "POST",
-    expectedClass: "PUBLIC",
-  },
-  {
-    name: "/api/cloud/models/alias GET is PUBLIC",
-    path: "/api/cloud/models/alias",
-    method: "GET",
-    expectedClass: "PUBLIC",
-  },
-  {
-    name: "/api/cloud/credentials/update PUT is MANAGEMENT",
-    path: "/api/cloud/credentials/update",
-    method: "PUT",
     expectedClass: "MANAGEMENT",
   },
   {
-    name: "/api/cloud/models/alias PUT is MANAGEMENT",
+    name: "removed /api/cloud/model/resolve POST falls back to MANAGEMENT",
+    path: "/api/cloud/model/resolve",
+    method: "POST",
+    expectedClass: "MANAGEMENT",
+  },
+  {
+    name: "removed /api/cloud/models/alias GET falls back to MANAGEMENT",
     path: "/api/cloud/models/alias",
-    method: "PUT",
+    method: "GET",
     expectedClass: "MANAGEMENT",
   },
   {

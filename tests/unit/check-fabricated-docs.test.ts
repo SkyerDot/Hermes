@@ -274,15 +274,15 @@ test("env-var: a feature flag defined only in a suffix-split featureFlagDefiniti
   );
 });
 
-test("api-path: a documented prefix with sub-routes (/api/cloud/) is NOT flagged", () => {
+test("api-path: a documented prefix with sub-routes (/api/usage/) is NOT flagged", () => {
   const found = findingsFor({
     files: {
-      "src/app/api/cloud/auth/route.ts": "export async function GET() {}\n",
+      "src/app/api/usage/route.ts": "export async function GET() {}\n",
     },
-    docs: { "cloud.md": "All cloud endpoints live under `/api/cloud/`.\n" },
+    docs: { "usage.md": "All usage endpoints live under `/api/usage/`.\n" },
   });
   assert.ok(
-    !found.has("api-path::/api/cloud/"),
+    !found.has("api-path::/api/usage/"),
     "a prefix that is an ancestor of a real route.ts must resolve"
   );
 });
@@ -348,7 +348,7 @@ test("ANTI-OVER-SUPPRESSION: a truly fabricated env var IS still flagged", () =>
 
 test("ANTI-OVER-SUPPRESSION: a fabricated API path with no backing route.ts IS still flagged", () => {
   const found = findingsFor({
-    files: { "src/app/api/cloud/auth/route.ts": "export async function GET() {}\n" },
+    files: { "src/app/api/usage/route.ts": "export async function GET() {}\n" },
     // /api/imaginary/* has no route.ts anywhere and is not an ancestor of one.
     docs: { "bad.md": "Call `/api/imaginary/widget` to do magic.\n" },
   });

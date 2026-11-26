@@ -27,22 +27,14 @@ function getToolsGroup() {
   };
 }
 
-test("TOOLS_GROUP items follow plan 14 order: cli-code → cli-agents → acp-agents → cloud-agents → agent-bridge → traffic-inspector → discovery", () => {
+test("TOOLS_GROUP items follow plan 14 order: cli-code → agent-bridge → traffic-inspector → discovery", () => {
   const toolsGroup = getToolsGroup();
   const itemIds = toolsGroup.items.map((item) => item.id);
-  // cli-code/cli-agents/acp-agents/cloud-agents from plan 14 (#2839); agent-bridge/traffic-inspector from plans 11/12 (#2858); discovery from #5939.
+  // cli-code from plan 14 (#2839); agent-bridge/traffic-inspector from plans 11/12 (#2858); discovery from #5939.
   assert.deepEqual(
     itemIds,
-    [
-      "cli-code",
-      "cli-agents",
-      "acp-agents",
-      "cloud-agents",
-      "agent-bridge",
-      "traffic-inspector",
-      "discovery",
-    ],
-    "TOOLS_GROUP items order must be cli-code, cli-agents, acp-agents, cloud-agents, agent-bridge, traffic-inspector, discovery"
+    ["cli-code", "agent-bridge", "traffic-inspector", "discovery"],
+    "TOOLS_GROUP items order must be cli-code, agent-bridge, traffic-inspector, discovery"
   );
 });
 
@@ -52,22 +44,6 @@ test("TOOLS_GROUP cli-code item has correct href and i18nKey", () => {
   assert.ok(cliCode, "expected cli-code in TOOLS_GROUP");
   assert.equal(cliCode.href, "/dashboard/cli-code");
   assert.equal(cliCode.i18nKey, "cliCode");
-});
-
-test("TOOLS_GROUP cli-agents item has correct href and i18nKey", () => {
-  const toolsGroup = getToolsGroup();
-  const cliAgents = toolsGroup.items.find((item) => item.id === "cli-agents");
-  assert.ok(cliAgents, "expected cli-agents in TOOLS_GROUP");
-  assert.equal(cliAgents.href, "/dashboard/cli-agents");
-  assert.equal(cliAgents.i18nKey, "cliAgents");
-});
-
-test("TOOLS_GROUP acp-agents item has correct href and i18nKey", () => {
-  const toolsGroup = getToolsGroup();
-  const acpAgents = toolsGroup.items.find((item) => item.id === "acp-agents");
-  assert.ok(acpAgents, "expected acp-agents in TOOLS_GROUP");
-  assert.equal(acpAgents.href, "/dashboard/acp-agents");
-  assert.equal(acpAgents.i18nKey, "acpAgents");
 });
 
 test("TOOLS_GROUP does NOT contain legacy cli-tools or agents entries", () => {

@@ -95,12 +95,6 @@ const PUBLIC_READONLY_API_ROUTES_EXACT = new Set(["/api/health"]);
 
 const PUBLIC_READONLY_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 
-const PUBLIC_CLOUD_API_ROUTES = [
-  { path: "/api/cloud/auth", methods: new Set(["POST", "OPTIONS"]) },
-  { path: "/api/cloud/model/resolve", methods: new Set(["POST", "OPTIONS"]) },
-  { path: "/api/cloud/models/alias", methods: new Set(["GET", "HEAD", "OPTIONS"]) },
-];
-
 function pathMatchesExactRoute(pathname: string, routePath: string): boolean {
   return pathname === routePath || pathname === `${routePath}/`;
 }
@@ -110,13 +104,6 @@ function matchesAnyExactRoute(pathname: string, routes: Iterable<string>): boole
     if (pathMatchesExactRoute(pathname, route)) return true;
   }
   return false;
-}
-
-function isPublicCloudApiRoute(pathname: string, method: string): boolean {
-  const normalizedMethod = String(method).toUpperCase();
-  return PUBLIC_CLOUD_API_ROUTES.some(
-    ({ path, methods }) => pathMatchesExactRoute(pathname, path) && methods.has(normalizedMethod)
-  );
 }
 
 // OAuth "auto-import" routes read host-local credential files (Cursor / Kiro
@@ -147,10 +134,6 @@ export function isPublicApiRoute(pathname: string, method = "GET"): boolean {
     )
   ) {
     return false;
-  }
-
-  if (isPublicCloudApiRoute(pathname, method)) {
-    return true;
   }
 
   if (matchesAnyExactRoute(pathname, PUBLIC_API_ROUTES_EXACT)) {

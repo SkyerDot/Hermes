@@ -24,7 +24,8 @@ import {
   syntxAuthHeaders,
 } from "@omniroute/open-sse/services/syntxAuth.ts";
 import { SYNTX_MODELS_URL } from "@omniroute/open-sse/services/syntxModels.ts";
-import { buildJulesApiUrl } from "@/lib/cloudAgent/julesApi.ts";
+/** Jules REST API base — https://developers.google.com/jules/api (provider-only constant). */
+const JULES_API_BASE_URL = "https://jules.googleapis.com/v1alpha";
 import {
   META_AI_ASBD_ID,
   META_AI_FRIENDLY_NAME,
@@ -532,7 +533,7 @@ export async function validateT3WebProvider({ apiKey, providerSpecificData = {} 
 /** Jules API — GET /v1alpha/sources with X-Goog-Api-Key (see developers.google.com/jules/api). */
 export async function validateJulesProvider({ apiKey }: { apiKey: string }) {
   try {
-    const response = await validationWrite(buildJulesApiUrl("/sources"), {
+    const response = await validationWrite(`${JULES_API_BASE_URL}/sources`, {
       method: "GET",
       headers: {
         "X-Goog-Api-Key": apiKey,

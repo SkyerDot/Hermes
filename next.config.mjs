@@ -715,12 +715,6 @@ const nextConfig = {
         destination: "/dashboard/cli-code/:path*",
         permanent: true,
       },
-      { source: "/dashboard/agents", destination: "/dashboard/acp-agents", permanent: true },
-      {
-        source: "/dashboard/agents/:path*",
-        destination: "/dashboard/acp-agents/:path*",
-        permanent: true,
-      },
     ];
   },
 

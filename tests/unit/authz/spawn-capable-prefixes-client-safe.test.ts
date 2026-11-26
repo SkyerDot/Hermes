@@ -116,7 +116,6 @@ test("SPAWN_CAPABLE_PREFIXES is defined in the server-free constants leaf with t
     // LOCAL_ONLY spawn / code-exec routes that were never mirrored into the deny-list
     // (drift guard: tests/unit/authz/local-only-bypass-spawn-denylist.test.ts).
     "/api/middleware/",
-    "/api/acp/agents",
     "/api/system/version",
     "/api/db-backups/exportAll",
     "/api/db/health",
@@ -128,7 +127,6 @@ test("SPAWN_CAPABLE_PREFIXES is defined in the server-free constants leaf with t
     "/api/cli-tools/jcode-settings",
     "/dashboard/providers/services/",
     "/api/discovery/",
-    "/api/issue-agent/",
     "/api/oauth/kiro/auto-import",
   ]) {
     assert.ok(
@@ -141,5 +139,6 @@ test("SPAWN_CAPABLE_PREFIXES is defined in the server-free constants leaf with t
   // + 1 host-credential read (/api/oauth/kiro/auto-import) that must never be bypassable.
   // + 1 (whycodes-settings, #14107).
   // qwen-settings is the one pre-existing entry not enumerated above.
-  assert.equal(SPAWN_CAPABLE_PREFIXES.length, 53);
+  // Task 5 removed 2 agent-orchestration entries (ACP registry + issue-agent).
+  assert.equal(SPAWN_CAPABLE_PREFIXES.length, 51);
 });

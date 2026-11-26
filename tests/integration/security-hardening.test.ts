@@ -200,19 +200,6 @@ test("API key update route and DB layer wire persisted no-log controls", () => {
   assert.ok(dbContent.includes("no_log"), "api key DB module should persist no_log column");
 });
 
-test("ACP agents route requires management authentication before CLI discovery", () => {
-  const content = readIfExists("src/app/api/acp/agents/route.ts");
-  assert.ok(content, "src/app/api/acp/agents/route.ts should exist");
-  assert.ok(
-    content.includes('from "@/shared/utils/apiAuth"'),
-    "ACP agents route should import shared API auth"
-  );
-  assert.ok(
-    content.includes("if (!(await isAuthenticated(request)))"),
-    "ACP agents route should reject unauthenticated requests before spawning discovery"
-  );
-});
-
 test("T06 route payload validation uses validateBody in critical endpoints", () => {
   const targets = [
     "src/app/api/usage/budget/route.ts",
@@ -232,10 +219,6 @@ test("T06 route payload validation uses validateBody in critical endpoints", () 
     "src/app/api/oauth/cursor/import/route.ts",
     "src/app/api/oauth/kiro/import/route.ts",
     "src/app/api/oauth/kiro/social-exchange/route.ts",
-    "src/app/api/cloud/credentials/update/route.ts",
-    "src/app/api/cloud/model/resolve/route.ts",
-    "src/app/api/cloud/models/alias/route.ts",
-    "src/app/api/sync/cloud/route.ts",
     "src/app/api/combos/[id]/route.ts",
     "src/app/api/combos/test/route.ts",
     "src/app/api/db-backups/route.ts",
