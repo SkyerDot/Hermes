@@ -6,31 +6,34 @@ lastUpdated: 2026-06-28
 
 # Evaluations (Evals)
 
-> **Source of truth:** `src/lib/evals/`, `src/lib/db/evals.ts`, `src/app/api/evals/`
+> **Historical reference.** The Hermes inference-scope prune removed the eval
+> runtime and its management/dashboard surfaces. The document is retained for
+> operators reading older run records; the SQLite persistence layer is the only
+> part that still exists in this tree.
+>
+> **Source of truth:** `src/lib/db/evals.ts`
 > **Last updated:** 2026-06-28 — v3.8.40
 
-OmniRoute ships a generic evaluation framework you can use to benchmark routing
+OmniRoute shipped a generic evaluation framework for benchmarking routing
 configurations, single providers/models, or the bundled "golden set" suites.
-Use it to verify routing changes, validate new providers, and gate releases
-before promoting them to production traffic.
 
-The framework is implemented as:
+The framework was implemented as:
 
 - A persistence layer (`src/lib/db/evals.ts`) for custom (user-defined) suites
   and historical runs in SQLite.
-- A dashboard surface at `Dashboard → Usage → Evals` (`EvalsTab.tsx`).
+- A dashboard surface at `Dashboard → Usage → Evals` (`EvalsTab.tsx`), now removed.
 
 ## Concepts
 
 ### Suite
 
-A suite is a named collection of test cases with a `description` and one or
-more cases. Suites come from two sources:
+A suite was a named collection of test cases with a `description` and one or
+more cases. Suites came from two sources:
 
-| Source     | Where defined                                 | Mutable at runtime? |
-| ---------- | --------------------------------------------- | ------------------- |
-| `built-in` | Registered via `registerSuite()` at boot      | No (code-defined)   |
-| `custom`   | Stored in SQLite `eval_suites` + `eval_cases` | Yes (via API/UI)    |
+| Source     | Where defined                                 | Mutability                       |
+| ---------- | --------------------------------------------- | -------------------------------- |
+| `built-in` | Was registered at boot by the removed runner  | Was code-defined                 |
+| `custom`   | Stored in SQLite `eval_suites` + `eval_cases` | Formerly editable via the UI/API |
 
 - `golden-set` — 10 baseline cases across greeting/math/translation/safety
 - `coding-proficiency` — Python/JS/SQL/TS/bug detection
@@ -42,7 +45,7 @@ more cases. Suites come from two sources:
 
 ### Case
 
-Each case carries:
+Each case carried:
 
 | Field      | Description                                                  |
 | ---------- | ------------------------------------------------------------ |
@@ -55,8 +58,8 @@ Each case carries:
 
 ### Target
 
-The same suite can be run against different targets. The target schema is
-`evalTargetSchema` in `src/shared/validation/schemas.ts`:
+The same suite could be run against different targets. The historical target
+schema (`evalTargetSchema`, removed with the runtime) was:
 
 | Target type     | `id`       | Behavior                                                        |
 | --------------- | ---------- | --------------------------------------------------------------- |
@@ -64,13 +67,13 @@ The same suite can be run against different targets. The target schema is
 | `model`         | model name | Force every case through one direct model (e.g. `gpt-4o`)       |
 | `combo`         | combo name | Run every case through one combo (exercises the routing engine) |
 
-For `model` and `combo`, the `id` field is required (enforced by Zod
-`superRefine`). When `compareTarget` is provided, both targets must differ —
-the runner persists both runs under the same `runGroupId` for A/B comparison.
+For `model` and `combo`, the `id` field was required (enforced by Zod
+`superRefine`). When `compareTarget` was provided, both targets had to differ —
+the runner persisted both runs under the same `runGroupId` for A/B comparison.
 
 ## Scoring Rubrics
 
-Implemented in `evaluateCase()` (evalRunner.ts):
+Was implemented in `evaluateCase()` in the removed eval runner:
 
 | Strategy   | Pass when…                                                           |
 | ---------- | -------------------------------------------------------------------- |
@@ -79,13 +82,12 @@ Implemented in `evaluateCase()` (evalRunner.ts):
 | `regex`    | `new RegExp(expected.value).test(actualOutput)` is truthy            |
 | `custom`   | `expected.fn(actualOutput, evalCase)` returns truthy (built-in only) |
 
-**Note:** Custom-function scoring is reserved for code-defined (built-in)
-suites because functions cannot be serialized through the API. The
-`evalCaseBuilderSchema` only accepts `contains | exact | regex` for
+**Note:** Custom-function scoring was reserved for code-defined (built-in)
+suites because functions could not be serialized through the retired API. The
+`evalCaseBuilderSchema` only accepted `contains | exact | regex` for
 user-created suites.
 
-There is no LLM-as-judge or embedding-based similarity scorer today — it would
-be a clean extension point in `evaluateCase()`.
+There was no LLM-as-judge or embedding-based similarity scorer.
 
 ## Database Schema
 
@@ -98,78 +100,26 @@ Three tables (migrations `030_create_eval_runs.sql` and
 | `eval_cases`  | Cases per suite — `input_json`, `expected_*`, `tags_json`                                                                    |
 | `eval_runs`   | Historical runs — `pass_rate`, `total`, `passed`, `failed`, `avg_latency_ms`, `summary_json`, `results_json`, `outputs_json` |
 
-Built-in suites are **not** stored in the DB. They live in memory and are
-re-registered every time `evalRunner.ts` is imported.
+Built-in suites were **not** stored in the DB. They lived in memory and were
+re-registered whenever the removed runner loaded.
 
-## REST API
+## Dispatch Pipeline (historical)
 
-All endpoints require management auth (`requireManagementAuth`) — they are not
-part of the public proxy surface.
-
-| Endpoint | Method | Description |
-| -------- | ------ | ----------- |
-
-### Running a suite
-
-```bash
-curl -X POST http://localhost:20128/api/evals \
-  -H "Cookie: auth_token=..." \
-  -H "Content-Type: application/json" \
-  -d '{
-    "suiteId": "golden-set",
-    "target": { "type": "combo", "id": "my-combo" },
-    "apiKeyId": "optional-api-key-uuid"
-  }'
-```
-
-Optional fields:
-
-- `outputs` — `Record<caseId, string>` of pre-computed outputs. When provided,
-  the runner **skips dispatch** and only scores the cached outputs (useful for
-  offline evaluation).
-- `compareTarget` — second target to run in parallel; both runs share a
-  generated `runGroupId` for head-to-head viewing.
-- `apiKeyId` — internal API key used to authenticate the dispatched
-  `/v1/chat/completions` calls. Required when `REQUIRE_API_KEY` is enabled.
-
-### Creating a custom suite
-
-```bash
-curl -X POST http://localhost:20128/api/evals/suites \
-  -H "Cookie: auth_token=..." \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Production smoke",
-    "description": "Quick sanity check before deploy",
-    "cases": [
-      {
-        "name": "JSON shape",
-        "model": "gpt-4o",
-        "input": { "messages": [{ "role": "user", "content": "Reply with {\"ok\": true}" }] },
-        "expected": { "strategy": "regex", "value": "\"ok\"\\s*:\\s*true" }
-      }
-    ]
-  }'
-```
-
-## Dispatch Pipeline
-
-1. Resolves the suite (built-in or custom).
-2. For each case, builds a `Request` to `/v1/chat/completions` with the case's
+1. Resolved the suite (built-in or custom).
+2. For each case, built a `Request` to `/v1/chat/completions` with the case's
    `messages`, the resolved `model`, `stream: false`, and `max_tokens: 512`
    (or the case override).
-3. Calls the chat handler directly (in-process — no extra HTTP hop).
-4. Captures latency and extracts text from either `choices[0].message.content`
+3. Called the chat handler directly (in-process — no extra HTTP hop).
+4. Captured latency and extracted text from either `choices[0].message.content`
    or the Responses-API `output[]` payload.
-5. Scores all outputs via `runSuite()`, then persists via `saveEvalRun()`.
+5. Scored all outputs via `runSuite()`, then persisted via `saveEvalRun()`.
 
-Cases run **sequentially**. There is no concurrency flag today.
+Cases ran **sequentially**; no concurrency flag existed.
 
-## Dashboard
+## Dashboard (removed)
 
-The UI lives at `Dashboard → Usage → Evals`
-(`src/app/(dashboard)/dashboard/usage/components/EvalsTab.tsx`). From there you
-can:
+The UI was at `Dashboard → Usage → Evals` (`EvalsTab.tsx`). It allowed operators
+to:
 
 - Browse built-in and custom suites with case-by-case preview.
 - Create/edit/delete custom suites with the case builder.
@@ -179,6 +129,8 @@ can:
 - See the rolling scorecard aggregated across the latest run per
   `(suite, target)` scope.
 
+That page and its management API were removed with the eval runtime.
+
 ## Relationship with the Auto-Assessment RFC
 
 A separate, narrower assessment subsystem lives at `src/domain/assessment/`
@@ -187,40 +139,21 @@ That subsystem targets the Auto Combo engine — automatically scoring providers
 models so combos can self-heal when upstreams fail. It uses its own runner,
 its own categorizer, and its own scoring logic.
 
-The Evals framework documented here is the **broader, general-purpose
-testing surface**. Prefer it for arbitrary regression suites, A/B comparisons,
-and per-release smoke tests. Use the Auto-Assessment subsystem when you need
-real-time provider health to influence routing decisions.
+The Evals framework documented here was the **broader, general-purpose testing
+surface**, used for arbitrary regression suites, A/B comparisons and per-release
+smoke tests. It has been removed; the Auto-Assessment subsystem remains the
+live mechanism for real-time provider health that influences routing decisions.
 
-## CI Integration
+## CI Integration (historical)
 
-There is no dedicated `eval:ci` npm script today. Two paths if you want to
-gate releases on eval results:
-
-- **In-process path**: import `runEvalSuiteAgainstTarget()` from
-  `@/lib/evals/runtime` from a script, run against a test DB, and check the
-  returned `PersistedEvalRun.summary`.
-
-## Extension Points
-
-Common changes and where to make them:
-
-- **New scoring strategy** — extend the `switch (evalCase.expected.strategy)`
-  block in `evaluateCase()` (`evalRunner.ts`) and widen `EvalCaseStrategy` in
-  `src/lib/db/evals.ts` plus `evalCaseBuilderSchema` in `schemas.ts`.
-- **New built-in suite** — define a suite object and call `registerSuite()` at
-  the bottom of `evalRunner.ts`. It will be auto-discovered by `listSuites()`.
-- **Run with concurrency** — change the sequential `for` loop in
-  `runEvalSuiteAgainstTarget()` to a bounded `Promise.all` (no concurrency
-  control exists today).
-- **Stream/tool-call cases** — currently the runner forces `stream: false`.
-  Streaming or tool-aware evaluation would require changes in `runtime.ts`
-  (capture and aggregate SSE chunks before scoring).
+No dedicated `eval:ci` script existed, and no CI path survives the prune. The
+former in-process pattern imported `runEvalSuiteAgainstTarget()` from the now
+removed `@/lib/evals/runtime`, ran it against a test DB and checked the returned
+`PersistedEvalRun.summary`.
 
 ## See Also
 
 - [USER_GUIDE.md](../guides/USER_GUIDE.md) — overall product walkthrough
 - [ARCHITECTURE.md](../architecture/ARCHITECTURE.md) — request pipeline reference
 - [AUTO-COMBO.md](../routing/AUTO-COMBO.md) — Auto Combo scoring engine (live runtime)
-- Source: `src/lib/evals/`, `src/lib/db/evals.ts`, `src/app/api/evals/`
-- UI: `src/app/(dashboard)/dashboard/usage/components/EvalsTab.tsx`
+- Surviving source: `src/lib/db/evals.ts` (runtime, API and `EvalsTab.tsx` removed)

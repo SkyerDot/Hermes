@@ -30,22 +30,16 @@ Each deployment serves its own copy of the spec at `/openapi.yaml`, generated fr
 - [Files API](#files-api)
 - [Batches API](#batches-api)
 - [Search API](#search-api)
-- [WebSocket Streaming](#websocket-streaming)
+- [Responses API over WebSocket (codex only)](#responses-api-over-websocket-codex-only)
 - [Quotas & Issues Reporting](#quotas--issues-reporting)
 - [Semantic Cache](#semantic-cache)
 - [CLIProxyAPI Management Compatibility](#cliproxyapi-management-compatibility)
 - [Dashboard & Management](#dashboard--management)
 - [Combo Management](#combo-management)
-- [Webhooks](#webhooks)
 - [Registered Keys (Auto-Management)](#registered-keys-auto-management)
-- [Agents Protocol](#agents-protocol)
 - [Management Proxies](#management-proxies)
 - [Resilience (extended)](#resilience-extended)
-- [Skills](#skills)
-- [Memory](#memory)
-- [MCP Server](#mcp-server)
-- [A2A Server](#a2a-server)
-- [Cloud, Evals & Assess](#cloud-evals--assess)
+- [Assessment](#assessment)
 - [Request Processing](#request-processing)
 - [Authentication](#authentication)
 
@@ -1089,17 +1083,7 @@ status).
 
 ---
 
-## WebSocket Streaming
-
-```bash
-GET /v1/ws?handshake=1
-```
-
-Validates a WebSocket upgrade handshake and returns the wire protocol example messages (`request`, `cancel`). Actual WS frames are handled by the bundled WS server outside the Next.js route table.
-
-**Auth:** Bearer API key during handshake.
-
-### Responses API over WebSocket (codex only)
+## Responses API over WebSocket (codex only)
 
 ```bash
 # Same host:port as the HTTP API (default 20128); upgrade the connection:
@@ -1644,39 +1628,15 @@ for consent, quotas and variant derivation details.
 
 ### Backup & Export/Import
 
-| Endpoint | Method | Description |
-| -------- | ------ | ----------- |
+| Endpoint                    | Method | Description                                                   |
+| --------------------------- | ------ | ------------------------------------------------------------- |
+| `/api/settings/export-json` | GET    | Download a legacy-compatible JSON backup of settings and keys |
+| `/api/settings/import-json` | POST   | Restore a legacy JSON backup into the current SQLite database |
 
-every stored credential, so they require the dashboard session or the local CLI (or login
-disabled). API keys of any scope and `oma_` access tokens get `403`. The restores hold the same
-by id) and `POST /api/settings/import-json` replace the live database or settings, so a machine
-credential gets `403` there too; `omniroute sync import` sends the local CLI credential. So do
-the persisted values drive the automatic pruning after every backup). Listing (`GET`) and creating
-a manual backup (`PUT`) keep ordinary management auth.
-
-### Cloud Sync
-
-| Endpoint | Method | Description |
-| -------- | ------ | ----------- |
-
-### Tunnels
-
-| Endpoint | Method | Description |
-| -------- | ------ | ----------- |
-
-### CLI Tools
-
-| Endpoint | Method | Description |
-| -------- | ------ | ----------- |
-
-CLI responses include: `installed`, `runnable`, `command`, `commandPath`, `runtimeMode`, `reason`.
-
-### ACP Agents
-
-| Endpoint | Method | Description |
-| -------- | ------ | ----------- |
-
-GET response includes `agents[]` (id, name, binary, version, installed, protocol, isCustom) and `summary` (total, installed, notFound, builtIn, custom).
+Both routes read or replace every stored credential, so they require a dashboard session or the
+local CLI subject (or an instance with login disabled). API keys of any scope and `oma_`
+access tokens get `403`. `POST /api/settings/import-json` creates a database backup before any
+data is written; automatic backups are pruned by `cleanupDbBackups()` (`src/lib/db/backup.ts`).
 
 ### Resilience & Rate Limits
 
@@ -1690,11 +1650,6 @@ GET response includes `agents[]` (id, name, binary, version, installed, protocol
 | `/api/rate-limit`                 | GET       | Global rate limit configuration (deprecated; alias to `/api/rate-limits`)                                                                                                                                                                                                                                                                                                                       |
 
 > All four `/api/resilience/*` routes require **management auth** (`requireManagementAuth`). See [Resilience (extended)](#resilience-extended) for a full breakdown of provider breaker vs connection cooldown vs model lockout.
-
-### Evals
-
-| Endpoint | Method | Description |
-| -------- | ------ | ----------- |
 
 ### Policies
 
@@ -1989,17 +1944,6 @@ Higher-level routing combos (already summarized under `/api/combos*`) can also b
 
 ---
 
-## Webhooks
-
-Outbound webhook subscriptions for OmniRoute events (request completion, quota exhaustion, key rotation, etc.).
-
-| Method | Path | Description |
-| ------ | ---- | ----------- |
-
-**Auth:** management session/API key (`requireManagementAuth`).
-
----
-
 ## Registered Keys (Auto-Management)
 
 Used by the auto-key management subsystem to issue and rotate API keys against a backing provider/account, with daily/hourly quotas.
@@ -2017,31 +1961,6 @@ Used by the auto-key management subsystem to issue and rotate API keys against a
 | PUT    | `/api/v1/accounts/[id]/limits`        | Set the account's issuance caps — same body as the provider route                                                                                                                           |
 
 **Auth:** management session/API key (`requireManagementAuth`) — the same guard as `/api/keys`: a dashboard session, the local CLI token, or an API key with `manage`/`admin` scope; inference-only API keys get `403`. See also `/v1/quotas/check` and `/v1/issues/report`.
-
----
-
-## Agents Protocol
-
-Cloud agent tasks (Claude Code, Codex Cloud, OpenHands, etc.) executed remotely on behalf of OmniRoute users.
-
-| Method | Path                          | Description                                                                                                                                   |
-| ------ | ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| GET    | `/api/v1/agents/tasks`        | List tasks — optional `?provider=`, `?status=`, `?limit=` (1–500, default 50)                                                                 |
-| POST   | `/api/v1/agents/tasks`        | Create task — body validated by `CreateCloudAgentTaskSchema` (`providerId`, `prompt`, `source`, `options?`). Returns `201` with task envelope |
-| DELETE | `/api/v1/agents/tasks?id=...` | Delete a task                                                                                                                                 |
-| GET    | `/api/v1/agents/tasks/[id]`   | Read task — synchronously refreshes status from the upstream cloud agent when an `external_id` is set                                         |
-| POST   | `/api/v1/agents/tasks/[id]`   | Discriminated action: `{action: "approve"}`, `{action: "message", message}`, or `{action: "cancel"}`                                          |
-| DELETE | `/api/v1/agents/tasks/[id]`   | Delete a specific task by id                                                                                                                  |
-
-> **Auth:** management auth required on every method (`requireCloudAgentManagementAuth`). Prior to v3.8.0 these were unauthenticated — see commit `588a0333` for the breaking change.
-
-```bash
-# Create a Claude Code cloud task
-curl -X POST http://localhost:20128/api/v1/agents/tasks \
-  -H "Authorization: Bearer your-management-key" \
-  -H "Content-Type: application/json" \
-  -d '{"providerId":"claude-code-cloud","prompt":"Fix the failing test","source":{"repo":"...","branch":"..."}}'
-```
 
 ---
 
@@ -2101,142 +2020,12 @@ Full conceptual reference and breaker defaults: see [`CLAUDE.md`](../../CLAUDE.m
 
 ---
 
-## Skills
+## Assessment
 
-Skill framework for extending OmniRoute with custom executable handlers, plus marketplace integrations.
-
-| Method | Path | Description |
-| ------ | ---- | ----------- |
-
-**Auth:** management session/API key. Marketplace search routes accept either management auth or a Bearer API key (`isAuthenticated`).
-
----
-
-## Memory
-
-Persistent conversational/factual memory store, scoped per API key / session.
-
-| Method | Path | Description |
-| ------ | ---- | ----------- |
-
----
-
-## MCP Server
-
-OmniRoute ships an embedded Model Context Protocol server with 3 transports (stdio, SSE, streamable-http) and scoped tools. The dashboard endpoints below read status/audit data and proxy the HTTP transports.
-
-| Method | Path | Description |
-| ------ | ---------------------- | ------------------------------------------------------------------------------------------------ | -------------------- |
-| GET | `/api/mcp/sse` | Open SSE stream for the SSE transport (returns `503` if MCP disabled or transport mismatch) |
-| POST | `/api/mcp/sse` | Send JSON-RPC frame on the SSE transport |
-| GET | `/api/mcp/stream` | Open SSE side of the Streamable HTTP transport (server-initiated messages) |
-| POST | `/api/mcp/stream` | Send JSON-RPC frame on the Streamable HTTP transport |
-| DELETE | `/api/mcp/stream` | End a Streamable HTTP session |
-
-**Auth:** the `sse`/`stream` transports honor the MCP-specific auth surface (Bearer API key with `mcp` scope); the `status`/`tools`/`audit*` routes are readable from the dashboard (no extra auth required beyond reaching the dashboard host).
-
-> Both HTTP transports are gated by `settings.mcpEnabled` and `settings.mcpTransport` — a transport mismatch returns `400`, an MCP disabled state returns `503`.
-
----
-
-## A2A Server
-
-OmniRoute exposes an A2A (Agent-to-Agent) JSON-RPC 2.0 endpoint plus a REST wrapper for inspection/dashboard use.
-
-### JSON-RPC
-
-```bash
-POST /a2a
-Authorization: Bearer your-api-key   # optional unless OMNIROUTE_API_KEY is set
-Content-Type: application/json
-
-{
-  "jsonrpc": "2.0",
-  "id": 1,
-  "method": "message/send",
-  "params": {
-    "skill": "smart-routing",
-    "messages": [{"role": "user", "content": "Route this coding task"}]
-  }
-}
-```
-
-Supported methods (all gated on `settings.a2aEnabled`):
-
-| Method           | Description                                                        |
-| ---------------- | ------------------------------------------------------------------ |
-| `message/send`   | Synchronous skill execution; returns `{task, artifacts, metadata}` |
-| `message/stream` | Streaming SSE execution of the same skill set                      |
-| `tasks/get`      | Fetch a task by `taskId`                                           |
-| `tasks/cancel`   | Cancel a task by `taskId`                                          |
-
-Built-in skills: `smart-routing`, `quota-management`, `provider-discovery`, `cost-analysis`, `health-report`.
-
-### Agent Card
-
-```bash
-GET /.well-known/agent.json
-```
-
-Returns the public A2A agent card (name, description, capabilities, skill catalog, auth scheme) — cached publicly for 1h. No auth required.
-
-### REST helpers
-
-| Method | Path | Description |
-| ------ | ---- | ----------- |
-
-**Auth:** the REST helpers run without management auth (dashboard-readable); the JSON-RPC `/a2a` route uses Bearer `OMNIROUTE_API_KEY` if configured.
-
----
-
-## Cloud, Evals & Assess
-
-| Method | Path | Description |
-| ------ | ------------------------------- | ------------------------------------------------------------------------------------------------- | ----------------------------- | ----------------------------------- |
-| GET | `/api/assess` | Read latest assessment categorizations (per-provider/model) |
-| POST | `/api/assess` | Run an assessment — body: `{scope: {type:"all"}                                                   | {type:"provider", providerId} | {type:"model", modelId}, trigger?}` |
-
----
-
-## ACP (Agent Client Protocol) Management
-
-as child processes. These endpoints manage ACP agent detection and custom agent
-registration.
-
-| Method | Path | Description |
-| ------ | ---- | ----------- |
-
-```json
-{
-  "agents": [
-    {
-      "id": "claude",
-      "name": "Claude Code CLI",
-      "binary": "claude",
-      "version": "1.0.45",
-      "installed": true,
-      "protocol": "stdio",
-      "providerAlias": "claude",
-      "isCustom": false
-    },
-    {
-      "id": "my-custom-cli",
-      "name": "My Custom CLI",
-      "installed": false,
-      "protocol": "stdio",
-      "providerAlias": "my-provider",
-      "isCustom": true
-    }
-  ],
-  "cacheTtlMs": 60000,
-  "cacheAge": 1234
-}
-```
-
-**Auth:** Requires management session (dashboard `auth_token` cookie) or a
-management-scoped API key.
-
-See [ACP Framework](../frameworks/ACP.md) for full details.
+| Method | Path          | Description                                                                                                             |
+| ------ | ------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| GET    | `/api/assess` | Read latest assessment categorizations (per-provider/model)                                                             |
+| POST   | `/api/assess` | Run an assessment — body: `{scope: {type:"all"} \| {type:"provider", providerId} \| {type:"model", modelId}, trigger?}` |
 
 ---
 
@@ -2348,29 +2137,6 @@ Admin-only endpoints for operational management.
 
 ---
 
-## CLI Tools Management
-
-Manage CLI tools that integrate with OmniRoute (antigravity, commandCode,
-devin-cli, etc.). See [Provider Reference](./PROVIDER_REFERENCE.md) for the full list.
-
-| Method | Path | Description |
-| ------ | ---- | ----------- |
-
-**Auth:** Requires management session.
-
----
-
-## Agent Skills
-
-Manage AI agent skills (similar to OpenAI's custom GPTs but for agents).
-
-| Method | Path | Description |
-| ------ | ---- | ----------- |
-
-**Auth:** Requires management session or management-scoped API key.
-
----
-
 ## Cache Management
 
 Manage the semantic cache and reasoning cache.
@@ -2385,56 +2151,6 @@ Manage the semantic cache and reasoning cache.
 | DELETE | `/api/cache/reasoning` | Clear reasoning cache — query params: `?toolCallId=<id>` (single) or `?provider=<p>` or no params (all) |
 
 **Auth:** Requires management session.
-
----
-
-## Memory System
-
-Manage persistent memory (FTS5 + vector embeddings).
-
-| Method | Path | Description |
-| ------ | ---- | ----------- |
-
-**Auth:** Requires management session or management-scoped API key.
-
----
-
-## Webhooks
-
-Manage webhook subscriptions for events.
-
-| Method | Path | Description |
-| ------ | ---- | ----------- |
-
-**Auth:** Requires management session.
-
-See [Webhooks Framework](../frameworks/WEBHOOKS.md) for full event types.
-
----
-
-## Skills Framework
-
-Manage Skills (the agentic extensions framework).
-
-| Method | Path | Description |
-| ------ | ---- | ----------- |
-
-**Auth:** Requires management session or management-scoped API key.
-
-See [Skills Framework](../frameworks/SKILLS.md) for full details.
-
----
-
-## Plugins
-
-Manage OmniRoute plugins (third-party extensions).
-
-| Method | Path | Description |
-| ------ | ---- | ----------- |
-
-**Auth:** Requires management session.
-
-See [Plugins Framework](../frameworks/PLUGIN_SDK.md) for full details.
 
 ---
 
@@ -2459,8 +2175,6 @@ See [Security > Guardrails](../security/GUARDRAILS.md) for full details.
 
 ---
 
----
-
 ## Authentication
 
 See [Management Authentication](../guides/MANAGEMENT-AUTH.md) for the four
@@ -2473,4 +2187,4 @@ Token, manage-scoped API key) and how they differ from inference keys.
 - `/v1/*` routes optionally require Bearer API key when `REQUIRE_API_KEY=true`
 - "management token" / "management-scoped API key" in this reference means one of the families in that guide — not an undefined extra secret type
 
-> **Breaking change (v3.8.0)** — `/api/v1/agents/tasks/*` and the cooldown management endpoints now require **management auth** (dashboard `auth_token` cookie or a management-scoped API key). Clients that previously called these routes unauthenticated will receive `401 Unauthorized`. See commit `588a0333` (`fix(auth): require management auth for agent and cooldown APIs`).
+> **Breaking change (v3.8.0)** — the cooldown management endpoints now require **management auth** (dashboard `auth_token` cookie or a management-scoped API key). Clients that previously called these routes unauthenticated will receive `401 Unauthorized`. See commit `588a0333` (`fix(auth): require management auth for agent and cooldown APIs`).

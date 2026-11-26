@@ -73,7 +73,7 @@ function resolvesInsideWorktree(specifier: string): boolean {
 
 test("every @/ import in the preserved Codex-WS boundary exists in this worktree", () => {
   const missing: string[] = [];
-  for (const file of ["route.ts", "history.ts"]) {
+  for (const file of ["route.ts", "history.ts", "auth.ts", "origin.ts"]) {
     for (const specifier of readInternalImports(file)) {
       if (!resolvesInsideWorktree(specifier)) missing.push(`${file}: ${specifier}`);
     }

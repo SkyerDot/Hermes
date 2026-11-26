@@ -6,18 +6,22 @@ lastUpdated: 2026-06-28
 
 # Webhooks
 
+> **Historical reference.** The Hermes inference-scope prune removed the webhook
+> dispatcher, management routes and dashboard page. The design below is retained
+> for operators migrating old configuration; none of it is a live surface.
+>
 > **Last updated:** 2026-06-28 — v3.8.40
 
-OmniRoute can fire HTTP webhooks on platform events. Use them to integrate with
+OmniRoute could fire HTTP webhooks on platform events, for example to notify
 Slack, PagerDuty, Datadog, internal alerting services, or any HTTP receiver.
 
-The dispatcher signs each delivery with HMAC-SHA256, retries on transient
-failures, tracks delivery health per webhook, and auto-disables endpoints that
-keep failing.
+The dispatcher signed each delivery with HMAC-SHA256, retried on transient
+failures, tracked delivery health per webhook, and auto-disabled endpoints that
+kept failing.
 
 ## Supported Events
 
-| Event                     | Fires when                                                                               |
+| Event                     | Fired when                                                                               |
 | ------------------------- | ---------------------------------------------------------------------------------------- |
 | `request.completed`       | A proxied request completes successfully                                                 |
 | `request.failed`          | A proxied request fails after all retries/fallback                                       |
@@ -28,19 +32,18 @@ keep failing.
 | `provider.exhausted`      | Every account of a provider is cooling down (at most once per provider every 10 minutes) |
 | `test.ping`               | Synthetic event used by the test endpoint                                                |
 
-Subscriptions accept the literal `"*"` to receive every event. Unknown event
-names in `events` are ignored at dispatch time.
+Subscriptions accepted the literal `"*"` to receive every event. Unknown event
+names in `events` were ignored at dispatch time.
 
-> Note: the dispatcher API is wired, but production call sites for some of the
-> non-`test.ping` events are still landing. Check `grep dispatchEvent` to see
-> which paths currently invoke the dispatcher in your release.
+> Note: only some non-`test.ping` events had production call sites; the
+> dispatcher and its management UI have since been removed.
 
 ## Architecture
 
 ```
 Caller (handler, service, monitor)
-  dispatchEvent(event, data)            [src/lib/webhookDispatcher.ts]
-    -> getEnabledWebhooks()             [src/lib/db/webhooks.ts]
+  dispatchEvent(event, data)            [removed dispatcher]
+    -> getEnabledWebhooks()             [removed DB module]
     -> filter by webhook.events
     -> for each match (in parallel):
        deliverWebhook(url, payload, secret)
@@ -52,12 +55,12 @@ Caller (handler, service, monitor)
     -> disableWebhooksWithHighFailures(10)
 ```
 
-Dispatch is fire-and-forget for the caller: `Promise.allSettled` swallows
-per-webhook errors so one bad receiver cannot block the others.
+Dispatch was fire-and-forget: `Promise.allSettled` swallowed per-webhook errors
+so one bad receiver could not block the others.
 
 ## HMAC Signing
 
-When a webhook has a `secret`, OmniRoute signs the JSON body and sends:
+When a webhook had a `secret`, OmniRoute signed the JSON body and sent:
 
 ```
 Content-Type: application/json
@@ -70,8 +73,8 @@ X-Webhook-Signature: sha256=<hex HMAC-SHA256(secret, body)>
 > Header names use the `X-Webhook-*` prefix (not `X-OmniRoute-*`). The signature
 > value is `sha256=<hex>` — verify the full prefix.
 
-If `createWebhook` is called without a secret, the DB module generates one
-(`whsec_<48 hex>`) so all webhooks are signed by default.
+If `createWebhook` was called without a secret, the DB module generated one
+(`whsec_<48 hex>`), so all webhooks were signed by default.
 
 ### Verifying on the receiver
 
@@ -90,23 +93,23 @@ Always verify against the **raw** request body, before any JSON parsing.
 
 ## Retry & Failure Policy
 
-`deliverWebhook(url, payload, secret, maxRetries = 3)`:
+`deliverWebhook(url, payload, secret, maxRetries = 3)` used to:
 
-- 10 second timeout per attempt (`AbortController`).
-- HTTP 2xx counts as success.
-- HTTP 3xx/4xx counts as a non-retryable final status — recorded as delivered
+- Apply a 10 second timeout per attempt (`AbortController`).
+- Count HTTP 2xx as success.
+- Treat HTTP 3xx/4xx as a non-retryable final status — recorded as delivered
   with `success = res.ok`.
-- HTTP 5xx and network errors are retried with exponential backoff:
+- Retry HTTP 5xx and network errors with exponential backoff:
   `2^attempt * 1000 ms` (1s, 2s, 4s).
-- After `maxRetries`, the delivery is recorded as failed.
-- Each delivery updates `last_triggered_at`, `last_status`, and either resets
-  or increments `failure_count`.
-- The dispatcher calls `disableWebhooksWithHighFailures(10)` after each fan-out,
-  so any webhook with `failure_count >= 10` is automatically disabled.
+- Record the delivery as failed after `maxRetries`.
+- Update `last_triggered_at`, `last_status`, and either reset or increment
+  `failure_count` on each delivery.
+- Call `disableWebhooksWithHighFailures(10)` after each fan-out, so any webhook
+  with `failure_count >= 10` was automatically disabled.
 
 ## Database
 
-Table `webhooks` (migration `011_webhooks.sql`):
+The historical table `webhooks` (migration `011_webhooks.sql`):
 
 | Column              | Type    | Notes                                         |
 | ------------------- | ------- | --------------------------------------------- |
@@ -121,57 +124,10 @@ Table `webhooks` (migration `011_webhooks.sql`):
 | `last_status`       | INT     | HTTP status of the last attempt (0 = network) |
 | `failure_count`     | INT     | Resets to 0 on success, +1 on failure         |
 
-Delivery history is persisted in the dedicated `webhook_deliveries` table
-(migration `069_webhook_deliveries.sql`, written via
-to the aggregate counters on the `webhooks` row. Kind metadata (Slack / Discord /
-Telegram / custom payload transformers) was added by `070_webhooks_kind_metadata.sql`.
-
-## REST API
-
-All endpoints require management auth (`requireManagementAuth`).
-
-| Endpoint | Method | Description |
-| -------- | ------ | ----------- |
-
-on listing pages. Use the `[id]` GET when you actually need the secret.
-
-### Create webhook
-
-```bash
-curl -X POST http://localhost:20128/api/webhooks \
-  -H "Cookie: auth_token=..." \
-  -H "Content-Type: application/json" \
-  -d '{
-    "url": "https://hooks.slack.com/services/...",
-    "secret": "whsec_my_shared_secret",
-    "events": ["quota.exceeded", "request.failed"],
-    "description": "Slack alerts"
-  }'
-```
-
-If `secret` is omitted, the server generates a `whsec_<hex>` secret and returns
-it in the response.
-
-### Test webhook
-
-```bash
-curl -X POST http://localhost:20128/api/webhooks/<id>/test \
-  -H "Cookie: auth_token=..."
-```
-
-Returns `{ delivered, status, error }`. No retries are attempted — useful for
-quickly validating that the receiver accepts the payload and signature.
-
-## Dashboard
-
-The dashboard page at `/dashboard/webhooks` (see
-`src/app/(dashboard)/dashboard/webhooks/page.tsx`) provides:
-
-- Create/edit webhooks with an event picker
-- Status indicator (active / inactive / errored) based on `enabled`,
-  `failure_count`, and `last_status`
-- One-click test delivery
-- Manual enable/disable toggle
+Delivery history was persisted in the dedicated `webhook_deliveries` table
+(migration `069_webhook_deliveries.sql`) in addition to the aggregate counters on
+the `webhooks` row. Kind metadata (Slack / Discord / Telegram / custom payload
+transformers) was added by `070_webhooks_kind_metadata.sql`.
 
 ## Payload Examples
 
@@ -213,21 +169,20 @@ absence).
 
 ## Best Practices
 
-- **Verify the signature on every delivery** against the raw body — prevents
-  spoofed POSTs from anyone who guesses your webhook URL.
-- **Respond 2xx within ~5 seconds** — the dispatcher times out at 10 s. Slow
-  receivers will eat retries and inflate `failure_count`.
+- **Verify the signature on every delivery** against the raw body — this
+  prevented spoofed POSTs from anyone who guessed a webhook URL.
+- **Respond 2xx within ~5 seconds** — the dispatcher timed out at 10 s; slow
+  receivers consumed retries and inflated `failure_count`.
 - **Make handlers idempotent** — retries and at-least-once delivery semantics
-  mean duplicates are possible.
-- **Subscribe minimally** — list only events you actually consume; `"*"` will
-  add cost on receivers you do not control.
-- **Watch `failure_count`** — endpoints are auto-disabled at 10 consecutive
-  after fixing the receiver.
-- **Rotate secrets periodically** — `PUT` a new `secret`, deploy the new value
-  to the receiver, and confirm via the test endpoint.
+  meant duplicates were possible.
+- **Subscribe minimally** — `"*"` added cost on receivers you do not control.
+- **Watch `failure_count`** — endpoints were auto-disabled at 10 failures and
+  had to be re-enabled after fixing the receiver.
+- **Rotate secrets periodically** — update the stored `secret`, deploy the new
+  value to the receiver, and confirm with a test delivery.
 
 ## See Also
 
-- [API_REFERENCE.md](../reference/API_REFERENCE.md) — full management API surface
+- [API_REFERENCE.md](../reference/API_REFERENCE.md) — retained API surface; webhook management routes were removed
 - [RESILIENCE_GUIDE.md](../architecture/RESILIENCE_GUIDE.md) — circuit breaker / cooldown
   semantics behind provider failures surfaced via `request.failed`

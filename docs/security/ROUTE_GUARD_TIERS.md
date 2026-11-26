@@ -71,33 +71,27 @@ default for any new LOCAL_ONLY path remains strict-loopback. Unauthenticated
 requests and requests with non-manage keys are still rejected with
 `403 LOCAL_ONLY`.
 
-The second is read-only JSON that spawns nothing; it is on the list so that
-Resilience > Connections loads on a remote dashboard (managed instance, tunnel,
-reverse proxy) for an authenticated dashboard session or a `manage` key, while an
-anonymous remote caller still gets `403 LOCAL_ONLY` — also when
-`requireLogin=false`. An install that stored its own list keeps that list.
-they can spawn arbitrary subprocesses (`npm install`, `node`), which is the exact
-CVE class the LOCAL_ONLY tier exists to prevent.
+The sole default entry, `/api/resilience/connections`, is read-only JSON that
+spawns nothing; it is on the list so Resilience > Connections loads on a remote
+dashboard (managed instance, tunnel, reverse proxy) for an authenticated
+dashboard session or a `manage` key, while an anonymous remote caller still gets
+`403 LOCAL_ONLY` — also when `requireLogin=false`. An install that stored its own
+list keeps that list. Spawn-capable prefixes can never be added: the zod schema
+rejects them and `isLocalOnlyBypassableByManageScope()` denies them at runtime,
+which is what the dashboard means by "cannot be made bypassable".
 
 #### Read-method exemptions
 
-A few LOCAL_ONLY paths are exempt for `GET`/`HEAD`/`OPTIONS` only, by exact path
-(`LOCAL_ONLY_API_GET_EXEMPTIONS`): the read performs no spawn, the write methods
-(two SQLite reads) so Skills > Executions loads on a remote dashboard, while
-container spawn, stays loopback-only. An exempt read falls to the MANAGEMENT tier.
+A few exact paths are exempt for `GET`/`HEAD`/`OPTIONS` only
+(`LOCAL_ONLY_API_GET_EXEMPTIONS` in `src/server/authz/routeGuard.ts`): the safe
+read performs no spawn while the write methods stay loopback-only. An exempt read
+falls to the MANAGEMENT tier.
 
-a Bearer key holding the narrow `mcp:connect` scope
-(`src/shared/constants/managementScopes.ts::MCP_CONNECT_SCOPE`), checked via
-`hasMcpConnectOrManageScope()` in `src/server/authz/policies/management.ts`.
-management route (including every other LOCAL_ONLY bypass prefix, should one
-ever be added), and it is deliberately excluded from
-`MANAGEMENT_API_KEY_SCOPES`. A key holding `manage`/`admin` still passes the
-carve-out exactly as before; `mcp:connect` is a lower-privilege alternative
-for remote MCP-only callers who should not need broad management access.
-
-| Request                 | Path           | Result              |
-| ----------------------- | -------------- | ------------------- |
-| Loopback, any/no Bearer | any LOCAL_ONLY | Allow (gate passes) |
+| Request                                  | Path                          | Result              |
+| ---------------------------------------- | ----------------------------- | ------------------- |
+| Non-loopback, no Bearer                  | `/api/resilience/connections` | 403 LOCAL_ONLY      |
+| Non-loopback, Bearer with `manage` scope | `/api/resilience/connections` | Allow               |
+| Loopback, any/no Bearer                  | any LOCAL_ONLY                | Allow (gate passes) |
 
 #### Operator guidance & auditing
 
@@ -171,16 +165,13 @@ refuses a vault that is, sits inside, or contains the data directory.
 #### Credential exports and restores are operator-only
 
 The tier above only decides whether _some_ credential is required. The routes that download
-stored credentials add a second check in the handler: `GET /api/settings/export-json` (decrypted
-(`src/lib/api/operatorCredential.ts`). It accepts a dashboard session, the local CLI subject, or
-an instance with login disabled, and answers `403` to API keys of any scope (including `manage`
-and `admin`) and to `oma_` access tokens. The destructive counterparts hold the same boundary:
-(restore a stored backup by id) and `POST /api/settings/import-json` (legacy JSON restore)
-replace the live database or the whole settings/connections/API-key set, so a machine credential
-cannot trigger them either. Destroying restore points holds the same boundary:
-`cleanupDbBackups()` applies after every automatic backup (`src/lib/db/backup.ts`), so a machine
-credential that could save `keepLatest: 1` would prune everything on the next snapshot. Listing
-internal-service token.
+or replace stored credentials add a second check in the handler. `GET /api/settings/export-json`
+returns every stored credential (decrypted provider connections and raw API keys) and calls
+`requireOperatorCredential()` (`src/lib/api/operatorCredential.ts`); `POST /api/settings/import-json`
+replaces the whole settings/connections/API-key set and holds the same boundary. Both accept a
+dashboard session, the local CLI subject, or an instance with login disabled, and answer `403`
+to API keys of any scope (including `manage` and `admin`) and to `oma_` access tokens, so a
+machine credential cannot trigger either one.
 
 ### Fresh-install bootstrap is loopback-only — by real peer, not `Host`
 
@@ -244,9 +235,10 @@ expired DB doesn't silently downgrade to "deny".
    does, stop — this carve-out is the wrong tool.
 2. Append the prefix to `LOCAL_ONLY_MANAGE_SCOPE_BYPASS_PREFIXES` in
    `src/server/authz/routeGuard.ts`
-3. Add coverage in `tests/unit/authz/management-policy.test.ts` for all four
-   request shapes: no Bearer (403), manage Bearer (allow), non-manage Bearer
-   strict-loopback even with a manage Bearer.
+3. Add coverage in `tests/unit/authz/management-policy.test.ts` for the relevant
+   request shapes: no Bearer (403), non-manage Bearer (403), manage Bearer (allow)
+   and loopback (allow). A spawn-capable path stays strict-loopback even with a
+   `manage` Bearer.
 
 ## Files
 
@@ -292,4 +284,3 @@ without also implementing the enforcement logic.
 
 - `docs/security/CLI_TOKEN.md` — CLI machine-ID token
 - `docs/architecture/AUTHZ_GUIDE.md` — full authorization pipeline
-- `docs/frameworks/MCP-SERVER.md` — MCP server transports and scopes

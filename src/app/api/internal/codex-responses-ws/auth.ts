@@ -71,7 +71,10 @@ export function extractWsTokenFromRequest(request: Request): string | null {
 }
 
 async function getWsRuntimeConfig(): Promise<{ wsAuth: boolean }> {
-  const settings = await getSettings().catch(() => ({}));
+  const settings = await getSettings().catch((error) => {
+    console.debug("[codex-ws] getSettings failed; wsAuth falls back to false:", error);
+    return {};
+  });
   return { wsAuth: settings.wsAuth === true };
 }
 

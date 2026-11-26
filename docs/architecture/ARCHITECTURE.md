@@ -56,21 +56,14 @@ Core capabilities:
 - Combo target telemetry and historical combo target health via `combo_execution_key` / `combo_step_id`
 - Correlation ID (X-Request-Id) for end-to-end tracing
 - Compliance audit logging with opt-out per API key
-- Eval framework for LLM quality assurance
 - Health dashboard with real-time provider circuit breaker status
-- MCP Server (110 tools) with 3 transports (stdio/SSE/Streamable HTTP)
-- A2A Server (JSON-RPC 2.0 + SSE) with skills and task lifecycle
-- Memory system (extraction, injection, retrieval, summarization)
 - Skills system (registry, executor, sandbox, built-in skills)
 - MITM proxy with certificate management and DNS handling
 - Prompt injection guard middleware
 - Prompt compression pipeline with Caveman, RTK, stacked pipelines, compression combos, language packs, and analytics
-- ACP (Agent Communication Protocol) registry
 - Modular OAuth providers (22 individual modules under `src/lib/oauth/providers/`)
 - Uninstall/full-uninstall scripts
 - OAuth environment repair action
-- WebSocket bridge for OpenAI-compatible WS clients (`/v1/ws`)
-- Sync token management (issue/revoke, ETag-versioned config bundle download)
 - GLM Thinking (`glmt`) first-class provider preset
 - Hybrid token counting (provider-side `/messages/count_tokens` with estimation fallback)
 - Model alias auto-seeding (30+ cross-proxy dialect normalizations at startup)
@@ -108,7 +101,6 @@ the rest are linked from their domain-specific guides.
 - Provider authentication and token refresh
 - Request translation and SSE streaming
 - Local state + usage persistence
-- Optional cloud sync orchestration
 
 ### Out of Scope
 
@@ -121,19 +113,14 @@ the rest are linked from their domain-specific guides.
 Main pages under `src/app/(dashboard)/dashboard/`:
 
 - `/dashboard` — quick start + provider overview
-- `/dashboard/endpoint` — endpoint proxy + MCP + A2A + API endpoint tabs
+- `/dashboard/endpoint` — endpoint proxy and API endpoint tabs
 - `/dashboard/providers` — provider connections and credentials
 - `/dashboard/combos` — combo strategies, templates, step-based builder, model routing rules, manual persisted ordering
 - `/dashboard/auto-combo` — Auto Combo Engine: scoring weights, mode packs, virtual factory presets, telemetry
 - `/dashboard/costs` — cost aggregation and pricing visibility
-- `/dashboard/analytics` — usage analytics, evaluations, combo target health
+- `/dashboard/analytics` — usage analytics and combo target health
 - `/dashboard/limits` — quota/rate controls
-- `/dashboard/cli-tools` — CLI onboarding, runtime detection, config generation
-- `/dashboard/agents` — detected ACP agents + custom agent registration
-- `/dashboard/cloud-agents` — cloud-hosted agent tasks (Codex Cloud, Devin, Jules) and task lifecycle
-- `/dashboard/skills` — A2A skill registry, sandbox execution, built-in skill catalog
-- `/dashboard/memory` — persistent conversational memory inspection and retrieval
-- `/dashboard/webhooks` — outbound webhook subscriptions, secret rotation, retry stats
+- `/dashboard/resilience` — provider breakers, connection cooldowns, model lockouts
 - `/dashboard/batch` — batch job submission and progress
 - `/dashboard/cache` — read-through and reasoning cache statistics, eviction controls
 - `/dashboard/playground` — interactive chat playground against any configured combo/model
@@ -188,10 +175,6 @@ flowchart LR
         P3[Compatible Nodes\nOpenAI-compatible / Anthropic-compatible]
     end
 
-    subgraph Cloud[Optional Cloud Sync]
-        CLOUD[Cloud Sync Endpoint\nNEXT_PUBLIC_CLOUD_URL]
-    end
-
     C1 --> API
     C2 --> API
     C3 --> API
@@ -206,8 +189,6 @@ flowchart LR
     CORE --> P1
     CORE --> P2
     CORE --> P3
-
-    DASH --> CLOUD
 ```
 
 ## Core Runtime Components
@@ -246,8 +227,6 @@ Management domains:
 - OAuth: `src/app/api/oauth/*`
 - Keys/aliases/combos/pricing: `src/app/api/keys*`, `src/app/api/models/alias`, `src/app/api/combos*`, `src/app/api/pricing`
 - Usage: `src/app/api/usage/*`
-- Sync/cloud: `src/app/api/sync/*`, `src/app/api/cloud/*`
-- CLI tooling helpers: `src/app/api/cli-tools/*`
 - IP filter: `src/app/api/settings/ip-filter` (GET/PUT)
 - Thinking budget: `src/app/api/settings/thinking-budget` (GET/PUT)
 - System prompt: `src/app/api/settings/system-prompt` (GET/PUT)
@@ -262,10 +241,7 @@ Management domains:
 - Budget: `src/app/api/usage/budget` (GET/POST)
 - Fallback chains: `src/app/api/fallback/chains` (GET/POST/DELETE)
 - Compliance audit: `src/app/api/compliance/audit-log` (GET, with pagination + structured metadata)
-- Evals: `src/app/api/evals` (GET/POST), `src/app/api/evals/[suiteId]` (GET)
 - Policies: `src/app/api/policies` (GET/POST)
-- Sync tokens: `src/app/api/sync/tokens` (GET/POST), `src/app/api/sync/tokens/[id]` (GET/DELETE)
-- Config bundle: `src/app/api/sync/bundle` (GET, ETag-versioned snapshot of settings/providers/combos/keys)
 
 ## 2) SSE + Translation Core
 
@@ -334,25 +310,14 @@ OAuth provider modules (27 individual files under `src/lib/oauth/providers/`):
 - Shared helpers: `codebuddyDeviceAuth.ts` (CodeBuddy CN/intl device flow), `museCodeDeviceResponse.ts`
 - Thin wrapper: `src/lib/oauth/providers.ts` — re-exports from individual modules
 
-## 5) Embedded Services (v3.8.4)
+## 5) 9Router compatibility provider
 
-OmniRoute can install, supervise, and route to locally-running AI tool processes
-called **embedded services**. Five are shipped: 9Router, CLIProxyAPI, Bifrost, Mux and Dario.
-
-Architecture layers:
-
-- **UI** (`/dashboard/providers/services`) — two-tab page with lifecycle controls,
-  live log streaming, API key management, and (for 9Router) embedded native UI via
-  an internal reverse proxy.
-- **Supervisor** (`src/lib/services/`) — generic `ServiceSupervisor` class wraps
-  `child_process.spawn`, holds a 5 MB ring buffer for SSE log streaming, a health
-  probe loop, an atomic operation lock, and a SIGTERM→SIGKILL graceful shutdown.
-  `bootstrap.ts` wires all configured services at process start.
-- **Provider/executor** (`open-sse/executors/ninerouter.ts`) — 9Router is exposed as
-  a real provider. Models are prefixed `9router/{sub}/{model}` and synced every 5 min
-  from 9Router's `/v1/models` endpoint.
-
-Deep-dive: `docs/frameworks/EMBEDDED-SERVICES.md`
+The embedded-service supervisor, its installers and the `/dashboard/providers/services`
+page were removed with the Hermes inference-scope prune. The 9Router executor remains
+as a regular provider path: `open-sse/executors/ninerouter.ts` is registered in
+`open-sse/executors/index.ts` under the `9router`/`nr` keys and strips the `9router/`
+model prefix before forwarding to the configured upstream. There is no local process
+management or embedded service UI in this tree.
 
 ## Major Subsystems (v3.8.0)
 
@@ -391,23 +356,7 @@ Key capabilities:
 For full algorithmic detail (factor formulas, weight tuning), see
 [`docs/routing/AUTO-COMBO.md`](../routing/AUTO-COMBO.md).
 
-### B. Cloud Agents
-
-Cloud Agents wraps third-party hosted code-agent platforms (Codex Cloud, Devin,
-Jules) behind a uniform DB-backed task lifecycle. All task creation/inspection
-endpoints require management authentication.
-
-- Module root: `src/lib/cloudAgent/` (`baseAgent.ts`, `registry.ts`, `api.ts`,
-  `types.ts`, `db.ts`, plus per-agent subdirectories under `agents/`)
-- Per-agent implementations: `agents/codex/`, `agents/devin/`, `agents/jules/`
-- Public endpoints: `/api/v1/agents/tasks/*` (list/create/get/cancel)
-- Dashboard: `/dashboard/cloud-agents`
-- Storage: `cloud_agent_tasks` table
-
-For per-agent provisioning and OAuth specifics, see
-[`docs/frameworks/CLOUD_AGENT.md`](../frameworks/CLOUD_AGENT.md).
-
-### C. Guardrails
+### B. Guardrails
 
 The guardrails module is a hot-reloadable middleware layer that inspects requests
 and responses for PII, prompt injection, and unsafe vision content. Violations
@@ -423,7 +372,7 @@ downstream callers to retry or branch.
 For ruleset authoring and threshold tuning, see
 [`docs/security/GUARDRAILS.md`](../security/GUARDRAILS.md).
 
-### D. Domain Layer
+### C. Domain Layer
 
 The `src/domain/` namespace contains domain services and reserved evaluation contracts.
 It is not one mandatory policy entry point for every request.
@@ -461,7 +410,7 @@ connecting or removing them requires a separate design decision.
 - OmniRoute response metadata builder: `src/domain/omnirouteResponseMeta.ts`
 - Assessment subsystem: `src/domain/assessment/` — periodic evaluation jobs
 
-### E. Authorization Pipeline
+### D. Authorization Pipeline
 
 The authorization pipeline classifies every incoming request and applies the
 appropriate policy chain before dispatch.
@@ -482,7 +431,7 @@ provider mutations require management auth (HTTP 401 if missing).
 For the full route classification rules, see
 [`docs/architecture/AUTHZ_GUIDE.md`](./AUTHZ_GUIDE.md).
 
-### F. Workflow FSM and Task-Aware Router
+### E. Workflow FSM and Task-Aware Router
 
 A finite-state-machine driven router layered above combo selection to direct
 traffic based on the detected workflow stage (planning, execution,
@@ -497,7 +446,7 @@ The FSM transitions feed into Auto Combo's scoring, biasing toward cheaper model
 for background/automation tasks and toward stronger models for interactive
 planning/review turns.
 
-### G. Provider-Specific Resilience
+### F. Provider-Specific Resilience
 
 Several providers ship dedicated resilience and stealth modules that piggy-back on
 the global circuit breaker / connection cooldown / model lockout layers:
@@ -520,9 +469,8 @@ the global circuit breaker / connection cooldown / model lockout layers:
 For the full stealth playbook and operational guidance, see
 `docs/security/STEALTH_GUIDE.md` (git; not compiled into `/docs`).
 
-### H. Webhooks, Reasoning Cache, Read Cache
+### G. Reasoning Cache, Read Cache
 
-- **Webhooks** — outbound dispatch for provider/account/task events.
 - **Reasoning Cache** — replayable reasoning blocks for providers that emit
   thinking tokens (Claude, GLMT, etc.) so consecutive turns can skip re-thinking.
   - DB layer: `src/lib/db/reasoningCache.ts`
@@ -563,14 +511,13 @@ Domain State DB (SQLite):
 - Outbound proxy support via `open-sse/utils/proxyFetch.ts` (env vars) and `open-sse/utils/networkProxy.ts` (configurable per-provider or global)
 - SSRF / outbound URL guard: `src/shared/network/outboundUrlGuard.ts` — host checks on provider calls and webhook targets; the mode comes from `src/shared/network/outboundUrlGuardPolicy.ts` (flags in `docs/reference/ENVIRONMENT.md`)
 - Runtime env validation: `src/lib/env/runtimeEnv.ts` — Zod schema for all environment variables, surfaced as startup errors/warnings
-- Sync tokens: `src/lib/db/syncTokens.ts` — scoped tokens for config bundle download endpoints; backed by `sync_tokens` SQLite table (migration `024_create_sync_tokens.sql`)
 
-## 5) Cloud Sync
+## 5) Sync schedulers
 
-- Scheduler init: `src/lib/initCloudSync.ts`, `src/shared/services/initializeCloudSync.ts`, `src/shared/services/modelSyncScheduler.ts`
-- Periodic task: `src/shared/services/cloudSyncScheduler.ts`
-- Periodic task: `src/shared/services/modelSyncScheduler.ts`
-- Periodic task (opt-in per connection): `src/shared/services/modelHealthCheckScheduler.ts` — tests a connection's models, auto-hides failures and restores only what it hid itself (`src/lib/db/modelHealthAutoHidden.ts`)
+- Boot init: `src/lib/initCloudSync.ts` → `src/shared/services/initializeCloudSync.ts` starts the retained schedulers; the removed config-bundle download endpoints are not part of this path
+- Cloud sync: `src/shared/services/cloudSyncScheduler.ts` — periodic cloud sync task
+- Model sync: `src/shared/services/modelSyncScheduler.ts` — periodic per-connection model refresh; `/api/providers/[id]/sync-models` can trigger it explicitly
+- Model health (opt-in per connection): `src/shared/services/modelHealthCheckScheduler.ts` — tests a connection's models, auto-hides failures and restores only what it hid itself (`src/lib/db/modelHealthAutoHidden.ts`)
 
 ## Request Lifecycle (`/v1/chat/completions`)
 
@@ -682,40 +629,6 @@ sequenceDiagram
 ```
 
 Refresh during live traffic is executed inside `open-sse/handlers/chatCore.ts` via executor `refreshCredentials()`.
-
-## Cloud Sync Lifecycle (Enable / Sync / Disable)
-
-```mermaid
-sequenceDiagram
-    autonumber
-    participant UI as Endpoint Page UI
-    participant Sync as /api/sync/cloud
-    participant DB as localDb
-    participant Cloud as External Cloud Sync
-    participant Claude as ~/.claude/settings.json
-
-    UI->>Sync: POST action=enable
-    Sync->>DB: set cloudEnabled=true
-    Sync->>DB: ensure API key exists
-    Sync->>Cloud: POST /sync/{machineId} (providers/aliases/combos/keys)
-    Cloud-->>Sync: sync result
-    Sync->>Cloud: GET /{machineId}/v1/verify
-    Sync-->>UI: enabled + verification status
-
-    UI->>Sync: POST action=sync
-    Sync->>Cloud: POST /sync/{machineId}
-    Cloud-->>Sync: remote data
-    Sync->>DB: update newer local tokens/status
-    Sync-->>UI: synced
-
-    UI->>Sync: POST action=disable
-    Sync->>DB: set cloudEnabled=false
-    Sync->>Cloud: DELETE /sync/{machineId}
-    Sync->>Claude: switch ANTHROPIC_BASE_URL back to local (if needed)
-    Sync-->>UI: disabled
-```
-
-Periodic sync is triggered by `CloudSyncScheduler` when cloud is enabled.
 
 ## Data Model and Storage Map
 
@@ -830,7 +743,7 @@ Physical storage files:
 ```mermaid
 flowchart LR
     subgraph LocalHost[Developer Host]
-        CLI[CLI Tools]
+        CLI[OmniRoute CLI]
         Browser[Dashboard Browser]
     end
 
@@ -843,7 +756,6 @@ flowchart LR
 
     subgraph External[External Services]
         Providers[AI Providers]
-        SyncCloud[Cloud Sync Service]
     end
 
     CLI --> Next
@@ -853,7 +765,6 @@ flowchart LR
     Core --> MainDB
     Core --> UsageDB
     Core --> Providers
-    Next --> SyncCloud
 ```
 
 ## Module Mapping (Decision-Critical)
@@ -874,8 +785,6 @@ flowchart LR
 - `src/app/api/settings/proxy`: proxy configuration (GET/PUT/DELETE)
 - `src/app/api/settings/proxy/test`: outbound proxy connectivity test (POST)
 - `src/app/api/usage/*`: usage and logs APIs
-- `src/app/api/sync/*` + `src/app/api/cloud/*`: cloud sync and cloud-facing helpers
-- `src/app/api/cli-tools/*`: local CLI config writers/checkers
 - `src/app/api/settings/ip-filter`: IP allowlist/blocklist (GET/PUT)
 - `src/app/api/settings/thinking-budget`: thinking token budget config (GET/PUT)
 - `src/app/api/settings/system-prompt`: global system prompt (GET/PUT)
@@ -887,10 +796,6 @@ flowchart LR
 - `src/app/api/context/analytics`: compression analytics alias
 - `src/app/api/sessions`: active session listing (GET)
 - `src/app/api/rate-limits`: per-account rate limit status (GET)
-- `src/app/api/sync/tokens`: sync token CRUD (GET/POST)
-- `src/app/api/sync/tokens/[id]`: sync token get/delete (GET/DELETE)
-- `src/app/api/sync/bundle`: config bundle download (GET, ETag versioning)
-- `src/app/api/v1/ws`: WebSocket upgrade handler for OpenAI-compatible WS clients
 
 ### Routing and Execution Core
 
@@ -931,7 +836,7 @@ Each provider has a specialized executor extending `BaseExecutor` (in `open-sse/
 | `ChatGptWebCodexExecutor` | ChatGPT Web (Codex)                                                                                                                                         | Browser-session Responses API bridge with thread/turn pinning        |
 | `CommandCodeExecutor`     | Command Code                                                                                                                                                | OAuth + per-session header rotation                                  |
 | `CursorExecutor`          | Cursor IDE                                                                                                                                                  | ConnectRPC protocol, Protobuf encoding, request signing via checksum |
-| `DevinCliExecutor`        | Devin CLI                                                                                                                                                   | Devin task lifecycle bridging via cloud agent module                 |
+| `DevinCliExecutor`        | Devin CLI                                                                                                                                                   | Devin CLI task lifecycle and agentic-mode bridging                   |
 | `GithubExecutor`          | GitHub Copilot                                                                                                                                              | Copilot token refresh, VSCode-mimicking headers                      |
 | `GitlabExecutor`          | GitLab Duo                                                                                                                                                  | GitLab OAuth + project-scoped routing                                |
 | `GlmExecutor`             | Z.AI GLM (incl. `glmt` preset)                                                                                                                              | Thinking-budget aware, GLMT preset constants                         |
@@ -1118,7 +1023,7 @@ legacy compatibility. The current runtime contract uses:
 - translation stream with end-of-stream flush and `[DONE]` handling
 - usage estimation fallback when provider usage metadata is missing
 
-## 4) Cloud Sync Degradation
+## 4) Sync scheduler degradation
 
 - sync errors are surfaced but local runtime continues
 - scheduler has retry-capable logic, but periodic execution currently calls single-attempt sync by default

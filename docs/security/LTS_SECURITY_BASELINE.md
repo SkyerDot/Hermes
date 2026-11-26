@@ -18,9 +18,8 @@ The LTS support window itself is described in [`SECURITY.md`](../../SECURITY.md)
 | ------------------------------------------- | --------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | #11 — no public upstream credential literal | `npm run check:public-creds` (CI gate, key-based) + `tests/unit/public-creds-no-literals.test.ts` (value-based) | No Google OAuth client id, `GOCSPX-` secret, `AIza` key, GitHub OAuth app id or non-empty `client_secret` literal in `src/lib/oauth/`, `open-sse/` or `src/shared/constants/` outside a `resolvePublicCred()` call; `open-sse/utils/publicCreds.ts` keeps its embedded defaults as masked byte arrays. |
 
-The two tests complement the gates instead of duplicating them: both were validated by mutation
-(a helper module with `fork()` next to a route, and a bare `const` client id in
-`src/shared/constants/`) that turns the test red while the corresponding gate stays green.
+The test complements the gate instead of duplicating it: it was validated by mutation (a bare
+`const` client id in `src/shared/constants/`) that turns the test red while the gate stays green.
 
 ## 2. Dependency audit
 

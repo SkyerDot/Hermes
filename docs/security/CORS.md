@@ -69,19 +69,6 @@ letting CORS **preflight pass** on management routes — which still require aut
 that a cross-origin page cannot provide. It is **not** a session-hijack or
 credential-theft vector on the shared CORS path.
 
-### One genuine exception — `/api/v1/agents/`
-
-The Cloud-Agent routes (`/api/v1/agents/{health,credentials,tasks,tasks/[id]}`) set
-their **own** CORS headers
-`Access-Control-Allow-Origin: <origin>|*` together with
-`Access-Control-Allow-Credentials: true`. This is the single surface where
-origin-echo and credentials coexist, and it is **independent of
-`CORS_ALLOW_ALL`**. These routes are management-authenticated
-(`requireManagementAuth`); operators who expose the dashboard off-host should be
-aware that this is the one place a cross-origin credentialed read is permitted by
-the response headers. Tightening it to an explicit allowlist is tracked
-separately from this CORS guidance.
-
 ## Production checklist
 
 - **Never set `CORS_ALLOW_ALL=true` in production.** Leave it unset.
@@ -145,14 +132,13 @@ restart.
   management/dashboard origins out of any permissive config; they must stay exactly
   fail-closed.
 
-## WebSocket handshakes (`/v1/responses`, `/v1/ws`)
+## WebSocket handshake (`/v1/responses`)
 
-Browsers do not apply CORS to WebSocket, so the WebSocket transports that return
-inference output check the handshake `Origin` themselves
-when OmniRoute runs through `npm start` / `npm run dev`, the `/v1/ws` and
-`/api/v1/ws` bridge, which streams `/v1/chat/completions`, `/v1/messages` and
-`/v1/responses` as frames. The bridge asks `/api/v1/ws?handshake=1` for the
-verdict and refuses to upgrade unless that route ran the check. A handshake is
+Browsers do not apply CORS to WebSocket, so the Responses WebSocket checks the
+handshake `Origin` itself in `src/app/api/internal/codex-responses-ws/origin.ts`.
+When OmniRoute runs through `npm start` / `npm run dev`, the bundled WS server
+upgrades `/v1/responses` (and its `/responses` / `/api/v1/responses` aliases) and
+forwards the handshake headers to that helper before upgrading. A handshake is
 accepted when:
 
 - it has no `Origin` header (Codex CLI, SDKs and other non-browser clients);
@@ -202,6 +188,7 @@ Security tab), not in the proxy.
 | Runtime status for the dashboard                | `src/app/api/settings/authz-inventory/route.ts`                      |
 | Dashboard warning banner                        | `src/app/(dashboard)/dashboard/settings/components/AuthzSection.tsx` |
 | CORS Allowed Origins field                      | `src/app/(dashboard)/dashboard/settings/components/SecurityTab.tsx`  |
+| Responses WS handshake `Origin` check           | `src/app/api/internal/codex-responses-ws/origin.ts`                  |
 
 ## See also
 

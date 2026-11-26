@@ -27,6 +27,7 @@ export function isWebSocketOriginAllowed(request: Request): boolean {
   try {
     normalizedOrigin = normalizeOrigin(origin);
   } catch {
+    // Invalid handshake Origin (null / non-http(s)) is a verdict, not a swallowed error.
     return false;
   }
 
