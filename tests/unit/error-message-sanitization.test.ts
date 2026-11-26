@@ -24,7 +24,6 @@ const core = await import("../../src/lib/db/core.ts");
 const combosDb = await import("../../src/lib/db/combos.ts");
 const mappingsRoute = await import("../../src/app/api/model-combo-mappings/route.ts");
 const mappingsIdRoute = await import("../../src/app/api/model-combo-mappings/[id]/route.ts");
-const syncTokens = await import("../../src/lib/sync/tokens.ts");
 
 const repoRoot = path.resolve(import.meta.dirname, "../..");
 const read = (relPath: string) => fs.readFileSync(path.join(repoRoot, relPath), "utf8");
@@ -175,48 +174,6 @@ test("PUT /model-combo-mappings/[id] returns 404 for non-existent mapping", asyn
   const body = (await res.json()) as any;
   assert.equal(body.error, "Mapping not found");
   assert.ok(!("stack" in body));
-});
-
-// ── sync token hashing (src/lib/sync/tokens.ts) ──────────────────────────────
-
-test("hashSyncToken returns a 64-character hex string (SHA-256 output)", () => {
-  const token = syncTokens.generatePlaintextSyncToken();
-  const hash = syncTokens.hashSyncToken(token);
-  assert.match(hash, /^[0-9a-f]{64}$/, "hash must be 64 lowercase hex chars");
-});
-
-test("hashSyncToken is deterministic — same input always produces same output", () => {
-  const token = syncTokens.generatePlaintextSyncToken();
-  assert.equal(
-    syncTokens.hashSyncToken(token),
-    syncTokens.hashSyncToken(token),
-    "hashing the same token twice must yield the same result"
-  );
-});
-
-test("hashSyncToken produces different hashes for different tokens", () => {
-  const a = syncTokens.generatePlaintextSyncToken();
-  const b = syncTokens.generatePlaintextSyncToken();
-  assert.notEqual(
-    syncTokens.hashSyncToken(a),
-    syncTokens.hashSyncToken(b),
-    "different tokens must produce different hashes"
-  );
-});
-
-test("generatePlaintextSyncToken starts with osync_ prefix", () => {
-  const token = syncTokens.generatePlaintextSyncToken();
-  assert.ok(
-    token.startsWith("osync_"),
-    `token must start with 'osync_', got: ${token.slice(0, 10)}`
-  );
-});
-
-test("hashSyncToken output is never the plain token (not stored in clear text)", () => {
-  const token = syncTokens.generatePlaintextSyncToken();
-  const hash = syncTokens.hashSyncToken(token);
-  assert.notEqual(hash, token, "hash must differ from plaintext token");
-  assert.ok(!hash.startsWith("osync_"), "hash must not start with the token prefix");
 });
 
 test("sanitizeErrorMessage strips multi-line stack traces", async () => {

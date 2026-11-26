@@ -11,7 +11,6 @@ import React from "react";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import messages from "../../../src/i18n/messages/en.json";
-import ClaudeCcDiscoveryInfoButton from "../../../src/app/(dashboard)/dashboard/cli-code/components/ClaudeCcDiscoveryInfoButton";
 import { SessionPicker } from "../../../src/app/(dashboard)/dashboard/tools/traffic-inspector/components/session/SessionPicker";
 import CacheTrends from "../../../src/app/(dashboard)/dashboard/cache/components/CacheTrends";
 import ComboDefaultsTab from "../../../src/app/(dashboard)/dashboard/settings/components/ComboDefaultsTab";
@@ -26,32 +25,6 @@ async function nextTick() {
     await new Promise((resolve) => setTimeout(resolve, 0));
   });
 }
-
-describe("ClaudeCcDiscoveryInfoButton", () => {
-  it("opens the explanation in a portaled kit Popover and closes it on Escape", async () => {
-    const { container } = render(<ClaudeCcDiscoveryInfoButton />);
-    const trigger = screen.getByRole("button", { name: messages.cliTools.ccDiscoveryInfoButton });
-    expect(popoverPanel()).toBeNull();
-    expect(trigger.getAttribute("aria-expanded")).toBe("false");
-
-    fireEvent.click(trigger);
-    const panel = popoverPanel()!;
-    expect(panel).not.toBeNull();
-    expect(panel.classList.contains("ci-popover")).toBe(true);
-    // Portaled to the body: an `overflow: hidden` card cannot clip it.
-    expect(container.contains(panel)).toBe(false);
-    expect(trigger.getAttribute("aria-expanded")).toBe("true");
-    expect(panel.textContent).toContain(messages.cliTools.ccDiscoveryInfoTooltip);
-    expect(panel.querySelector("a")?.getAttribute("href")).toBe(
-      "/dashboard/settings/feature-flags"
-    );
-
-    fireEvent.keyDown(document, { key: "Escape" });
-    expect(popoverPanel()).toBeNull();
-    await nextTick();
-    expect(document.activeElement).toBe(trigger);
-  });
-});
 
 describe("SessionPicker", () => {
   const sessions = [

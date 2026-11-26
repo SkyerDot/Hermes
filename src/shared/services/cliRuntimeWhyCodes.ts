@@ -2,7 +2,7 @@
 // frozen file under its file-size ratchet cap (config/quality/file-size-baseline.json).
 // Untyped on purpose, like cliRuntimeGrokBuild.ts (matches CLI_TOOLS' `Record<string, any>`).
 
-import { getWhyCodesConfigPath } from "@/lib/cli-helper/config-generator/whycodesHome";
+import { getWhyCodesConfigPath } from "./cliRuntimeWhyCodesHome";
 
 /**
  * WhyCodes: honour WHYCODES_HOME / ~/.whycodes instead of a $HOME-relative join.

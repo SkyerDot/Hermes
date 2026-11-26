@@ -87,7 +87,7 @@ async function withDataDir(run: (dir: string) => Promise<void>): Promise<void> {
 }
 
 const freshServer = () => import(`../../src/lib/machineToken.ts?security=${randomUUID()}`);
-const freshCli = () => import(`../../bin/cli/utils/cliToken.mjs?security=${randomUUID()}`);
+const freshCli = () => import(`../../scripts/lib/cliToken.mjs?security=${randomUUID()}`);
 
 for (const failure of ["unwritable directory", "corrupt existing salt"]) {
   test(`server and CLI warn once for ${failure} without changing existing tokens`, async (t) => {

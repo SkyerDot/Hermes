@@ -12,7 +12,7 @@ import { getDbInstance } from "./core";
 import {
   getSemanticCachePruneConfig,
   type SemanticCachePruneConfig,
-} from "../jobs/semanticCachePruneConfig";
+} from "../scheduler/semanticCachePruneConfig";
 
 // ---------------------------------------------------------------------------
 // Shared types

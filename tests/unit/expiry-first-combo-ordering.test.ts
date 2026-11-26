@@ -34,7 +34,6 @@ const { getStrategyTraits } = await import("../../open-sse/services/combo/strate
 const { HANDLED_COMBO_STRATEGIES } =
   await import("../../open-sse/services/combo/strategyDispatch.ts");
 const { createComboSchema } = await import("../../src/shared/validation/schemas.ts");
-const { runComboCreateCommand } = await import("../../bin/cli/commands/combo.mjs");
 const { handleComboChat } = await import("../../open-sse/services/combo.ts");
 const { saveModelsDevCapabilities } = await import("../../src/lib/modelsDevSync.ts");
 const evalsDb = await import("../../src/lib/db/evals.ts");
@@ -352,21 +351,8 @@ describe("expiry-first combo ordering", () => {
     });
     assert.equal(parsed.success, true, JSON.stringify(parsed.success ? {} : parsed.error.issues));
 
-    // CLI: strategy validation precedes the models check, so reaching the
-    // models error proves VALID_STRATEGIES accepted "expiry-first".
-    const errors: string[] = [];
-    const originalError = console.error;
-    console.error = (msg: unknown) => errors.push(String(msg));
-    try {
-      const rc = await runComboCreateCommand("ef-c14", "expiry-first", { models: [] });
-      assert.equal(rc, 1);
-    } finally {
-      console.error = originalError;
-    }
-    assert.ok(
-      !errors.some((line) => line.includes("Invalid strategy")),
-      `CLI rejected the strategy: ${errors.join(" | ")}`
-    );
+    // The schema and strategy registry accept "expiry-first"; the routing tests
+    // below exercise the retained dispatch path.
   });
 
   it("case 16: Antigravity family scoping ranks on the bucket the model spends", async () => {

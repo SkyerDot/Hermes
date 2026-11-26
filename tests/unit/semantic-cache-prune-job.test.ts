@@ -8,7 +8,7 @@ const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "semantic-cache-prune-job-
 process.env.DATA_DIR = dataDir;
 const core = await import("../../src/lib/db/core.ts");
 const { startSemanticCachePruneJob, stopSemanticCachePruneJob } =
-  await import("../../src/lib/jobs/semanticCachePruneJob.ts");
+  await import("../../src/lib/scheduler/semanticCachePruneJob.ts");
 const intervalEnv = "OMNIROUTE_SEMANTIC_CACHE_PRUNE_INTERVAL_MS";
 const savedInterval = process.env[intervalEnv];
 const result = { expiredDeleted: 0, capDeleted: 0, batches: 1 };

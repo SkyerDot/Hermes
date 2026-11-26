@@ -3,9 +3,9 @@ import { startModelSyncScheduler } from "@/shared/services/modelSyncScheduler";
 import { startModelHealthCheckScheduler } from "@/shared/services/modelHealthCheckScheduler";
 import { isAutomatedTestProcess } from "@/shared/utils/testProcess";
 import { getJobRegistry } from "@/lib/jobRegistry";
-import { registerBudgetResetJob } from "@/lib/jobs/budgetResetJob";
-import { registerTokenHealthCheck } from "@/lib/jobs/tokenHealthCheckJob";
-import { registerLogExportJob } from "@/lib/jobs/logExportJob";
+import { registerBudgetResetJob } from "@/lib/scheduler/budgetResetJob";
+import { registerTokenHealthCheck } from "@/lib/scheduler/tokenHealthCheckJob";
+import { registerLogExportJob } from "@/lib/scheduler/logExportJob";
 import { backfillVolcPlanAutoSync } from "@/lib/providers/volcPlanAutoSyncBackfill";
 
 // Initialize runtime background sync services once per server process.

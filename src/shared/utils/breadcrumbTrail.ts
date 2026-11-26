@@ -65,7 +65,6 @@ const BREADCRUMB_LABEL_KEYS: Readonly<Record<string, string>> = {
   edit: "edit",
   keys: "apiKeys",
   models: "models",
-  "cli-code": "cliCode",
   "cli-agents": "cliAgents",
   "acp-agents": "acpAgents",
   endpoint: "endpoint",

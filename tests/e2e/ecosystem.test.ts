@@ -158,20 +158,6 @@ describe("E2E: Auto-Combo (routing + self-healing)", () => {
   });
 });
 
-// ─── Scenario 4: OpenClaw Integration ────────────────────────────
-describe("E2E: OpenClaw Integration", () => {
-  itCase("should return dynamic provider.order", async () => {
-    const res = await apiFetch("/api/cli-tools/openclaw/auto-order");
-    expect(res.ok).toBe(true);
-    const data = (await res.json()) as any;
-    expect(data).toHaveProperty("provider");
-    expect(data.provider).toHaveProperty("order");
-    expect(Array.isArray(data.provider.order)).toBe(true);
-    expect(data.provider).toHaveProperty("allow_fallbacks");
-    expect(data).toHaveProperty("source");
-  });
-});
-
 // ─── Scenario 5: Stress Test ─────────────────────────────────────
 describe("E2E: Stress (100 parallel requests)", () => {
   itStress("should handle 100 health checks in <10s", async () => {

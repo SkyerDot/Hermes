@@ -4,22 +4,14 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-// Adoption of the new CI UI Kit APIs in the tools and CLI areas of the dashboard (slice a3,
+// Adoption of the new CI UI Kit APIs in the retained tools areas of the dashboard (slice a3,
 // 2026-11-18). Each test keeps one hand-made pattern from coming back where the kit now has a
 // prop for it. The scan is static and covers only the directories below; every kept exception
 // is listed with its reason.
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
 const DASHBOARD = "src/app/(dashboard)/dashboard";
-const AREAS = [
-  "tools",
-  "cli-code",
-  "cli-agents",
-  "agent-skills",
-  "omni-skills",
-  "runtime",
-  "discovery",
-];
+const AREAS = ["tools", "cli-agents", "agent-skills", "omni-skills", "runtime", "discovery"];
 
 function walk(dir: string, out: string[] = []): string[] {
   if (!fs.existsSync(dir)) return out;
@@ -80,7 +72,7 @@ const isException = (list: Exception[], tag: Tag) =>
 
 const where = (tags: Tag[]) => tags.map((t) => `${t.file}:${t.line}`).join("\n");
 
-test("the scan reaches the tools and CLI areas", () => {
+test("the scan reaches the retained tools areas", () => {
   assert.ok(FILES.length >= 100, `only ${FILES.length} files scanned`);
 });
 

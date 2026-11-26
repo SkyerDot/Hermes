@@ -16,7 +16,7 @@ import { randomBytes } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { promisify } from "node:util";
-import { readPrivateConfigFile, writePrivateConfigFile } from "@/lib/cli-helper/privateConfigFile";
+import { readPrivateConfigFile, writePrivateConfigFile } from "@/shared/services/privateConfigFile";
 import { checkArgsFor } from "./pathGuard";
 
 export type ApplyBesideReason =

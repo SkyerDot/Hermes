@@ -6,20 +6,10 @@ import { join } from "node:path";
 const repoRoot = join(import.meta.dirname, "../..");
 const configSource = await readFile(join(repoRoot, "next.config.mjs"), "utf8");
 
-test("next.config.mjs has permanent redirect from /dashboard/cli-tools to /dashboard/cli-code", () => {
-  assert.ok(
-    configSource.includes('source: "/dashboard/cli-tools"') &&
-      configSource.includes('destination: "/dashboard/cli-code"'),
-    "expected /dashboard/cli-tools → /dashboard/cli-code redirect in next.config.mjs"
-  );
-});
-
-test("next.config.mjs has permanent wildcard redirect from /dashboard/cli-tools/:path* to /dashboard/cli-code/:path*", () => {
-  assert.ok(
-    configSource.includes('source: "/dashboard/cli-tools/:path*"') &&
-      configSource.includes('destination: "/dashboard/cli-code/:path*"'),
-    "expected /dashboard/cli-tools/:path* → /dashboard/cli-code/:path* redirect in next.config.mjs"
-  );
+test("next.config.mjs no longer redirects to the removed CLI dashboard", () => {
+  assert.equal(configSource.includes('destination: "/dashboard/cli-code"'), false);
+  assert.equal(configSource.includes('source: "/dashboard/cli-tools"'), false);
+  assert.equal(configSource.includes('source: "/dashboard/cli-tools/:path*"'), false);
 });
 
 test("next.config.mjs no longer redirects to removed agent tabs", () => {
@@ -32,16 +22,5 @@ test("next.config.mjs has permanent redirect from /dashboard/providers/freepik t
     configSource.includes('source: "/dashboard/providers/freepik"') &&
       configSource.includes('destination: "/dashboard/providers/magnific"'),
     "expected /dashboard/providers/freepik → /dashboard/providers/magnific redirect in next.config.mjs"
-  );
-});
-
-test("all remaining CLI redirect entries use permanent: true", () => {
-  // Extract the CLI Pages block
-  const cliBlock = configSource.slice(configSource.indexOf("// CLI Pages — Plano 14 (F9)"));
-  assert.ok(cliBlock.length > 0, "expected CLI Pages block to be present");
-  const permanentCount = (cliBlock.match(/permanent: true/g) || []).length;
-  assert.ok(
-    permanentCount >= 2,
-    `expected at least 2 'permanent: true' entries in CLI Pages block, found ${permanentCount}`
   );
 });

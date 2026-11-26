@@ -40,7 +40,7 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { pathToFileURL } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { DatabaseSync } from "node:sqlite";
 
 import {
@@ -91,7 +91,7 @@ const INTERNAL_SERVICE_HEADER = "x-omniroute-internal-service-token";
 // probed server boots on, or the token never matches.
 function derivePackagedCliToken(prefix, dataDir) {
   const cliModuleUrl = pathToFileURL(
-    path.join(packageRootFor(prefix), "bin", "cli", "utils", "cliToken.mjs")
+    path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../lib/cliToken.mjs")
   ).href;
   try {
     return execFileSync(

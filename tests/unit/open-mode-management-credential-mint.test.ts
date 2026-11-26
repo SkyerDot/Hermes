@@ -1,11 +1,8 @@
-// A key carrying a management scope (`manage` / `admin`) and an `oma_` CLI access token are both
-// accepted by the always-protected tier — the credential-export, log-export and shutdown routes
-// that stay authenticated when login is disabled. Handing one out anonymously would walk straight
-// past that tier, so with requireLogin=false:
+// A key carrying a management scope (`manage` / `admin`) is accepted by the always-protected tier
+// — the credential-export and log-export routes that stay authenticated when login is disabled.
+// Handing one out anonymously would walk straight past that tier, so with requireLogin=false:
 //   - creating a management-scoped key, granting the scope to an existing key, and regenerating or
 //     revealing a management-scoped key need a real credential (401 for an anonymous caller);
-//   - minting a CLI access token needs a real credential at any scope, and the machine-credential
-//     ceiling (manage-scoped keys top out at `write`) holds exactly as it does with login on;
 //   - inference-only keys keep the open-mode behaviour, and the dashboard session and the local
 //     CLI keep doing all of the above.
 import test from "node:test";
@@ -29,18 +26,15 @@ process.env.INITIAL_PASSWORD = "open-mode-mgmt-mint-password";
 
 const core = await import("../../src/lib/db/core.ts");
 const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
-const accessTokensDb = await import("../../src/lib/db/accessTokens.ts");
 const settingsDb = await import("../../src/lib/db/settings.ts");
 const keysRoute = await import("../../src/app/api/keys/route.ts");
 const keyByIdRoute = await import("../../src/app/api/keys/[id]/route.ts");
 const regenerateRoute = await import("../../src/app/api/keys/[id]/regenerate/route.ts");
 const revealRoute = await import("../../src/app/api/keys/[id]/reveal/route.ts");
-const cliTokensRoute = await import("../../src/app/api/cli/tokens/route.ts");
 const { AUTHZ_HEADER_AUTH_KIND, AUTHZ_HEADER_AUTH_LABEL } =
   await import("../../src/server/authz/headers.ts");
 
 const KEYS_URL = "http://localhost/api/keys";
-const TOKENS_URL = "http://localhost/api/cli/tokens";
 const MACHINE_ID = "machine-open-mode-mint";
 const ctx = (id: string) => ({ params: Promise.resolve({ id }) });
 
@@ -75,12 +69,6 @@ function anonymous(url: string, method = "GET", body?: Record<string, unknown>) 
     headers: body ? { "content-type": "application/json" } : {},
     body: body ? JSON.stringify(body) : undefined,
   });
-}
-
-function withBearer(url: string, token: string, method = "GET", body?: Record<string, unknown>) {
-  const request = anonymous(url, method, body);
-  request.headers.set("authorization", `Bearer ${token}`);
-  return request;
 }
 
 function localCli(url: string, method = "GET", body?: Record<string, unknown>) {
@@ -193,44 +181,6 @@ test("with login disabled, inference keys are still revealed anonymously", async
   const key = await apiKeysDb.createApiKey("inference", MACHINE_ID, []);
   const response = await revealRoute.GET(anonymous(`${KEYS_URL}/${key.id}/reveal`), ctx(key.id));
   assert.equal(response.status, 200);
-});
-
-for (const scope of ["read", "write", "admin"]) {
-  test(`with login disabled, an anonymous caller cannot mint a '${scope}' CLI token`, async () => {
-    await assertUnauthenticated(
-      await cliTokensRoute.POST(anonymous(TOKENS_URL, "POST", { name: `anon-${scope}`, scope }))
-    );
-    assert.equal(accessTokensDb.listAccessTokens().length, 0, "nothing may be persisted");
-  });
-}
-
-test("with login disabled, the dashboard session and the local CLI still mint admin CLI tokens", async () => {
-  const viaSession = await cliTokensRoute.POST(
-    await makeManagementSessionRequest(TOKENS_URL, {
-      method: "POST",
-      body: { name: "session-admin", scope: "admin" },
-    })
-  );
-  assert.equal(viaSession.status, 200);
-  const viaCli = await cliTokensRoute.POST(
-    localCli(TOKENS_URL, "POST", { name: "cli-admin", scope: "admin" })
-  );
-  assert.equal(viaCli.status, 200);
-  assert.equal(((await viaCli.json()) as { scope?: string }).scope, "admin");
-});
-
-test("with login disabled, a manage-scoped key keeps the machine ceiling: write yes, admin no", async () => {
-  const key = await apiKeysDb.createApiKey("automation", MACHINE_ID, ["manage"]);
-  const write = await cliTokensRoute.POST(
-    withBearer(TOKENS_URL, key.key, "POST", { name: "machine-write", scope: "write" })
-  );
-  assert.equal(write.status, 200);
-  const admin = await cliTokensRoute.POST(
-    withBearer(TOKENS_URL, key.key, "POST", { name: "machine-admin", scope: "admin" })
-  );
-  assert.equal(admin.status, 403);
-  const minted = accessTokensDb.listAccessTokens().map((t) => t.scope);
-  assert.deepEqual(minted, ["write"]);
 });
 
 test("creating a key still applies its create-time permission flags", async () => {

@@ -18,7 +18,7 @@ import { createHmac } from "node:crypto";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { pathToFileURL } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const POLL_INTERVAL_MS = 2_000;
 const BOOT_DEADLINE_MS = 240_000;
@@ -449,14 +449,14 @@ function spawnServer(binPath, port, dataDir) {
 }
 
 /**
- * Derive the loopback machine token exactly as the installed CLI would for this install.
+ * Derive the loopback machine token used by the remaining management endpoints.
  * Since #13679/#13909 the token salt is per-install, persisted under <DATA_DIR>, so the
- * derivation MUST see the same DATA_DIR the server boots on — otherwise the CLI resolves
- * a different salt, the server rejects the token and health serves the anonymous view.
+ * derivation MUST see the same DATA_DIR the server boots on — otherwise the token differs
+ * and health/settings serve the anonymous view.
  */
 export function derivePackagedCliToken(packageRoot, dataDir) {
   const cliModuleUrl = pathToFileURL(
-    path.join(packageRoot, "bin", "cli", "utils", "cliToken.mjs")
+    path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../lib/cliToken.mjs")
   ).href;
   return execFileSync(
     process.execPath,
@@ -471,7 +471,7 @@ export function derivePackagedCliToken(packageRoot, dataDir) {
 }
 
 async function verifyMachineTokenAuth(baseUrl, cliToken) {
-  const endpoint = `${baseUrl}/api/cli/whoami`;
+  const endpoint = `${baseUrl}/api/settings`;
   const unauthenticatedStatus = (await fetch(endpoint)).status;
   const invalidStatus = (
     await fetch(endpoint, { headers: { "x-omniroute-cli-token": "0".repeat(64) } })

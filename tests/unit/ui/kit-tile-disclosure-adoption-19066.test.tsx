@@ -55,7 +55,6 @@ describe("converted files use the kit components (source guard)", () => {
 
   it.each([
     `${dash}/cache/media/MediaPageClient.tsx`,
-    `${dash}/cli-code/components/CopilotToolCard.tsx`,
     `${dash}/chaos/components/ChaosProviderOverridesPanel.tsx`,
     `${dash}/search-tools/components/SearchToolsConfigPane.tsx`,
     `${dash}/search-tools/components/SearchForm.tsx`,

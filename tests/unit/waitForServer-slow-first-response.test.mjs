@@ -96,7 +96,7 @@ test("escalating probe timeouts stay clamped to the caller's remaining budget", 
 });
 
 test("readiness-timeout diagnostic distinguishes a listening port from a dead one", async () => {
-  const { reportReadinessTimeout } = await import("../../bin/cli/commands/serve.mjs");
+  const { reportReadinessTimeout } = await import("../../bin/gateway.mjs");
   const supervisor = { getRecentLog: () => [] };
 
   const capture = async (lastProbeOutcome) => {

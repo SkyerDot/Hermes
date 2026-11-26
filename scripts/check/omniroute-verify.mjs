@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { CLI_TOKEN_HEADER, getCliToken } from "../../bin/cli/utils/cliToken.mjs";
+import { CLI_TOKEN_HEADER, getCliToken } from "../lib/cliToken.mjs";
 
 const baseUrl = (process.env.OMNIROUTE_BASE_URL || "http://127.0.0.1:20128").replace(/\/$/, "");
 const apiKey = process.env.OMNIROUTE_API_KEY || "";

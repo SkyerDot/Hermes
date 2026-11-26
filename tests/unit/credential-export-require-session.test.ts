@@ -1,7 +1,6 @@
 // Credential exports hand the caller every stored secret: GET /api/settings/export-json
-// returns decrypted provider connections plus raw API keys, and the two backup downloads
-// (/api/db-backups/export, /api/db-backups/exportAll) ship the whole SQLite database. They
-// must be reachable only by the instance operator:
+// returns decrypted provider connections plus raw API keys. It must be reachable only by the
+// instance operator:
 //   - a signed-in dashboard session, or the machine-bound local CLI subject → allowed;
 //   - an API key of any scope (manage / admin) or an `oma_` access token → 403;
 //   - no credential → 401;
@@ -31,8 +30,6 @@ const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
 const accessTokensDb = await import("../../src/lib/db/accessTokens.ts");
 const { updateSettings } = await import("../../src/lib/db/settings.ts");
 const exportJsonRoute = await import("../../src/app/api/settings/export-json/route.ts");
-const dbExportRoute = await import("../../src/app/api/db-backups/export/route.ts");
-const dbExportAllRoute = await import("../../src/app/api/db-backups/exportAll/route.ts");
 
 await updateSettings({ requireLogin: true });
 const manageKey = await apiKeysDb.createApiKey("manage-automation", "machine-export", ["manage"]);
@@ -58,16 +55,6 @@ const ENDPOINTS: Array<{ name: string; url: string; route: ExportRoute }> = [
     name: "GET /api/settings/export-json",
     url: "http://localhost:20128/api/settings/export-json",
     route: exportJsonRoute as unknown as ExportRoute,
-  },
-  {
-    name: "GET /api/db-backups/export",
-    url: "http://localhost:20128/api/db-backups/export",
-    route: dbExportRoute as unknown as ExportRoute,
-  },
-  {
-    name: "GET /api/db-backups/exportAll",
-    url: "http://localhost:20128/api/db-backups/exportAll",
-    route: dbExportAllRoute as unknown as ExportRoute,
   },
 ];
 

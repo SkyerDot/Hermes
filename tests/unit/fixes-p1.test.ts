@@ -31,8 +31,6 @@ const proxyFetch = await import("../../open-sse/utils/proxyFetch.ts");
 const proxyDispatcher = await import("../../open-sse/utils/proxyDispatcher.ts");
 const proxySettingsRoute = await import("../../src/app/api/settings/proxy/route.ts");
 const proxyTestRoute = await import("../../src/app/api/settings/proxy/test/route.ts");
-const shutdownRoute = await import("../../src/app/api/shutdown/route.ts");
-const restartRoute = await import("../../src/app/api/restart/route.ts");
 
 async function withEnv(name, value, fn) {
   const previous = process.env[name];
@@ -185,54 +183,6 @@ test("closeDbInstance checkpoints WAL changes into the primary SQLite file", asy
     (assert as any).equal((row as any).name, "checkpoint-test");
   } finally {
     snapshotDb.close();
-  }
-});
-
-test("shutdown route uses SIGTERM for graceful shutdown", async () => {
-  const originalKill = process.kill;
-  const originalSetTimeout = globalThis.setTimeout;
-  const calls = [];
-
-  process.kill = (pid, signal) => {
-    calls.push({ pid, signal });
-    return true;
-  };
-  globalThis.setTimeout = (callback) => {
-    callback();
-    return 0;
-  };
-
-  try {
-    const response = await shutdownRoute.POST();
-    assert.equal(response.status, 200);
-    assert.deepEqual(calls, [{ pid: process.pid, signal: "SIGTERM" }]);
-  } finally {
-    process.kill = originalKill;
-    globalThis.setTimeout = originalSetTimeout;
-  }
-});
-
-test("restart route uses SIGTERM for graceful restart", async () => {
-  const originalKill = process.kill;
-  const originalSetTimeout = globalThis.setTimeout;
-  const calls = [];
-
-  process.kill = (pid, signal) => {
-    calls.push({ pid, signal });
-    return true;
-  };
-  globalThis.setTimeout = (callback) => {
-    callback();
-    return 0;
-  };
-
-  try {
-    const response = await restartRoute.POST();
-    assert.equal(response.status, 200);
-    assert.deepEqual(calls, [{ pid: process.pid, signal: "SIGTERM" }]);
-  } finally {
-    process.kill = originalKill;
-    globalThis.setTimeout = originalSetTimeout;
   }
 });
 

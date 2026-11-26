@@ -189,7 +189,7 @@ const POSITIVE_CASES: Array<[string, string[]]> = [
   ["i18n", ["src/i18n/messages/en.json", "scripts/i18n/check-ui-keys-coverage.mjs"]],
   ["i18n", ["config/i18n.json", "src/i18n/request.ts"]],
   ["db", ["src/lib/db/core.ts", "src/lib/db/migrations/001_initial_schema.sql"]],
-  ["cli", ["bin/omniroute.mjs", "bin/cli/commands/serve.mjs"]],
+  ["cli", ["bin/omniroute.mjs", "bin/gateway-serve.mjs"]],
   [
     "build",
     [

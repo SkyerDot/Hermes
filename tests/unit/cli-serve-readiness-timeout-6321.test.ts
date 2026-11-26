@@ -14,7 +14,7 @@ test("reportReadinessTimeout prints a diagnostic instead of staying silent (#632
   console.error = (...args: unknown[]) => logs.push(args.join(" "));
 
   try {
-    const { reportReadinessTimeout } = await import("../../bin/cli/commands/serve.mjs");
+    const { reportReadinessTimeout } = await import("../../bin/gateway.mjs");
     assert.equal(
       typeof reportReadinessTimeout,
       "function",

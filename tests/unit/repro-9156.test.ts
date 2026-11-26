@@ -40,20 +40,16 @@ test("spawn() uses process.execPath unconditionally, no bare 'node' fallback (#9
   );
 });
 
-test("serve --daemon / --no-recovery also spawn via process.execPath (#9156)", () => {
-  // The supervised path was fixed first; the daemon and no-recovery paths in
-  // serve.mjs kept the same bare-"node" fallback, which a launchd/cron/systemd
-  // environment without Homebrew/nvm on PATH cannot resolve (spawn ENOENT).
-  const serveSrc = fs.readFileSync(
-    path.resolve(__dirname, "../../bin/cli/commands/serve.mjs"),
-    "utf8"
-  );
+test("the retained gateway serve path spawns via process.execPath (#9156)", () => {
+  // A launchd/cron/systemd environment without Homebrew/nvm on PATH cannot
+  // resolve a bare "node" (spawn ENOENT); the gateway must use process.execPath.
+  const serveSrc = fs.readFileSync(path.resolve(__dirname, "../../bin/gateway-serve.mjs"), "utf8");
   assert.ok(
     !/process\.versions\.bun\s*\?\s*process\.execPath\s*:\s*"node"/.test(serveSrc),
-    "serve.mjs must not fall back to bare 'node' for the server child"
+    "the gateway must not fall back to bare 'node' for the server child"
   );
   const spawns = serveSrc.match(/spawn\(\s*process\.execPath\s*,/g) ?? [];
-  assert.ok(spawns.length >= 2, `expected daemon + no-recovery spawns, got ${spawns.length}`);
+  assert.ok(spawns.length >= 1, `expected the gateway serve spawn, got ${spawns.length}`);
 });
 
 test("process.execPath is an absolute path to the running Node.js binary", () => {

@@ -187,23 +187,17 @@ test("formatAndroidInstrumentationFailureHint: names the cache dir and TERMUX_GU
   assert.match(hint, /do NOT patch dist\/server\.js/i);
 });
 
-test("CLI entrypoint calls ensureAndroidCacheDir before Commander/Next load", () => {
-  const src = readFileSync(join(ROOT, "bin/omniroute.mjs"), "utf8");
-  assert.match(src, /ensureAndroidCacheDir\(\)/);
-  // Real import is join(ROOT, "bin", "cli", "program.mjs") — not a contiguous path.
-  // Header comments also mention program.mjs; compare call site vs last occurrence.
-  const callIdx = src.indexOf("ensureAndroidCacheDir();");
-  const programImportIdx = src.lastIndexOf("program.mjs");
-  assert.ok(callIdx > 0, "omniroute.mjs must call ensureAndroidCacheDir()");
-  assert.ok(programImportIdx > 0, "omniroute.mjs must still load program.mjs");
-  assert.ok(
-    callIdx < programImportIdx,
-    "ensureAndroidCacheDir() must run before program.mjs is imported"
-  );
+test("the gateway calls ensureAndroidCacheDir before spawning the Next.js server", () => {
+  const src = readFileSync(join(ROOT, "bin/gateway-serve.mjs"), "utf8");
+  const callIdx = src.indexOf("ensureAndroidCacheDir({ env: process.env })");
+  const spawnIdx = src.indexOf("spawn(");
+  assert.ok(callIdx > 0, "the gateway must call ensureAndroidCacheDir()");
+  assert.ok(spawnIdx > 0, "the gateway must spawn the Next.js server");
+  assert.ok(callIdx < spawnIdx, "ensureAndroidCacheDir() must run before the server spawn");
 });
 
 test("serve command prepares Android cache before spawning the Next.js server", () => {
-  const src = readFileSync(join(ROOT, "bin/cli/commands/serve.mjs"), "utf8");
+  const src = readFileSync(join(ROOT, "bin/gateway-serve.mjs"), "utf8");
   assert.match(src, /ensureAndroidCacheDir/);
   assert.match(src, /maybeReportInstrumentationHookFailure|isFatalInstrumentationHookFailure/);
   assert.match(src, /formatAndroidInstrumentationFailureHint/);
@@ -217,7 +211,7 @@ test("TERMUX_GUIDE documents Unsupported platform: android", () => {
 });
 
 test("maybeReportInstrumentationHookFailure prints once then no-ops", async () => {
-  const serve = await import("../../bin/cli/commands/serve.mjs");
+  const serve = await import("../../bin/gateway-serve.mjs");
   serve.resetInstrumentationFailureHintForTests();
   const chunks = [];
   const originalWrite = process.stderr.write;

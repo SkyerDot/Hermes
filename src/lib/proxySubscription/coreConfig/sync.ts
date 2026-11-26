@@ -14,7 +14,7 @@
  */
 import fs from "node:fs";
 import path from "node:path";
-import { readPrivateConfigFile, writePrivateConfigFile } from "@/lib/cli-helper/privateConfigFile";
+import { readPrivateConfigFile, writePrivateConfigFile } from "@/shared/services/privateConfigFile";
 import { parseLocalCoreEndpoints } from "../coreEndpoint";
 import type { NeedsCoreNode, ParsedSubscription, SubscriptionNode } from "../parse";
 import { isUsableSubscriptionContent } from "../parse";

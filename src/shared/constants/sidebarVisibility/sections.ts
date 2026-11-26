@@ -218,13 +218,6 @@ const TOOLS_GROUP: SidebarItemGroup = {
   titleFallback: "Tools",
   items: [
     {
-      id: "cli-code",
-      href: "/dashboard/cli-code",
-      i18nKey: "cliCode",
-      subtitleKey: "cliCodeSubtitle",
-      icon: "terminal",
-    },
-    {
       id: "agent-bridge",
       href: "/dashboard/tools/agent-bridge",
       i18nKey: "agentBridge",

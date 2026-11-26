@@ -20,13 +20,6 @@ test("shared provider playground uses localized visible copy", () => {
   }
 });
 
-test("CLI guide fallback checks key existence before translating", () => {
-  const source = readSource(
-    "src/app/(dashboard)/dashboard/cli-code/components/DefaultToolCard.tsx"
-  );
-  assert.match(source, /if \(!t\.has\(key\)\) return fallback;/);
-});
-
 test("known provider PNGs resolve locally before the external CDN", () => {
   const source = readSource("src/shared/components/ProviderIcon.tsx");
   assert.match(source, /"poe-web": "poe"/);
@@ -125,7 +118,7 @@ test("Vietnamese navigation preserves engine and product names", () => {
   assert.equal(messages.sidebar.trafficInspector, "Traffic Inspector");
 });
 
-test("CLI cards use packaged brand icons whenever an asset exists", () => {
+test("CLI tool catalog maps packaged brand icons whenever an asset exists", () => {
   const catalog = readSource("src/shared/constants/cliTools.ts");
   for (const image of [
     "/providers/claude.svg",
@@ -138,10 +131,6 @@ test("CLI cards use packaged brand icons whenever an asset exists", () => {
   ]) {
     assert.ok(catalog.includes(`image: "${image}"`), `missing CLI icon mapping: ${image}`);
   }
-
-  const card = readSource("src/shared/components/cli/CliToolCard.tsx");
-  assert.match(card, /tool\.imageDark \|\| tool\.imageLight/);
-  assert.match(card, /tool\.imageLight \|\| tool\.imageDark/);
 });
 
 test("changelog and settings breadcrumbs use localized labels", () => {

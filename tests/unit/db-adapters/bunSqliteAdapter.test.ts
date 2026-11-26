@@ -82,18 +82,6 @@ test("bun:sqlite adapter backs up on-disk databases without serializing them", a
   assert.equal(fs.readFileSync(destinationPath, "utf8"), sourceContents);
 });
 
-test("loadSqliteRuntime prioritizes bun:sqlite under Bun without loading better-sqlite3", async (t) => {
-  if (!process.versions.bun) {
-    t.skip("bun:sqlite is only available under Bun");
-    return;
-  }
-
-  const { loadSqliteRuntime } = await import("../../../bin/cli/runtime/sqliteRuntime.mjs");
-  const runtime = await loadSqliteRuntime();
-  assert.equal(runtime.driver.kind, "bun-sqlite");
-  assert.equal(runtime.source, "bun-sqlite");
-});
-
 test("bun:sqlite adapter get() maps the driver's no-row null to undefined", () => {
   // bun:sqlite returns null when no row matches; better-sqlite3, node:sqlite and sql.js
   // return undefined, and call sites written against that contract (for example

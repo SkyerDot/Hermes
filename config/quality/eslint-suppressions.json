@@ -545,31 +545,6 @@
       "count": 1
     }
   },
-  "src/app/(dashboard)/dashboard/cli-code/components/AntigravityToolCard.tsx": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
-  "src/app/(dashboard)/dashboard/cli-code/components/ClineToolCard.tsx": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
-  "src/app/(dashboard)/dashboard/cli-code/components/CopilotToolCard.tsx": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 3
-    }
-  },
-  "src/app/(dashboard)/dashboard/cli-code/components/HermesAgentToolCard.tsx": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 2
-    }
-  },
-  "src/app/(dashboard)/dashboard/cli-code/components/KiloToolCard.tsx": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 2
-    }
-  },
   "src/app/(dashboard)/dashboard/costs/costExplorerUtils.ts": {
     "no-restricted-syntax": {
       "count": 1
@@ -760,16 +735,6 @@
       "count": 1
     }
   },
-  "src/app/api/cli-tools/cline-settings/route.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
-  "src/app/api/cli-tools/kilo-settings/route.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
   "src/app/api/combos/duplicate/route.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 2
@@ -850,11 +815,6 @@
       "count": 1
     }
   },
-  "src/app/api/services/[name]/logs/route.ts": {
-    "no-restricted-syntax": {
-      "count": 1
-    }
-  },
   "src/app/api/settings/qdrant/route.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
@@ -866,11 +826,6 @@
     }
   },
   "src/app/api/settings/thinking-budget/route.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 2
-    }
-  },
-  "src/app/api/sync/initialize/route.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 2
     }
@@ -988,36 +943,6 @@
   "src/domain/providerExpiration.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
-    }
-  },
-  "src/lib/cli-helper/config-generator/claude.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
-  "src/lib/cli-helper/config-generator/cline.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
-  "src/lib/cli-helper/config-generator/continue.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
-  "src/lib/cli-helper/config-generator/hermes.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
-  "src/lib/cli-helper/config-generator/kilocode.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
-  "src/lib/cli-helper/doctor/checks.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 2
     }
   },
   "src/lib/combos/controlCenter.ts": {
@@ -1225,11 +1150,6 @@
       "count": 1
     }
   },
-  "src/lib/plugins/manager.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
   "src/lib/providers/validation.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
@@ -1251,11 +1171,6 @@
     }
   },
   "src/lib/quota/sqliteQuotaStore.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
-  "src/lib/services/ServiceSupervisor.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
     }
@@ -1326,16 +1241,6 @@
   "src/lib/usage/routeExplain.ts": {
     "no-restricted-syntax": {
       "count": 1
-    }
-  },
-  "src/lib/versionManager/index.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 2
-    }
-  },
-  "src/lib/versionManager/processManager.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 3
     }
   },
   "src/lib/warmupScheduler.ts": {
@@ -1545,7 +1450,7 @@
   },
   "tests/e2e/ecosystem.test.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 13
+      "count": 12
     }
   },
   "tests/e2e/group-b-redirect-logs-activity.spec.ts": {
@@ -1616,11 +1521,6 @@
       "count": 3
     }
   },
-  "tests/integration/all-statuses-route.test.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
   "tests/integration/api-keys.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 23
@@ -1648,11 +1548,6 @@
     },
     "@typescript-eslint/no-unused-vars": {
       "count": 4
-    }
-  },
-  "tests/integration/cli-settings-forge.test.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
     }
   },
   "tests/integration/combo-live/_liveHarness.ts": {
@@ -1820,11 +1715,6 @@
       "count": 3
     }
   },
-  "tests/integration/services/cliproxy-coexistence.test.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 2
-    }
-  },
   "tests/integration/skills-pipeline.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 15
@@ -1975,16 +1865,6 @@
     }
   },
   "tests/unit/api/compression/compression-api.test.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 2
-    }
-  },
-  "tests/unit/api/services/9router-models.test.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 2
-    }
-  },
-  "tests/unit/api/services/9router-status-reveal.test.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 2
     }
@@ -2284,172 +2164,6 @@
       "count": 1
     }
   },
-  "tests/unit/cli-audit-commands.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 15
-    }
-  },
-  "tests/unit/cli-batches-commands.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 16
-    },
-    "@typescript-eslint/no-unused-vars": {
-      "count": 3
-    }
-  },
-  "tests/unit/cli-chat.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 17
-    },
-    "@typescript-eslint/no-unused-vars": {
-      "count": 3
-    }
-  },
-  "tests/unit/cli-cloud-commands.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 18
-    },
-    "@typescript-eslint/no-unused-vars": {
-      "count": 6
-    }
-  },
-  "tests/unit/cli-combo-suggest-commands.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 14
-    },
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
-  "tests/unit/cli-completion-dynamic.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 11
-    }
-  },
-  "tests/unit/cli-compression-commands.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 20
-    }
-  },
-  "tests/unit/cli-context-eng-commands.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 19
-    },
-    "@typescript-eslint/no-unused-vars": {
-      "count": 2
-    }
-  },
-  "tests/unit/cli-cost.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 16
-    }
-  },
-  "tests/unit/cli-eval-commands.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 22
-    }
-  },
-  "tests/unit/cli-expanded-commands.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 1
-    }
-  },
-  "tests/unit/cli-files-commands.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 12
-    },
-    "@typescript-eslint/no-unused-vars": {
-      "count": 2
-    }
-  },
-  "tests/unit/cli-helper/config-generator.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 2
-    },
-    "@typescript-eslint/no-unused-vars": {
-      "count": 2
-    }
-  },
-  "tests/unit/cli-helper/hermes-home-env.test.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
-  "tests/unit/cli-lang-commands.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 1
-    },
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
-  "tests/unit/cli-memory-commands.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 18
-    }
-  },
-  "tests/unit/cli-memory-types.test.mjs": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 4
-    }
-  },
-  "tests/unit/cli-nodes-commands.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 15
-    }
-  },
-  "tests/unit/cli-oauth-commands.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 20
-    },
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
-  "tests/unit/cli-oneproxy-commands.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 13
-    },
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
-  "tests/unit/cli-open-command.test.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 2
-    }
-  },
-  "tests/unit/cli-openapi-codegen.test.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
-  "tests/unit/cli-openapi-commands.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 6
-    },
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
-  "tests/unit/cli-plugin-system.test.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
-  "tests/unit/cli-policy-commands.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 20
-    },
-    "@typescript-eslint/no-unused-vars": {
-      "count": 3
-    }
-  },
-  "tests/unit/cli-pricing-commands.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 16
-    }
-  },
   "tests/unit/cli-process-supervisor.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 6
@@ -2458,121 +2172,8 @@
       "count": 2
     }
   },
-  "tests/unit/cli-program.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 4
-    }
-  },
-  "tests/unit/cli-providers-metrics.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 15
-    }
-  },
-  "tests/unit/cli-redis-command.test.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 2
-    }
-  },
-  "tests/unit/cli-remote-mode.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 5
-    }
-  },
-  "tests/unit/cli-resilience-commands.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 16
-    }
-  },
   "tests/unit/cli-runtime-extended.test.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 1
-    }
-  },
-  "tests/unit/cli-serve-stop-command.test.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
-  "tests/unit/cli-server-commands.test.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
-  "tests/unit/cli-sessions-commands.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 12
-    },
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
-  "tests/unit/cli-simulate.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 13
-    }
-  },
-  "tests/unit/cli-skills-commands.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 16
-    }
-  },
-  "tests/unit/cli-stop-supervisor-respawn-9455.test.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
-  "tests/unit/cli-stream.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 13
-    },
-    "@typescript-eslint/no-unused-vars": {
-      "count": 2
-    }
-  },
-  "tests/unit/cli-sync-commands.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 11
-    },
-    "@typescript-eslint/no-unused-vars": {
-      "count": 2
-    }
-  },
-  "tests/unit/cli-tags-commands.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 17
-    },
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
-  "tests/unit/cli-telemetry-commands.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 6
-    },
-    "@typescript-eslint/no-unused-vars": {
-      "count": 2
-    }
-  },
-  "tests/unit/cli-translator-commands.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 16
-    },
-    "@typescript-eslint/no-unused-vars": {
-      "count": 3
-    }
-  },
-  "tests/unit/cli-usage.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 17
-    }
-  },
-  "tests/unit/cli/alias-resolver-7791.test.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
-  "tests/unit/cli/setup-continue.test.ts": {
-    "@typescript-eslint/no-unused-vars": {
       "count": 1
     }
   },
@@ -2869,11 +2470,6 @@
   },
   "tests/unit/db-agent-bridge-state.test.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 1
-    }
-  },
-  "tests/unit/db-backup-export-streaming-9045.test.ts": {
-    "@typescript-eslint/no-unused-vars": {
       "count": 1
     }
   },
@@ -3623,57 +3219,6 @@
       "count": 20
     }
   },
-  "tests/unit/plugins-config-route.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 1
-    }
-  },
-  "tests/unit/plugins-config.test.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
-  "tests/unit/plugins-dev-mode.test.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 2
-    }
-  },
-  "tests/unit/plugins-edge-cases.test.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
-  "tests/unit/plugins-fs-safety.test.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
-  "tests/unit/plugins-hooks.test.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
-  "tests/unit/plugins-index.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 9
-    },
-    "@typescript-eslint/no-unused-vars": {
-      "count": 2
-    }
-  },
-  "tests/unit/plugins-manager-lifecycle.test.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
-  "tests/unit/plugins-welcome-banner-e2e.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 1
-    },
-    "@typescript-eslint/no-unused-vars": {
-      "count": 4
-    }
-  },
   "tests/unit/pollinations-jsonmode-3981.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 3
@@ -4123,44 +3668,6 @@
       "count": 1
     }
   },
-  "tests/unit/services/embed-proxy.test.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
-  "tests/unit/services/end-to-end-shape.test.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 2
-    }
-  },
-  "tests/unit/services/installers/cliproxy.test.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 4
-    }
-  },
-  "tests/unit/services/installers/ninerouter.test.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
-  "tests/unit/services/lifecycle.test.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
-  "tests/unit/services/logs-sse.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 7
-    },
-    "@typescript-eslint/no-unused-vars": {
-      "count": 2
-    }
-  },
-  "tests/unit/services/modelSync.test.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
   "tests/unit/session-pool-modular.test.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
@@ -4280,16 +3787,6 @@
   "tests/unit/streamingPiiTransform.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 18
-    }
-  },
-  "tests/unit/sync-bundle.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 2
-    }
-  },
-  "tests/unit/sync-routes.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 5
     }
   },
   "tests/unit/t08-allowed-connections.test.ts": {
@@ -4518,11 +4015,6 @@
       "count": 1
     }
   },
-  "tests/unit/ui/cli-code-detail-page.test.tsx": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
   "tests/unit/ui/combo-defaults-fusion-5598.test.tsx": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
@@ -4636,22 +4128,6 @@
   "tests/unit/vercel-deploy-sso-protection-check.test.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
-    }
-  },
-  "tests/unit/version-manager.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 1
-    },
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
-  "tests/unit/versionManager-orchestrator.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 2
-    },
-    "@typescript-eslint/no-unused-vars": {
-      "count": 2
     }
   },
   "tests/unit/vertex-express-apikey.test.ts": {

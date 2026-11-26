@@ -30,10 +30,6 @@ export default function UpstreamProxyCard({ t }: UpstreamProxyCardProps) {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Link href="/dashboard/cli-code" className={buttonVariants({ variant: "outline" })}>
-            <Icon name="terminal" size={16} />
-            {t("openCliTools")}
-          </Link>
           <Link href="/dashboard/settings" className={buttonVariants({ variant: "outline" })}>
             <Icon name="settings" size={16} />
             {t("openSettings")}

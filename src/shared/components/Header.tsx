@@ -87,7 +87,6 @@ const HEADER_DESCRIPTIONS: Partial<
   quota: "limitsDescription",
   runtime: "runtimeDescription",
   media: "mediaDescription",
-  "cli-code": "cliToolsDescription",
   memory: "memoryDescription",
   skills: "skillsDescription",
   "agent-skills": "agentSkillsDescription",

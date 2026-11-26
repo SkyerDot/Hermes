@@ -12,10 +12,8 @@ import assert from "node:assert/strict";
 
 const { getRegistryEntry } = await import("../../open-sse/config/providerRegistry.ts");
 const { validateProviderApiKey } = await import("../../src/lib/providers/validation.ts");
-const { testProviderApiKey } = await import("../../bin/cli/provider-test.mjs");
 
 const AUTH_KEY_URL = "https://openrouter.ai/api/v1/auth/key";
-const PUBLIC_MODELS_URL = "https://openrouter.ai/api/v1/models";
 
 const BAD_KEY = "sk-or-v1-definitely-invalid-key";
 const GOOD_KEY = "sk-or-v1-valid-key";
@@ -98,53 +96,6 @@ describe("openrouter registry — authenticated key-validation endpoint (#11226)
         stub.calls.map((c) => c.url),
         [AUTH_KEY_URL]
       );
-    } finally {
-      stub.restore();
-    }
-  });
-});
-
-describe("omniroute providers test — openrouter probe (#11226)", () => {
-  it("marks a bad key INVALID even though the public /models endpoint answers 200", async () => {
-    const stub = stubRealOpenRouter();
-    try {
-      const result = await testProviderApiKey({ provider: "openrouter", apiKey: BAD_KEY });
-      assert.equal(result.valid, false, "CLI test must not trust the public /models endpoint");
-      assert.equal(result.error, "Invalid API key");
-      assert.deepEqual(
-        stub.calls.map((c) => c.url),
-        [AUTH_KEY_URL]
-      );
-    } finally {
-      stub.restore();
-    }
-  });
-
-  it("marks a good key VALID via /auth/key", async () => {
-    const stub = stubRealOpenRouter();
-    try {
-      const result = await testProviderApiKey({ provider: "openrouter", apiKey: GOOD_KEY });
-      assert.equal(result.valid, true);
-      assert.equal(result.error, null);
-      assert.deepEqual(
-        stub.calls.map((c) => c.url),
-        [AUTH_KEY_URL]
-      );
-    } finally {
-      stub.restore();
-    }
-  });
-
-  it("does not change the probe for other OpenAI-like providers (openai still uses /models)", async () => {
-    const stub = stubRealOpenRouter();
-    try {
-      const result = await testProviderApiKey({ provider: "openai", apiKey: GOOD_KEY });
-      assert.equal(result.valid, true);
-      assert.deepEqual(
-        stub.calls.map((c) => c.url),
-        ["https://api.openai.com/v1/models"]
-      );
-      assert.ok(!stub.calls.some((c) => c.url === PUBLIC_MODELS_URL));
     } finally {
       stub.restore();
     }

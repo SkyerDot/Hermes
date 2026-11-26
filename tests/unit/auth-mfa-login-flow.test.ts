@@ -35,7 +35,6 @@ const setupRoute = await import("../../src/app/api/auth/mfa/setup/route.ts");
 const enableRoute = await import("../../src/app/api/auth/mfa/enable/route.ts");
 const disableRoute = await import("../../src/app/api/auth/mfa/disable/route.ts");
 const statusRoute = await import("../../src/app/api/auth/mfa/status/route.ts");
-const connectRoute = await import("../../src/app/api/cli/connect/route.ts");
 const settingsRoute = await import("../../src/app/api/settings/route.ts");
 const { makeManagementSessionRequest } = await import("../helpers/managementSession.ts");
 
@@ -257,43 +256,6 @@ test("the recovery switch skips the factor only for the operator at the host", a
   );
   assert.deepEqual(await local.json(), { success: true });
   assert.equal(cookieJar.jar.has("auth_token"), true);
-});
-
-test("cli/connect refuses a password-only exchange while MFA is on", async () => {
-  const secret = enrollFixture();
-
-  const passwordOnly = await connectRoute.POST(
-    post("/api/cli/connect", { password: PASSWORD, name: "laptop" }) as never
-  );
-  assert.equal(passwordOnly.status, 401);
-  const refused = await passwordOnly.json();
-  assert.equal(refused.mfaRequired, true);
-  assert.equal(refused.token, undefined, "no access token without the second factor");
-
-  const wrong = await connectRoute.POST(
-    post("/api/cli/connect", { password: PASSWORD, name: "laptop", totp: "000000" }) as never
-  );
-  assert.equal(wrong.status, 401);
-  assert.equal((await wrong.json()).token, undefined);
-
-  const withCode = await connectRoute.POST(
-    post("/api/cli/connect", {
-      password: PASSWORD,
-      name: "laptop",
-      totp: currentCode(secret),
-    }) as never
-  );
-  assert.equal(withCode.status, 200);
-  const minted = await withCode.json();
-  assert.equal(typeof minted.token, "string");
-});
-
-test("cli/connect is unchanged while MFA is off", async () => {
-  const response = await connectRoute.POST(
-    post("/api/cli/connect", { password: PASSWORD, name: "laptop" }) as never
-  );
-  assert.equal(response.status, 200);
-  assert.equal(typeof (await response.json()).token, "string");
 });
 
 test("enrollment: setup → enable needs the password and a valid code; disable needs both too", async () => {

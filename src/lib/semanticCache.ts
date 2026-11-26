@@ -19,7 +19,7 @@ import { LRUCache } from "./cacheLayer";
 import { getDbInstance } from "./db/core";
 import { toNumber } from "@/shared/utils/numeric";
 import { conversationSignatureFields } from "../../open-sse/utils/conversationSignatureFields";
-import { startSemanticCachePruneJob } from "./jobs/semanticCachePruneJob";
+import { startSemanticCachePruneJob } from "./scheduler/semanticCachePruneJob";
 import { isCompleteToolCallArguments } from "../../open-sse/handlers/sseParser/truncation";
 
 // Like reasoning-cache cleanup, start from the consumer module, independent of boot path.

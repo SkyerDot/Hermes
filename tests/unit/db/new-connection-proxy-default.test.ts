@@ -50,7 +50,6 @@ const settingsRoute = await import("../../../src/app/api/settings/route.ts");
 const { updateSettingsSchema } = await import("../../../src/shared/validation/settingsSchemas.ts");
 const { createProviderSchema, updateProviderConnectionSchema } =
   await import("../../../src/shared/validation/schemas/provider.ts");
-const cli = await import("../../../bin/cli/provider-store.mjs");
 const { readNewConnectionProxyDefault } =
   await import("../../../src/lib/db/newConnectionProxy.mjs");
 const { runJsonMigration } = await import("../../../src/lib/db/jsonMigration.ts");
@@ -59,8 +58,6 @@ const { sealJson } = await import("../../../src/lib/transfer/sealedPayload.ts");
 const bulkRoute = await import("../../../src/app/api/providers/bulk/route.ts");
 const { createAccessToken } = await import("../../../src/lib/db/accessTokens.ts");
 const transferImportRoute = await import("../../../src/app/api/settings/transfer/import/route.ts");
-const backupExportRoute = await import("../../../src/app/api/db-backups/export/route.ts");
-const backupImportRoute = await import("../../../src/app/api/db-backups/import/route.ts");
 const proxyRegistry = await import("../../../src/lib/db/proxies.ts");
 const proxyFallback = await import("../../../open-sse/utils/proxyFallback.ts");
 const { getAuditLog } = await import("../../../src/lib/compliance/index.ts");
@@ -287,24 +284,6 @@ test("database policy read failure fails closed before implicit insertion", asyn
   );
 });
 
-test("CLI writer uses destination default and preserves existing connection state", () => {
-  const db = core.getDbInstance();
-  rawPolicy("false");
-  const row = cli.upsertApiKeyProviderConnection(db, {
-    provider: "openai",
-    name: "CLI synthetic",
-    apiKey: "sk-cli-synthetic",
-  });
-  assert.equal(stored(row.id).proxy_enabled, 0);
-  rawPolicy("true");
-  cli.upsertApiKeyProviderConnection(db, {
-    provider: "openai",
-    name: "CLI synthetic",
-    apiKey: "sk-cli-new",
-  });
-  assert.equal(stored(row.id).proxy_enabled, 0);
-});
-
 test("Settings-to-bulk HTTP handlers persist OFF then ON without changing the first account", async () => {
   await settings.updateSettings({ requireLogin: true, setupComplete: true });
   const add = async (name: string) => {
@@ -495,55 +474,6 @@ for (const enabled of [false, true]) {
     assert.equal(added.proxyEnabled, enabled);
     assert.equal(stored(existing.id).proxy_enabled, enabled ? 0 : 1);
     assert.equal(stored(added.id).proxy_enabled, enabled ? 1 : 0);
-  });
-
-  test(`full SQLite export/import replaces destination policy with ${enabled} and preserves independent rows`, async () => {
-    await settings.updateSettings({ defaultNewConnectionProxyEnabled: enabled, theme: "dark" });
-    const on = await create({ name: "backup-on", proxyEnabled: true });
-    const off = await create({ name: "backup-off", apiKey: "sk-backup-off", proxyEnabled: false });
-    await settings.setProxyForLevel("key", String(off.id), {
-      type: "http",
-      host: "127.0.0.1",
-      port: 19998,
-    });
-    const assignments = await settings.getProxyConfig();
-    const response = await backupExportRoute.GET(
-      await makeManagementSessionRequest("http://localhost/api/db-backups/export")
-    );
-    assert.equal(response.status, 200);
-    const bytes = await response.arrayBuffer();
-    assert.ok(bytes.byteLength >= 4096);
-    // The supported upload replaces the isolated destination wholesale, rather
-    // than merging credentials or resolving restored rows against its preference.
-    await settings.updateSettings({ defaultNewConnectionProxyEnabled: !enabled, theme: "light" });
-    await providers.deleteProviderConnection(String(on.id));
-    await settings.setProxyConfig({});
-    const destinationOnly = await create({
-      name: "destination-only",
-      apiKey: "sk-destination-only",
-    });
-    const headers = await makeManagementSessionRequest("http://localhost/api/db-backups/import");
-    const restored = await backupImportRoute.POST(
-      new Request("http://localhost/api/db-backups/import?filename=synthetic.sqlite", {
-        method: "POST",
-        headers: headers.headers,
-        body: bytes,
-      })
-    );
-    assert.equal(restored.status, 200);
-    assert.equal((await restored.json()).connectionCount, 2);
-    assert.equal((await settings.getSettings()).defaultNewConnectionProxyEnabled, enabled);
-    assert.equal((await settings.getSettings()).theme, "dark");
-    assert.deepEqual(await settings.getProxyConfig(), assignments);
-    assert.equal(await providers.getProviderConnectionById(String(destinationOnly.id)), null);
-    assert.equal(stored(on.id).proxy_enabled, 1);
-    assert.equal(stored(off.id).proxy_enabled, 0);
-    core.resetDbInstance();
-    assert.equal((await settings.getSettings()).defaultNewConnectionProxyEnabled, enabled);
-    assert.equal(stored(on.id).proxy_enabled, 1);
-    assert.equal(stored(off.id).proxy_enabled, 0);
-    const next = await create({ name: "after-full-restore", apiKey: "sk-after-full-restore" });
-    assert.equal(stored(next.id).proxy_enabled, enabled ? 1 : 0);
   });
 
   test(`repeated identical ${enabled} PATCH accepts latest revision without changing accounts or unrelated settings`, async () => {

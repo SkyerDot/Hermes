@@ -320,18 +320,18 @@ test("buildServerSpawnArgs under Node keeps the runtime args and never passes --
   assert.ok(!args.includes("--preload"));
 });
 
-test("every Bun server spawn (supervisor, --daemon, --no-recovery) uses the shared package-root preload (#11980)", () => {
+test("every Bun server spawn uses the shared package-root preload (#11980)", () => {
   const supervisorSrc = fs.readFileSync(
     path.join(REPO_ROOT, "bin/cli/runtime/processSupervisor.mjs"),
     "utf8"
   );
-  const serveSrc = fs.readFileSync(path.join(REPO_ROOT, "bin/cli/commands/serve.mjs"), "utf8");
+  const serveSrc = fs.readFileSync(path.join(REPO_ROOT, "bin/gateway-serve.mjs"), "utf8");
 
   assert.match(supervisorSrc, /spawn\(\s*process\.execPath,\s*buildServerSpawnArgs\(/);
   assert.equal(
     (serveSrc.match(/"--preload",\s*BUN_PRELOAD_PATH\b/g) ?? []).length,
-    2,
-    "serve.mjs --daemon and --no-recovery must both preload BUN_PRELOAD_PATH"
+    1,
+    "the retained gateway serve path must preload BUN_PRELOAD_PATH"
   );
   assert.doesNotMatch(serveSrc, /join\(APP_DIR,\s*"open-sse/);
 });

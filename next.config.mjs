@@ -699,13 +699,6 @@ const nextConfig = {
         destination: "/docs/ops/vm-deployment-guide",
         permanent: true,
       },
-      // CLI Pages — Plano 14 (F9)
-      { source: "/dashboard/cli-tools", destination: "/dashboard/cli-code", permanent: true },
-      {
-        source: "/dashboard/cli-tools/:path*",
-        destination: "/dashboard/cli-code/:path*",
-        permanent: true,
-      },
     ];
   },
 

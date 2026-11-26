@@ -264,7 +264,7 @@ test("probePortFree treats a missing loopback address as free", async () => {
 });
 
 test("reportPortInUse degrades gracefully when the owner pid is unknown", async () => {
-  const { reportPortInUse } = await import("../../bin/cli/commands/serve.mjs");
+  const { reportPortInUse } = await import("../../bin/gateway.mjs");
   const lines = [];
   const origErr = console.error.bind(console);
   console.error = (...args) => lines.push(args.join(" "));
@@ -276,11 +276,11 @@ test("reportPortInUse degrades gracefully when the owner pid is unknown", async 
   const out = lines.join("\n");
   assert.match(out, /Port 20128 is already in use/, "must still name the port");
   assert.match(out, /unknown|unidentified/, "must say the owner could not be identified");
-  assert.match(out, /omniroute stop/, "must keep the resolution path");
+  assert.match(out, /serve --port/, "must keep the resolution path");
 });
 
 test("serve preflight treats a free port as no listeners when pid discovery returns null", async () => {
-  const { resolveServeBusyPids } = await import("../../bin/cli/commands/serve.mjs");
+  const { resolveServeBusyPids } = await import("../../bin/gateway.mjs");
   const busyPids = await resolveServeBusyPids(20128, {
     findListeningPids: async () => null,
     probePortFree: async () => true,
@@ -341,7 +341,7 @@ test(
 );
 
 test("reportPortInUse names the port, the owning pid, and how to resolve it", async () => {
-  const { reportPortInUse } = await import("../../bin/cli/commands/serve.mjs");
+  const { reportPortInUse } = await import("../../bin/gateway.mjs");
   const lines = [];
   const origErr = console.error.bind(console);
   console.error = (...args) => lines.push(args.join(" "));
@@ -353,6 +353,6 @@ test("reportPortInUse names the port, the owning pid, and how to resolve it", as
   const out = lines.join("\n");
   assert.match(out, /20128/, "must name the port");
   assert.match(out, /19348/, "must name the process already holding it");
-  assert.match(out, /omniroute stop/, "must tell the user how to free the port");
+  assert.match(out, /serve --port/, "must tell the user how to run alongside it");
   assert.match(out, /--port/, "must offer running on a different port");
 });

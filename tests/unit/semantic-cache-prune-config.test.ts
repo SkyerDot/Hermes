@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { clearInterval, setInterval } from "node:timers";
-import { getSemanticCachePruneConfig } from "../../src/lib/jobs/semanticCachePruneConfig.ts";
+import { getSemanticCachePruneConfig } from "../../src/lib/scheduler/semanticCachePruneConfig.ts";
 
 const defaults = { intervalMs: 1800000, batchSize: 2000, maxBatches: 50, maxRows: 0 };
 const variables = {

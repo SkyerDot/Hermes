@@ -27,7 +27,7 @@ const SEED_KEYS = ["hits", "misses", "tokens_saved"];
 const core = await import("../../../src/lib/db/core.ts");
 const { ensureCacheMetricsTable } = await import("../../../src/lib/semanticCache.ts");
 const { stopSemanticCachePruneJob } =
-  await import("../../../src/lib/jobs/semanticCachePruneJob.ts");
+  await import("../../../src/lib/scheduler/semanticCachePruneJob.ts");
 
 test.after(() => {
   stopSemanticCachePruneJob();

@@ -1,7 +1,7 @@
 import crypto from "crypto";
 import { isCloudEnabled } from "@/lib/db/settings";
 import { getProviderConnections, updateProviderConnection } from "@/lib/db/providers";
-import { buildConfigSyncEnvelope, toLegacyCloudSyncPayload } from "@/lib/sync/bundle";
+import { buildConfigSyncEnvelope, toLegacyCloudSyncPayload } from "@/lib/cloudSyncBundle";
 
 const configuredCloudUrl = process.env.CLOUD_URL ?? process.env.NEXT_PUBLIC_CLOUD_URL;
 const CLOUD_URL =

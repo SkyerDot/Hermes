@@ -209,8 +209,6 @@ test("brand chips use the kit tint, and the app's own tint helper is gone", () =
   assert.equal(fs.existsSync(path.join(root, "src/shared/utils/brandTint.ts")), false);
   const chips: Array<[string, number]> = [
     ["src/app/(dashboard)/dashboard/free-provider-rankings/page.tsx", 2],
-    ["src/app/(dashboard)/dashboard/cli-code/components/CopilotToolCard.tsx", 3],
-    ["src/app/(dashboard)/dashboard/cli-code/components/DefaultToolCard.tsx", 1],
   ];
   for (const [file, count] of chips) {
     const source = read(file);
@@ -257,8 +255,6 @@ test("token text stays AA on every step of the saliency ramp, in all four looks"
 test("white text on a brand fill and brand-coloured text are gone from the audited screens", () => {
   const files = [
     "src/app/(dashboard)/dashboard/free-provider-rankings/page.tsx",
-    "src/app/(dashboard)/dashboard/cli-code/components/CopilotToolCard.tsx",
-    "src/app/(dashboard)/dashboard/cli-code/components/DefaultToolCard.tsx",
     "src/app/(dashboard)/dashboard/providers/components/onboarding/ProviderOnboardingWizard.tsx",
     "src/app/(dashboard)/dashboard/providers/[id]/components/ProviderPageHeader.tsx",
     "src/app/(dashboard)/dashboard/settings/components/SecurityTab.tsx",

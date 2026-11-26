@@ -1,6 +1,6 @@
 /**
  * The well-known default management password may only be used from the host itself. That
- * decision, and the failed-attempt lockout key on `/api/auth/login` and `/api/cli/connect`,
+ * decision, and the failed-attempt lockout key on `/api/auth/login`,
  * must come from the peer address the authz pipeline stamps on the request, never from
  * `X-Forwarded-For`, `X-Real-IP` or `CF-Connecting-IP`, which any remote caller can set to
  * any value. Requests here go through `runAuthzPipeline` first, the way they do in the
@@ -29,7 +29,6 @@ const pipeline = await import("../../src/server/authz/pipeline.ts");
 const { PEER_IP_HEADER, VIA_PROXY_HEADER, AUTHZ_HEADER_TRUSTED_PEER_IP } =
   await import("../../src/server/authz/headers.ts");
 const loginRoute = await import("../../src/app/api/auth/login/route.ts");
-const connectRoute = await import("../../src/app/api/cli/connect/route.ts");
 
 const originalGetCookieStore = loginRoute.authRouteInternals.getCookieStore;
 
@@ -102,17 +101,10 @@ async function login(password: string, caller: Caller) {
   return loginRoute.POST((await throughPipeline("/api/auth/login", { password }, caller)) as never);
 }
 
-async function connect(password: string, caller: Caller) {
-  return connectRoute.POST(
-    (await throughPipeline("/api/cli/connect", { password, name: "cli" }, caller)) as never
-  );
-}
-
-test("the host itself can still log in and pair with the default password", async () => {
-  assert.equal((await login("CHANGEME", LOCAL)).status, 200);
-  const res = await connect("CHANGEME", LOCAL);
+test("the host itself can still log in with the default password", async () => {
+  const res = await login("CHANGEME", LOCAL);
   assert.equal(res.status, 200);
-  assert.ok(((await res.json()) as { token?: string }).token);
+  assert.deepEqual(await res.json(), { success: true });
 });
 
 test("a remote peer that forges X-Forwarded-For is refused the default password", async () => {
@@ -124,15 +116,11 @@ test("a remote peer that forges X-Forwarded-For is refused the default password"
   const loginRes = await login("CHANGEME", remote);
   assert.equal(loginRes.status, 403);
   assert.equal(loginRes.headers.get("set-cookie"), null);
-  const connectRes = await connect("CHANGEME", remote);
-  assert.equal(connectRes.status, 403);
-  assert.equal(((await connectRes.json()) as { token?: string }).token, undefined);
 });
 
 test("a LAN peer is refused the default password", async () => {
   const lan: Caller = { peerIp: "192.168.1.20", host: "192.168.1.5:20128" };
   assert.equal((await login("CHANGEME", lan)).status, 403);
-  assert.equal((await connect("CHANGEME", lan)).status, 403);
 });
 
 test("a loopback proxy hop that reports forwarding headers is refused the default password", async () => {
@@ -143,13 +131,11 @@ test("a loopback proxy hop that reports forwarding headers is refused the defaul
     host: "omniroute.example",
   };
   assert.equal((await login("CHANGEME", proxied)).status, 403);
-  assert.equal((await connect("CHANGEME", proxied)).status, 403);
 });
 
 test("a same-host proxy that adds no forwarding headers is refused when it passes a public Host", async () => {
   const silentProxy: Caller = { peerIp: "127.0.0.1", host: "omniroute.example" };
   assert.equal((await login("CHANGEME", silentProxy)).status, 403);
-  assert.equal((await connect("CHANGEME", silentProxy)).status, 403);
 });
 
 test("the blocked-login audit row describes the peer, not the forwarded address", async () => {
@@ -182,18 +168,6 @@ test("a wrong password from a remote peer forging X-Forwarded-For is not tagged 
   assert.equal(metadata.internalOrigin, false);
 });
 
-test("the cli/connect audit rows keep the forwarded client address", async () => {
-  const remote: Caller = {
-    peerIp: "127.0.0.1",
-    viaProxy: true,
-    forwardedFor: "198.51.100.77",
-    host: "omniroute.example",
-  };
-  assert.equal((await connect("wrong-password", remote)).status, 401);
-  const [entry] = compliance.getAuditLog({ action: "cli.connect.failed", limit: 1 });
-  assert.equal(entry.ip_address, "198.51.100.77");
-});
-
 async function lockoutStatuses(
   attempt: (password: string, caller: Caller) => Promise<Response>,
   peerIp: string
@@ -216,25 +190,19 @@ test("the /api/auth/login lockout follows the peer, not a rotating X-Forwarded-F
   assert.equal(statuses.at(-1), 429, `no lockout after 8 wrong guesses: ${statuses.join(",")}`);
 });
 
-test("the /api/cli/connect lockout follows the peer, not a rotating X-Forwarded-For", async () => {
-  const statuses = await lockoutStatuses(connect, "198.51.100.45");
-  assert.equal(statuses[0], 401);
-  assert.equal(statuses.at(-1), 429, `no lockout after 8 wrong guesses: ${statuses.join(",")}`);
-});
-
 test("a request with no stamped peer shares one lockout key instead of trusting X-Forwarded-For", async () => {
   // A request that reaches the handler without the pipeline's trusted peer header.
   const statuses: number[] = [];
   for (let i = 0; i < 8; i += 1) {
-    const res = await connectRoute.POST(
-      new Request("http://omniroute.example/api/cli/connect", {
+    const res = await loginRoute.POST(
+      new Request("http://omniroute.example/api/auth/login", {
         method: "POST",
         headers: {
           "content-type": "application/json",
           "x-forwarded-for": `198.18.0.${i + 1}`,
           [AUTHZ_HEADER_TRUSTED_PEER_IP]: "",
         },
-        body: JSON.stringify({ password: `wrong-guess-${i}`, name: "cli" }),
+        body: JSON.stringify({ password: `wrong-guess-${i}` }),
       }) as never
     );
     statuses.push(res.status);

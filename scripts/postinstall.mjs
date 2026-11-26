@@ -1,12 +1,10 @@
 #!/usr/bin/env node
 /**
- * Post-install warm-up for OmniRoute native runtimes.
+ * Post-install hook retained for the published package contract.
  *
- * Runs after the main `scripts/build/postinstall.mjs` binary-copy step.
- * Tries to pre-resolve better-sqlite3 into ~/.omniroute/runtime/ so that
- * the first execution is fast and EBUSY-resilient on Windows.
- *
- * Non-fatal: any error is printed as a warning and install continues.
+ * The old CLI runtime warm-up was removed with the operation CLI. Native
+ * SQLite resolution now happens lazily on first database access, and the main
+ * `scripts/build/postinstall.mjs` hook still handles binary preparation.
  */
 
 if (
@@ -16,12 +14,3 @@ if (
 ) {
   process.exit(0);
 }
-
-(async () => {
-  try {
-    const { warmUpRuntimes } = await import("../bin/cli/runtime/index.mjs");
-    await warmUpRuntimes();
-  } catch (err) {
-    console.warn(`[omniroute] postinstall warm-up skipped: ${err?.message ?? err}`);
-  }
-})();

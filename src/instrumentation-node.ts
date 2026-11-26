@@ -934,17 +934,6 @@ export async function registerNodejs(): Promise<void> {
           console.warn("[STARTUP] memory backend initialization failed (non-fatal):", msg);
         }),
 
-      // Backup schedule (#8513): execute `backup-schedule.json` cron server-side.
-      // Reads the schedule written by `omniroute backup auto enable` and fires
-      // `runBackupCommand` when the cron expression matches. Self-gated: no-op
-      // when no schedule file exists or the schedule is disabled. Never fatal.
-      import("@/lib/jobs/backupScheduleJob")
-        .then((m) => m.startBackupScheduleJob())
-        .catch((err: unknown) => {
-          const msg = err instanceof Error ? err.message : String(err);
-          console.warn("[STARTUP] backup schedule job failed to start (non-fatal):", msg);
-        }),
-
       // Optional subsystems (dashboard, catalog enrichment, embedded
       // services…): skipped entirely in headless mode — see OPTIONAL_BOOT_SUBSYSTEMS.
       startOptionalBootSubsystems(),

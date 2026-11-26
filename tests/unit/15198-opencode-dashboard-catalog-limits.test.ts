@@ -1,6 +1,5 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
 
 const { buildOpenCodeProviderConfig, buildOpenCodeConfigDocument } =
   await import("../../src/shared/services/opencodeConfig.ts");
@@ -33,30 +32,8 @@ test("dashboard writer copies a known catalog limit and capability (#15198)", ()
   assert.equal(unknown.reasoning, undefined);
 });
 
-test("dashboard OpenCode preview call uses the page catalog and falls back when absent (#15406)", () => {
-  const card = readFileSync(
-    new URL(
-      "../../src/app/(dashboard)/dashboard/cli-code/components/DefaultToolCard.tsx",
-      import.meta.url
-    ),
-    "utf8"
-  );
-  const previewCall = card.slice(card.indexOf("buildOpenCodeConfigDocument({"));
-  assert.match(previewCall, /^buildOpenCodeConfigDocument\(\{[^}]*\bcatalog\b/s);
-  const saveCall = card.slice(card.indexOf("body: JSON.stringify({"));
-  assert.match(saveCall, /^body: JSON\.stringify\(\{[^}]*\bcatalog\b/s);
-
-  const page = readFileSync(
-    new URL(
-      "../../src/app/(dashboard)/dashboard/cli-code/components/ToolDetailClient.tsx",
-      import.meta.url
-    ),
-    "utf8"
-  );
-  assert.match(page, /catalog:\s*dynamicModels/);
-
-  // Same argument shape DefaultToolCard passes: base URL, key, selected models,
-  // labels, and the /v1/models catalog the page already loaded.
+test("OpenCode config document uses the supplied catalog and falls back when absent (#15406)", () => {
+  // Base URL, key, selected models, labels, and the /v1/models catalog.
   const doc = buildOpenCodeConfigDocument({
     baseUrl: "http://localhost:20128/v1",
     apiKey: "sk_test",

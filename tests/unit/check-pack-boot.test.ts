@@ -214,7 +214,10 @@ test("source guard: the gate polls the real health endpoint of the INSTALLED bin
   );
   assert.ok(src.includes("/api/monitoring/health"), "must poll the health endpoint");
   assert.ok(src.includes("/api/settings"), "must verify a real application write and read");
-  assert.ok(src.includes("/api/cli/whoami"), "must exercise the machine-token auth endpoint");
+  assert.ok(
+    src.includes("verifyMachineTokenAuth(baseUrl, packagedCliToken)"),
+    "must exercise the machine-token auth contrast controls"
+  );
   assert.ok(src.includes("x-omniroute-cli-token"), "must send the official machine-token header");
   const postinstall = readFileSync(
     fileURLToPath(new URL("../../scripts/build/postinstall.mjs", import.meta.url)),

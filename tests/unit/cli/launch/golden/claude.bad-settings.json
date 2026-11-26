@@ -1,7 +1,0 @@
-{
-  "error": {
-    "code": "ConfigConflict",
-    "hint": "Pass a settings file path or an inline JSON object after `--`.",
-    "message": "--settings must be a JSON object"
-  }
-}

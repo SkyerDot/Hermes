@@ -9,7 +9,7 @@ import {
   getCliConfigPaths,
   normalizeCliToolId,
 } from "../../src/shared/services/cliRuntime.ts";
-import { getWhyCodesConfigPath } from "../../src/lib/cli-helper/config-generator/whycodesHome.ts";
+import { getWhyCodesConfigPath } from "../../src/shared/services/cliRuntimeWhyCodesHome.ts";
 
 test("CLI_TOOLS.whycodes is an agent with full base URL and no ACP spawn", () => {
   const tool = getCliTool("whycodes");

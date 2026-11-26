@@ -8,7 +8,7 @@ import { NextResponse } from "next/server";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { getJobRegistry } from "@/lib/jobRegistry";
-import { LOG_EXPORT_JOB_ID } from "@/lib/jobs/logExportJob";
+import { LOG_EXPORT_JOB_ID } from "@/lib/scheduler/logExportJob";
 import { getLogExportDestinations } from "@/lib/db/logExportDestinations";
 import { getMaxCallLogRowId } from "@/lib/usage/callLogExportSource";
 import { toDestinationView } from "@/lib/logExport/presenter";

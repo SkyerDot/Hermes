@@ -140,23 +140,6 @@ const HOVER_ONLY_KEPT: Array<{ file: string; marker: string; reason: string }> =
     marker,
     reason: "16px x on a key-policy chip.",
   })),
-  ...(
-    [
-      ["AntigravityToolCard.tsx", 'handleModelMappingChange(model.alias, "")'],
-      ["ClaudeToolCard.tsx", 'onModelMappingChange(model.alias, "")'],
-      ["CodexToolCard.tsx", 'setSelectedModel("")'],
-      ["CodexToolCard.tsx", "delete next[defaultModel]"],
-      ["DefaultToolCard.tsx", "handleModelValuesChange([])"],
-      ["DroidToolCard.tsx", "removeModel(id)"],
-      ["GrokBuildToolCard.tsx", 'setModel("")'],
-      ["GrokBuildToolCard.tsx", "[type]: undefined"],
-      ["OpenClawToolCard.tsx", 'setSelectedModel("")'],
-    ] as const
-  ).map(([name, marker]) => ({
-    file: `src/app/(dashboard)/dashboard/cli-code/components/${name}`,
-    marker,
-    reason: "x that clears a model field next to its input (unsaved form value).",
-  })),
   {
     file: "src/app/(dashboard)/dashboard/batch/components/UploadFileModal.tsx",
     marker: "setFile(null)",
@@ -317,10 +300,6 @@ test("the destructive row actions from the #19620 list use destructive-ghost", (
     // Decision 1 (2026-11-14): hover-only red row/card deletes, checked in the browser.
     ["src/app/(dashboard)/dashboard/batch/BatchListTab.tsx", "setDeletingId(batch.id)"],
     ["src/app/(dashboard)/dashboard/batch/FilesListTab.tsx", "handleDeleteFile(file)"],
-    [
-      "src/app/(dashboard)/dashboard/cli-code/components/CodexToolCard.tsx",
-      "handleDeleteProfile(p.id)",
-    ],
     [
       "src/app/(dashboard)/dashboard/costs/quota-share/QuotaSharePageClient.tsx",
       "handleDeleteGroup()",

@@ -209,7 +209,6 @@ const DEVELOPER_SHOWN: ReadonlySet<HideableSidebarItemId> = new Set([
   "context-caveman",
   "context-rtk",
   "context-combos",
-  "cli-code",
   "api-endpoints",
   "analytics",
   "analytics-combo-health",

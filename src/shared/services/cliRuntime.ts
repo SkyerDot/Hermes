@@ -3,7 +3,7 @@ import fsSync from "fs";
 import os from "os";
 import path from "path";
 import { spawn } from "child_process";
-import { getHermesHome } from "@/lib/cli-helper/config-generator/hermesHome";
+import { getHermesHome } from "./cliRuntimeHermesHome";
 import { getPiModelsPath } from "./piConfig";
 import { getCachedLoginShellPath, mergeShellPath } from "./loginShellPath";
 import { withSettingsFallback } from "./cliInstallFallback";
