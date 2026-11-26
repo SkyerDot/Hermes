@@ -13,18 +13,12 @@ import Card from "@/shared/components/Card";
 import Input from "@/shared/components/Input";
 import { CardSkeleton } from "@/shared/components/Loading";
 import Modal from "@/shared/components/Modal";
-import SegmentedControl, {
-  SegmentedPanel,
-  SegmentedTabs,
-} from "@/shared/components/SegmentedControl";
 import { cn } from "@/shared/utils/cn";
 import Toggle from "@/shared/components/Toggle";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 import { isPublicDisplayBaseUrl, useDisplayBaseUrl } from "@/shared/hooks";
 import { extractApiErrorMessage } from "@/shared/http/apiErrorMessage";
 import { useTranslations } from "next-intl";
-import NotionSourceCard from "./components/NotionSourceCard";
-import ObsidianSourceCard from "./components/ObsidianSourceCard";
 import VscodeTokenAliasCard from "./VscodeTokenAliasCard";
 
 const BUILD_TIME_CLOUD_URL = process.env.NEXT_PUBLIC_CLOUD_URL || null;
@@ -125,13 +119,6 @@ type EndpointTunnelVisibility = {
   showNgrokTunnel: boolean;
 };
 
-type EndpointTab = "apis" | "context-sources";
-
-const ENDPOINT_TABS: Array<{ value: EndpointTab; labelKey: string; icon: string }> = [
-  { value: "apis", labelKey: "tabApis", icon: "api" },
-  { value: "context-sources", labelKey: "tabContextSources", icon: "database" },
-];
-
 /** Title button that expands a tunnel row (#18071): icon + name, same look as the old row text. */
 const TUNNEL_ROW_TOGGLE_CLASS =
   "h-auto min-h-0 min-w-0 justify-start gap-3 p-0 text-left font-normal text-text-main hover:bg-transparent";
@@ -196,7 +183,6 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
   );
   const [lanUrls, setLanUrls] = useState<string[]>([]);
   const [tailscaleIpUrl, setTailscaleIpUrl] = useState<string | null>(null);
-  const [activeEndpointTab, setActiveEndpointTab] = useState<EndpointTab>("apis");
   const [customSystemPromptEnabled, setCustomSystemPromptEnabled] = useState(false);
   const [customSystemPrompt, setCustomSystemPrompt] = useState("");
 
@@ -1247,11 +1233,7 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
   const ngrokUrlNotice = translateOrFallback("ngrokUrlNotice", "Creates a public ngrok tunnel.");
 
   return (
-    <SegmentedTabs
-      value={activeEndpointTab}
-      onChange={(value) => setActiveEndpointTab(value as EndpointTab)}
-      className="gap-8"
-    >
+    <div className="flex flex-col gap-8">
       {/* Guided connection header (#11228): /v1 URL + test action lead; advanced protocols demoted */}
       <div className="flex flex-col gap-2">
         <PageHeader compact title={t("title")} description={t("subtitle")} />
@@ -1267,22 +1249,7 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
           <span>{t("advancedProtocols")}</span>
         </div>
       </div>
-      <SegmentedControl
-        semantics="tabs"
-        options={ENDPOINT_TABS.map((tab) => ({ ...tab, label: t(tab.labelKey) }))}
-        aria-label={t("endpointSections")}
-        className="w-fit"
-      />
-
-      {/* The endpoint cards stay under every section, so one panel follows the selected tab. */}
-      <SegmentedPanel value={activeEndpointTab} className="flex flex-col gap-8">
-        {activeEndpointTab === "context-sources" ? (
-          <div className="flex flex-col gap-4">
-            <NotionSourceCard />
-            <ObsidianSourceCard />
-          </div>
-        ) : null}
-
+      <div className="flex flex-col gap-8">
         {/* Endpoint Card */}
         <Card>
           <h2 className="ci-heading mb-4" data-size="lg">
@@ -2138,7 +2105,7 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
             <VscodeTokenAliasCard className="mt-4" />
           </div>
         </Card>
-      </SegmentedPanel>
+      </div>
 
       {/* Cloud Enable Modal */}
       <Modal
@@ -2381,7 +2348,7 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
           onClose={() => setSelectedProvider(null)}
         />
       )}
-    </SegmentedTabs>
+    </div>
   );
 }
 

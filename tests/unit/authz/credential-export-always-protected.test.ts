@@ -58,20 +58,6 @@ const HARD_GATED_INVENTORY: ReadonlyArray<{ path: string; why: string }> = [
     path: "/api/providers/agy-auth/apply-local",
     why: "writes into ~/.gemini/antigravity-cli/antigravity-oauth-token",
   },
-  // ── Reported in GHSA-7pq4-8pvv-rx7r (JWT_SECRET bootstrap chain) ─────────
-  // POST points the Obsidian WebDAV file service — served by the custom Node
-  // layer BEFORE Next.js, so the authz pipeline never runs for it — at an
-  // attacker-chosen root and echoes freshly minted Basic credentials; DELETE
-  // rotates/clears them. GHSA-62vw only masked the GET reveal; the credential
-  // *issuance* was still on the fail-open tier.
-  {
-    path: "/api/settings/obsidian/webdav",
-    why: "POST returns reusable WebDAV Basic credentials for a caller-chosen root; DELETE rotates them (GHSA-7pq4-8pvv-rx7r)",
-  },
-  {
-    path: "/api/settings/obsidian",
-    why: "POST stores the Obsidian Local REST API token; same credential surface as its /webdav child (GHSA-7pq4-8pvv-rx7r)",
-  },
   // ── Reported in GHSA-qxg2-rm3h-4cxp ──────────────────────────────────────
   // GET spreads every provider_connections row verbatim — the lazy-decrypt
   // proxy hands out apiKey / accessToken / refreshToken / idToken in plaintext
@@ -84,7 +70,7 @@ const HARD_GATED_INVENTORY: ReadonlyArray<{ path: string; why: string }> = [
   // POST mints a reusable inference credential and returns it in clear once,
   // GET lists every token's id/prefix/limits, and the [id] child edits, toggles
   // or deletes one. Credential issuance stays authenticated in open mode, like
-  // the WebDAV credentials above — "anonymous" is never the right audience for
+  // the apply-local entries above — "anonymous" is never the right audience for
   // "mint me a token".
   {
     path: "/api/relay/tokens",
@@ -185,17 +171,16 @@ test("the plain-path allowlist keeps its existing entries", () => {
     "/api/shutdown",
     "/api/settings/database",
     "/api/db-backups",
-    "/api/settings/obsidian",
     "/api/relay/tokens",
   ]) {
     assert.ok(ALWAYS_PROTECTED_API_PATHS.includes(p), p);
   }
 });
 
-test("the obsidian entry does not over-protect its /api/settings neighbours", () => {
-  // `/api/settings/obsidian` is a plain prefix; the sibling settings routes must
+test("the plain-path entries do not over-protect their /api/settings neighbours", () => {
+  // Plain prefixes must not hard-gate unrelated sibling settings routes; those
   // stay on the MANAGEMENT tier for keyless local-first installs.
-  for (const path of ["/api/settings", "/api/settings/notion", "/api/settings/require-login"]) {
+  for (const path of ["/api/settings", "/api/settings/require-login"]) {
     assert.equal(isAlwaysProtectedPath(path), false, path);
   }
 });
