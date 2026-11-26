@@ -60,23 +60,6 @@ test("an explicit invalid eval key remains invalid instead of gaining internal i
   assert.equal((await enforceClientApiRouteAuth(request))?.status, 401);
 });
 
-test("recorded triage authenticates its internal chat call without importing memory", async () => {
-  const { createRecordedTriageRun } = await import("../../src/lib/issueAgent/recordedTriage.ts");
-  const { executeRecordedTriageChatCompletion } =
-    await import("../../src/lib/issueAgent/execution.ts");
-  const run = createRecordedTriageRun({
-    issueUrl: "https://github.com/cheaper-inference/OmniRoute/issues/16593",
-    recordedContext: { title: "Internal authentication", body: "Recorded diagnostic context" },
-  });
-  let noMemory: string | null = null;
-  const result = await executeRecordedTriageChatCompletion({ run }, async (request) => {
-    noMemory = request.headers.get("x-omniroute-no-memory");
-    return (await enforceClientApiRouteAuth(request)) ?? Response.json({ choices: [] });
-  });
-  assert.equal(result.status, 200);
-  assert.equal(noMemory, "true");
-});
-
 test("dashboard chaos dispatch passes required authentication without a selected key", async () => {
   const providers = await import("../../src/lib/db/providers.ts");
   const chaos = await import("../../src/lib/chaos/chaosExecutor.ts");

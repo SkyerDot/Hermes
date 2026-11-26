@@ -12,7 +12,7 @@ import assert from "node:assert/strict";
 // ─── resolveEndpointCategory: pure function tests ─────────────────────────
 // Import the pure resolver without DB dependencies
 
-const { resolveCanonicalEndpointPath, resolveEndpointCategory } =
+const { ENDPOINT_CATEGORIES, resolveCanonicalEndpointPath, resolveEndpointCategory } =
   await import("../../src/shared/constants/endpointCategories.ts");
 
 test("resolveEndpointCategory: maps /v1/chat/completions to 'chat'", () => {
@@ -99,8 +99,12 @@ test("resolveEndpointCategory: maps /v1/web/fetch to 'web-fetch'", () => {
   assert.equal(resolveEndpointCategory("/v1/web/fetch"), "web-fetch");
 });
 
-test("resolveEndpointCategory: maps /v1/agents/tasks to 'agents'", () => {
-  assert.equal(resolveEndpointCategory("/v1/agents/tasks"), "agents");
+test("resolveEndpointCategory: no category claims the discarded /v1/agents routes", () => {
+  assert.ok(
+    ENDPOINT_CATEGORIES.every((category) => !category.prefixes.includes("/v1/agents")),
+    "the discarded /v1/agents prefix must not appear in any endpoint category"
+  );
+  assert.equal(resolveEndpointCategory("/v1/agents/tasks"), null);
 });
 
 test("resolveEndpointCategory: maps /v1/speech-to-text to 'elevenlabs'", () => {

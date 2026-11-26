@@ -120,12 +120,6 @@ export const ENDPOINT_CATEGORIES: readonly EndpointCategory[] = [
     description: "Web page fetching",
     prefixes: ["/v1/web"],
   },
-  {
-    id: "agents",
-    label: "Agents",
-    description: "Agent task and execution endpoints",
-    prefixes: ["/v1/agents"],
-  },
 ] as const;
 
 /**
