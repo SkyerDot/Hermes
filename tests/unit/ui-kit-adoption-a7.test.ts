@@ -16,16 +16,12 @@ const DASHBOARD_AREAS = [
   "conversations",
   "free-provider-rankings",
   "free-tiers",
-  "gamification",
-  "leaderboard",
   "limits",
   "onboarding",
   "plugins",
-  "profile",
   "provider-stats",
   "quota",
   "relay",
-  "tokens",
 ];
 const SHARED = "src/shared/components";
 /** The screen components of `src/shared/components` (the kit adapters belong to the foundation). */

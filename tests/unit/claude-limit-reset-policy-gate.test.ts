@@ -410,7 +410,6 @@ function createPolicyHarness(
   // would otherwise keep its in-process slot reserved into the next harness.
   bankedResetAudit._resetBankedResetReservations();
   const audit: AuditEntry[] = [];
-  const webhooks: { event: string; data: Record<string, unknown> }[] = [];
   const calls = { settings: 0, connections: 0, windows: 0, rows: 0 };
   const windows = opts.windows ?? {
     "conn-a": { session: windowStatus(100, 3 * HOUR_MS), weekly: windowStatus(40, 72 * HOUR_MS) },
@@ -440,10 +439,9 @@ function createPolicyHarness(
     },
     sinks: {
       logAuditEvent: (entry) => audit.push(entry),
-      notifyWebhookEvent: (event, data) => webhooks.push({ event, data }),
     },
   });
-  return { policy, audit, webhooks, calls };
+  return { policy, audit, calls };
 }
 
 const SESSION_RESET_AT = new Date(SESSION_RESET_SECONDS * 1000).toISOString();
@@ -487,7 +485,7 @@ test("policy: enabled → account scope is the opt-in", async () => {
   assert.equal(outOfScope.audit.length + excluded.audit.length + selected.audit.length, 0);
 });
 
-test("policy: eager allow → success report writes one audit row and fires the webhook", async () => {
+test("policy: eager allow → success report writes one audit row", async () => {
   const h = createPolicyHarness(ENABLED);
   const verdict = await h.policy(WALL);
   assert.equal(verdict?.allow, true);
@@ -508,20 +506,16 @@ test("policy: eager allow → success report writes one audit row and fires the 
       reason: "walled-session",
     },
   });
-  assert.equal(h.webhooks.length, 1);
-  assert.equal(h.webhooks[0].event, "provider.reset_redeemed");
-  assert.equal(h.webhooks[0].data.connectionId, "conn-a");
-  assert.equal(JSON.stringify(h.webhooks[0].data).includes(TOKEN), false);
+  assert.equal(JSON.stringify(h.audit[0]).includes(TOKEN), false);
 });
 
-test("policy: a failed claim writes a failed row and no webhook", async () => {
+test("policy: a failed claim writes a failed row", async () => {
   const h = createPolicyHarness(ENABLED);
   const verdict = await h.policy(WALL);
   verdict?.onSettled?.({ reset: false, outcome: "already_used", nextAvailableAt: null });
   assert.equal(h.audit.length, 1);
   assert.equal(h.audit[0].status, "failed");
   assert.equal((h.audit[0].details as { reason: string }).reason, "already_used");
-  assert.equal(h.webhooks.length, 0);
 });
 
 test("policy: a claim whose outcome is unknown writes an unknown row that counts toward the caps", async () => {
@@ -533,7 +527,6 @@ test("policy: a claim whose outcome is unknown writes an unknown row that counts
   assert.equal(h.audit.length, 1);
   assert.equal(h.audit[0].status, "unknown");
   assert.equal((h.audit[0].details as { reason: string }).reason, "error");
-  assert.equal(h.webhooks.length, 0);
 
   const recent = new Date(NOW - 2 * HOUR_MS).toISOString();
   const capped = createPolicyHarness(ENABLED, {
@@ -552,7 +545,6 @@ test("policy: dry-run never claims but records one dry-run row", async () => {
   assert.equal(h.audit[0].status, "dry-run");
   assert.equal(h.audit[0].target, "conn-a");
   assert.equal((h.audit[0].details as { mode: string }).mode, "dry-run");
-  assert.equal(h.webhooks.length, 0);
 });
 
 test("policy: skip decisions never claim and are not audited", async () => {
@@ -748,7 +740,6 @@ function registerLivePolicy(feature: Record<string, unknown> = ENABLED) {
           timestamp: new Date().toISOString(),
         });
       },
-      notifyWebhookEvent: () => undefined,
     },
   });
   limitReset.setClaudeLimitResetPolicy(async (input) => {

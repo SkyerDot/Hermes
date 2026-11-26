@@ -545,11 +545,6 @@
       "count": 1
     }
   },
-  "src/app/(dashboard)/dashboard/cli-agents/CliAgentsPageClient.tsx": {
-    "no-restricted-syntax": {
-      "count": 4
-    }
-  },
   "src/app/(dashboard)/dashboard/cli-code/components/AntigravityToolCard.tsx": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
@@ -858,11 +853,6 @@
   "src/app/api/services/[name]/logs/route.ts": {
     "no-restricted-syntax": {
       "count": 1
-    }
-  },
-  "src/app/api/settings/obsidian/route.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 2
     }
   },
   "src/app/api/settings/qdrant/route.ts": {
@@ -1205,11 +1195,6 @@
       "count": 1
     }
   },
-  "src/lib/notion/api.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 2
-    }
-  },
   "src/lib/oauth/providers.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
@@ -1233,11 +1218,6 @@
   "src/lib/oauth/utils/claudeAuthImport.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
-    }
-  },
-  "src/lib/obsidian/api.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 2
     }
   },
   "src/lib/piiSanitizer.ts": {
@@ -1481,11 +1461,6 @@
   "src/shared/validation/schemas/combo.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 9
-    }
-  },
-  "src/shared/validation/schemas/evals.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 11
     }
   },
   "src/shared/validation/schemas/gemini.ts": {
@@ -1807,14 +1782,6 @@
       "count": 1
     }
   },
-  "tests/integration/obsidian-plugin-e2e.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 12
-    },
-    "@typescript-eslint/no-unused-vars": {
-      "count": 3
-    }
-  },
   "tests/integration/performance-regression.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 1
@@ -1922,11 +1889,6 @@
   "tests/unit/account-selector.test.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
-    }
-  },
-  "tests/unit/acp-agents-route.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 2
     }
   },
   "tests/unit/adaptive-admission-runtime.test.ts": {
@@ -2037,11 +1999,6 @@
       "count": 3
     }
   },
-  "tests/unit/api/webhooks/webhook-url-ssrf-guard.test.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
   "tests/unit/apikey-connection-health-check.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 1
@@ -2131,11 +2088,6 @@
     }
   },
   "tests/unit/batch-a-domain.test.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
-  "tests/unit/batch-b-final.test.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
     }
@@ -2614,11 +2566,6 @@
       "count": 17
     }
   },
-  "tests/unit/cli-webhooks-commands.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 23
-    }
-  },
   "tests/unit/cli/alias-resolver-7791.test.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
@@ -2632,11 +2579,6 @@
   "tests/unit/cliproxyapi-executor.test.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 3
-    }
-  },
-  "tests/unit/cloud-agent-cursor-4227.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 2
     }
   },
   "tests/unit/cloudflare-models-uuid-4259.test.ts": {
@@ -2973,11 +2915,6 @@
       "count": 5
     }
   },
-  "tests/unit/db-gamification-federation-3500.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 1
-    }
-  },
   "tests/unit/db-health-check.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 25
@@ -3283,16 +3220,6 @@
   "tests/unit/functional-gateway-mirrors-append.test.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
-    }
-  },
-  "tests/unit/gamification/events.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 1
-    }
-  },
-  "tests/unit/gamification/leaderboard.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 3
     }
   },
   "tests/unit/gemini-finish-reason-normalization.test.ts": {
@@ -3609,11 +3536,6 @@
   "tests/unit/observability-fase04.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 1
-    }
-  },
-  "tests/unit/obsidian-plugin-sync.test.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 3
     }
   },
   "tests/unit/ocr-route.test.ts": {
@@ -4788,11 +4710,6 @@
   "tests/unit/web-session-pool-health.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 2
-    }
-  },
-  "tests/unit/webhook-abort-timer-cleanup.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 5
     }
   },
   "tests/unit/xiaomi-providers-registry.test.ts": {

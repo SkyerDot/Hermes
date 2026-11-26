@@ -1,8 +1,8 @@
 // UI review 2026-11-15, defect 8 (finding A7-07): the shell draws a breadcrumb trail on every
 // dashboard page, one crumb per URL segment. Two things were wrong:
 //   - a crumb was always a link, including for a segment whose folder only groups sub-routes
-//     and has no page.tsx (`/dashboard/resilience`, `/dashboard/system`, `/dashboard/tools`,
-//     `/dashboard/gamification`): the link answered 404;
+//     and has no page.tsx (`/dashboard/resilience`, `/dashboard/system`, `/dashboard/tools`):
+//     the link answered 404;
 //   - 26 route segments had no label and showed the raw segment, capitalised, in every locale
 //     ("Log-export", "Mitm-proxy").
 //
@@ -87,7 +87,7 @@ const sampleSegments = (trail: string[]) =>
 const toHref = (segments: string[]) => "/" + segments.join("/");
 
 test("the route tree is read (sanity)", () => {
-  assert.ok(prefixes.length >= 120, `only ${prefixes.length} route prefixes found`);
+  assert.ok(prefixes.length >= 115, `only ${prefixes.length} route prefixes found`);
   assert.equal(resolvesToPage(tree, ["dashboard", "providers", "anything"]), true);
   assert.equal(resolvesToPage(tree, ["dashboard", "resilience"]), false);
 });
@@ -115,7 +115,6 @@ test("the four dead links of the review are gone, and real pages stay links", ()
     "/dashboard/resilience",
     "/dashboard/system",
     "/dashboard/tools",
-    "/dashboard/gamification",
     "/dashboard/api-manager/key-1",
     "/dashboard/plugins/my-plugin",
   ]) {

@@ -14,10 +14,10 @@ test("analytics page exposes the restored analytics tab shell", () => {
   assert.ok(source.includes('<TabsList aria-label={t("sectionsAria")}'));
   for (const [labelKey, label] of [
     ["overview", "Overview"],
-    ["evals", "Evals"],
     ["search", "Search"],
     ["utilization", "Utilization"],
     ["comboHealth", "Combo Health"],
+    ["cacheHealth", "Cache Health"],
     ["routeTrace", "Route Trace"],
   ]) {
     assert.ok(source.includes('labelKey: "' + labelKey + '"'));
@@ -25,10 +25,10 @@ test("analytics page exposes the restored analytics tab shell", () => {
   }
   for (const tabId of [
     "overview",
-    "evals",
     "search",
     "utilization",
     "combo-health",
+    "cache-health",
     "route-trace",
   ]) {
     assert.ok(source.includes('id: "' + tabId + '"'));

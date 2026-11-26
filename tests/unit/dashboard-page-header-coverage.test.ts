@@ -72,7 +72,6 @@ const SHELL_TITLED_ROUTES: Record<string, string> = {
     "src/app/(dashboard)/dashboard/analytics/combo-health/page.tsx",
   "/dashboard/analytics/compression":
     "src/app/(dashboard)/dashboard/analytics/compression/page.tsx",
-  "/dashboard/analytics/evals": "src/app/(dashboard)/dashboard/analytics/evals/page.tsx",
   "/dashboard/analytics/search": "src/app/(dashboard)/dashboard/analytics/search/page.tsx",
   "/dashboard/analytics/utilization":
     "src/app/(dashboard)/dashboard/analytics/utilization/page.tsx",
@@ -324,7 +323,7 @@ const contentPages = dashboardPages.filter((file) => !isRedirectPage(file));
 const reachesPageHeader = (file: string) => rendersSomewhere(file, rendersPageHeader);
 
 test("the inventory sees the dashboard pages and tells redirects apart", () => {
-  assert.ok(dashboardPages.length >= 120, `only ${dashboardPages.length} dashboard pages found`);
+  assert.ok(dashboardPages.length >= 105, `only ${dashboardPages.length} dashboard pages found`);
   const redirects = dashboardPages.filter(isRedirectPage).map(rel);
   for (const page of [
     "src/app/(dashboard)/dashboard/page.tsx",
@@ -334,7 +333,7 @@ test("the inventory sees the dashboard pages and tells redirects apart", () => {
   ]) {
     assert.ok(redirects.includes(page), `${page} should be classified as a redirect`);
   }
-  assert.ok(contentPages.length >= 100, `only ${contentPages.length} content pages found`);
+  assert.ok(contentPages.length >= 95, `only ${contentPages.length} content pages found`);
 });
 
 test("every dashboard page that is not a redirect reaches a kit PageHeader", () => {

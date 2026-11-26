@@ -27,13 +27,14 @@ const DISCARDED_NAV_IDS = [
   "memory",
   "agent-skills",
   "skills",
-  // G7 Gamification / Evals / Webhooks
+  // G7 Gamification / Evals / Webhooks (including the empty group)
   "leaderboard",
   "profile",
   "tokens",
   "gamification-admin",
   "analytics-evals",
   "webhooks",
+  "gamification",
   // G8 Plugins / Services
   "embedded-services",
   "plugins",

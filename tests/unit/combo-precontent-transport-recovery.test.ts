@@ -39,7 +39,6 @@ const { getComboMetrics } = await import("../../open-sse/services/comboMetrics.t
 const { clearNativeCodexTurnPinsForTests, pinNativeCodexTurn } =
   await import("../../open-sse/services/combo/nativeCodexTurnPin.ts");
 const { closeCallLogSaves } = await import("../../src/lib/usage/callLogs.ts");
-const { dispatchEvent } = await import("../../src/lib/webhookDispatcher.ts");
 const noop = () => {};
 const quiet = { info: noop, warn: noop, error: noop, debug: noop };
 const encoder = new TextEncoder();
@@ -188,8 +187,6 @@ test.beforeEach(() => {
   clearNativeCodexTurnPinsForTests();
 });
 test.after(async () => {
-  // Drain the same webhook import chain used by fire-and-forget combo notifications.
-  await dispatchEvent("request.completed", {});
   await closeCallLogSaves(2000);
   resetDbInstance();
   fs.rmSync(data, { recursive: true, force: true });
@@ -197,7 +194,7 @@ test.after(async () => {
 
 test("test database is inside the temporary DATA_DIR", () => {
   const rows = getDbInstance().pragma("database_list") as Array<{ name: string; file: string }>;
-  assert.equal(path.dirname(rows.find((row) => row.name === "main")!.file), data);
+  assert.equal(path.dirname(rows.find((row) => row.name === "main")!.file), fs.realpathSync(data));
 });
 
 for (const code of ["ECONNRESET", "EPIPE", "UND_ERR_SOCKET", "UND_ERR_BODY_TIMEOUT"]) {

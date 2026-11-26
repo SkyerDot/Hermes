@@ -490,7 +490,7 @@ test("runAuthzPipeline accepts dashboard mutations from dynamic public origins w
     ["POST", "/api/keys"],
     ["PATCH", "/api/settings"],
     ["PUT", "/api/combos/combo-1"],
-    ["DELETE", "/api/webhooks/webhook-1"],
+    ["DELETE", "/api/combos/combo-1"],
   ] as const) {
     const response = await pipeline.runAuthzPipeline(
       request(`http://127.0.0.1:20128${path}`, {

@@ -305,9 +305,7 @@ test("the destructive row actions from the #19620 list use destructive-ghost", (
       "src/app/(dashboard)/dashboard/api-manager/ApiManagerPageClient.tsx",
       "handleDeleteKey(key.id)",
     ],
-    ["src/app/(dashboard)/dashboard/tokens/page.tsx", "handleRevokeInvite(inv.id)"],
     ["src/app/(dashboard)/dashboard/relay/RelayProxyClient.tsx", "deleteToken(token.id)"],
-    ["src/app/(dashboard)/dashboard/webhooks/components/WebhookCard.tsx", "onDelete(webhook)"],
     [
       "src/app/(dashboard)/dashboard/providers/[id]/components/ConnectionRow.tsx",
       "onClick={onDelete}",

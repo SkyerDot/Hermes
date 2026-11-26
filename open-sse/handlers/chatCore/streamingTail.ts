@@ -40,7 +40,6 @@ import { hasActiveClaudeThinking } from "../../utils/thinkingBudget.ts";
 import { buildCacheUsageLogMeta } from "./cacheUsageMeta.ts";
 import { recordContextEditingTelemetryHook } from "./contextEditingTelemetry.ts";
 import { readCpaAuthIndex } from "./failureUsage.ts";
-import { emitRequestGamificationEvent } from "./gamificationEvent.ts";
 import { convertJsonBodyWithinCap } from "./jsonBodyToSse.ts";
 import { runMemoryExtractionGate } from "./memoryExtraction.ts";
 import { mergeResponseToolNameMap } from "./passthroughToolNames.ts";
@@ -900,9 +899,6 @@ export async function runStreamingTail(deps: StreamingTailDeps) {
     ),
   });
   const clientFacingStream = wrapReadableStreamWithFinalize(finalStream, releaseTurnExecution);
-
-  // ── Gamification event (fire-and-forget) ──
-  await emitRequestGamificationEvent({ apiKeyId: apiKeyInfo?.id, model, provider });
 
   // ── Plugin onResponse hook (fire-and-forget) ──
   await runPluginOnResponseHook({

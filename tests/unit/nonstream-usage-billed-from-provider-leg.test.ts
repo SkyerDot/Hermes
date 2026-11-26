@@ -116,7 +116,6 @@ function buildDeps(claudeBody, sinks, overrides = {}) {
     recordChatCallCost: noop,
     saveIdempotency: async () => undefined,
     scheduleQuotaShareConsumption: async () => undefined,
-    emitRequestGamificationEvent: async () => undefined,
     finalizePendingScope: noop,
     echoModelInObject: noop,
     runPluginOnResponseHook: async () => undefined,

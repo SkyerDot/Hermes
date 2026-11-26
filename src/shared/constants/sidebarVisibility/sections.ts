@@ -269,13 +269,6 @@ const INTEGRATIONS_GROUP: SidebarItemGroup = {
       icon: "api",
     },
     {
-      id: "webhooks",
-      href: "/dashboard/webhooks",
-      i18nKey: "webhooks",
-      subtitleKey: "webhooksSubtitle",
-      icon: "webhook",
-    },
-    {
       id: "log-export",
       href: "/dashboard/log-export",
       i18nKey: "logExport",
@@ -337,13 +330,6 @@ const ANALYTICS_ITEMS: readonly SidebarItemDefinition[] = [
     i18nKey: "analyticsSearch",
     subtitleKey: "analyticsSearchSubtitle",
     icon: "manage_search",
-  },
-  {
-    id: "analytics-evals",
-    href: "/dashboard/analytics/evals",
-    i18nKey: "analyticsEvals",
-    subtitleKey: "analyticsEvalsSubtitle",
-    icon: "labs",
   },
   {
     id: "provider-stats",
@@ -578,43 +564,6 @@ const AGENTIC_FEATURES_ITEMS: readonly SidebarSectionChild[] = [
   },
 ];
 
-const GAMIFICATION_GROUP: SidebarItemGroup = {
-  type: "group",
-  id: "gamification",
-  titleKey: "gamificationGroup",
-  titleFallback: "Gamification",
-  items: [
-    {
-      id: "leaderboard",
-      href: "/dashboard/leaderboard",
-      i18nKey: "leaderboard",
-      subtitleKey: "leaderboardSubtitle",
-      icon: "emoji_events",
-    },
-    {
-      id: "profile",
-      href: "/dashboard/profile",
-      i18nKey: "profile",
-      subtitleKey: "profileSubtitle",
-      icon: "person",
-    },
-    {
-      id: "tokens",
-      href: "/dashboard/tokens",
-      i18nKey: "tokens",
-      subtitleKey: "tokensSubtitle",
-      icon: "toll",
-    },
-    {
-      id: "gamification-admin",
-      href: "/dashboard/gamification/admin",
-      i18nKey: "gamificationAdmin",
-      subtitleKey: "gamificationAdminSubtitle",
-      icon: "admin_panel_settings",
-    },
-  ],
-};
-
 const OTHER_FEATURES_ITEMS: readonly SidebarItemDefinition[] = [
   {
     id: "media",
@@ -818,7 +767,7 @@ export const SIDEBAR_SECTIONS: readonly SidebarSectionDefinition[] = [
     id: "other-features",
     titleKey: "otherFeaturesSection",
     titleFallback: "Other Features",
-    children: [GAMIFICATION_GROUP, ...OTHER_FEATURES_ITEMS, BATCH_GROUP],
+    children: [...OTHER_FEATURES_ITEMS, BATCH_GROUP],
   },
   {
     id: "configuration",

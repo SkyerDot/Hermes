@@ -15,15 +15,12 @@ const { getComboMetrics } = await import("../../open-sse/services/comboMetrics.t
 const { FETCH_TIMEOUT_MS } = await import("../../open-sse/config/constants.ts");
 const { resetDbInstance } = await import("../../src/lib/db/core.ts");
 const { closeCallLogSaves } = await import("../../src/lib/usage/callLogs.ts");
-const { dispatchEvent } = await import("../../src/lib/webhookDispatcher.ts");
 const noop = () => {};
 const log = { info: noop, warn: noop, error: noop, debug: noop };
 const answer =
   'data: {"choices":[{"delta":{"content":"default gate recovered"}}]}\n\ndata: [DONE]\n\n';
 
 test.after(async () => {
-  // Drain the same webhook import chain used by fire-and-forget combo notifications.
-  await dispatchEvent("request.completed", {});
   await closeCallLogSaves(2000);
   resetDbInstance();
   fs.rmSync(data, { recursive: true, force: true });

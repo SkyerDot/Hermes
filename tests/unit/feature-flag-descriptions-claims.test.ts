@@ -25,10 +25,9 @@ test("Allow Private dashboard description states what the flag turns off", () =>
   const d = byKey("OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS");
   assert.match(d, /cloud-metadata block included/);
   assert.match(d, /provider URL validation, model discovery, provider-node base URLs/);
-  assert.match(d, /private webhook targets/);
-  // The proxy-fallback test and webhooks consult only this flag — the local-first
-  // default does not open them.
-  assert.match(d, /check only this flag/);
+  assert.doesNotMatch(d, /webhook/i);
+  // The proxy-fallback test consults only this flag — the local-first default does not open it.
+  assert.match(d, /checks? only this flag/);
   assert.doesNotMatch(d, /REQUIRED for self-hosted/);
 });
 

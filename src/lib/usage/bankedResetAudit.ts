@@ -4,25 +4,21 @@
  * Every real redemption (success, failure or unknown outcome) and every dry-run decision
  * becomes one `bankedReset.redeem` audit row; skip decisions are never written. The rows
  * double as the redemption history: the per-account / per-day caps and the minimum spacing
- * are counted from them, so the limits survive restarts. A successful redemption also
- * fires the `provider.reset_redeemed` webhook.
+ * are counted from them, so the limits survive restarts.
  *
  * Rows carry the connection id, provider, credit type, mode, trigger and reason only —
  * never tokens, emails or upstream credit ids.
  */
 
 import { getAuditLog, getAuditLogByActionSince, logAuditEvent } from "@/lib/compliance/index";
-import { notifyWebhookEvent } from "@/lib/webhookDispatcher";
 import type { BankedResetHistory, BankedResetTrigger } from "@/lib/usage/bankedResetPolicy";
 import type {
   BankedResetCreditType,
   BankedResetMode,
 } from "@/shared/constants/bankedResetAutoApply";
-import type { WebhookEvent } from "@/lib/webhooks/eventDescriptions";
 
 export const BANKED_RESET_AUDIT_ACTION = "bankedReset.redeem";
 export const BANKED_RESET_AUDIT_RESOURCE_TYPE = "provider_connection";
-export const BANKED_RESET_WEBHOOK_EVENT: WebhookEvent = "provider.reset_redeemed";
 export const BANKED_RESET_HISTORY_WINDOW_MS = 24 * 60 * 60_000;
 
 /**
@@ -68,14 +64,13 @@ export interface BankedResetAuditEntry {
   };
 }
 
-/** Where outcomes go: the audit log, and the webhook on success. Injectable for tests. */
+/** Where outcomes go: the audit log. Injectable for tests. */
 export interface BankedResetSinks {
   logAuditEvent: (entry: BankedResetAuditEntry) => void;
-  notifyWebhookEvent: (event: WebhookEvent, data: Record<string, unknown>) => void;
 }
 
 export function createDefaultBankedResetSinks(): BankedResetSinks {
-  return { logAuditEvent, notifyWebhookEvent };
+  return { logAuditEvent };
 }
 
 const SAFE_REASON = /^[a-z0-9][a-z0-9_.-]{0,63}$/i;
@@ -129,24 +124,12 @@ export function classifyBankedResetFailure(error: unknown): "failed" | "unknown"
   return upstream5xx ? "unknown" : "failed";
 }
 
-/** Write one audit row; on success also fire the webhook. Never throws. */
+/** Write one audit row. Never throws — a logged redemption must not break the caller. */
 export function recordBankedResetOutcome(outcome: BankedResetOutcome, sinks: BankedResetSinks) {
   try {
     sinks.logAuditEvent(buildBankedResetAuditEntry(outcome));
   } catch {
     // Audit logging must never break a redemption that already happened.
-  }
-  if (outcome.status !== "success") return;
-  try {
-    sinks.notifyWebhookEvent(BANKED_RESET_WEBHOOK_EVENT, {
-      connectionId: outcome.connectionId,
-      provider: outcome.provider,
-      creditType: outcome.creditType,
-      mode: outcome.mode,
-      trigger: outcome.trigger,
-    });
-  } catch {
-    // Webhook delivery is best-effort.
   }
 }
 

@@ -45,14 +45,6 @@ const ICON_ONLY: Record<string, { count: number; why: string }> = {
     count: 5,
     why: "FORMAT_ACCENT_CLASS colours the source/target format <Icon>",
   },
-  "src/app/(dashboard)/dashboard/webhooks/components/WebhookCard.tsx": {
-    count: 4,
-    why: "KIND_COLORS colours the webhook kind <Icon>",
-  },
-  "src/app/(dashboard)/dashboard/webhooks/components/shared/IntegrationCard.tsx": {
-    count: 4,
-    why: "KIND_COLORS colours the integration kind <Icon>",
-  },
 };
 
 const isBareChartText = (token: string) =>

@@ -63,7 +63,6 @@ function createWorld(feature: Record<string, unknown>) {
         timestamp: iso(NOW),
       });
     },
-    notifyWebhookEvent: () => undefined,
   };
   const windows: Record<string, typeof WALLED> = {
     "conn-a": WALLED,

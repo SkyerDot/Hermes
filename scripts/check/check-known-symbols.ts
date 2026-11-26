@@ -27,7 +27,7 @@
 //       novos não falham — apenas são reportados — para não bloquear adições legítimas.
 //
 //   (4) MCP TOOLS — todos os tools registrados em createMcpServer() (base MCP_TOOLS +
-//       memoryTools + skillTools + gamificationTools + pluginTools + notionTools +
+//       memoryTools + skillTools + pluginTools + notionTools +
 //       obsidianTools) DEVEM ter ao menos um escopo atribuído (scope-enforcement). Os
 //       nomes são congelados em KNOWN_MCP_TOOL_NAMES. Catraca: tool removido = fail.
 //       Tool novo = report (não bloqueia adições legítimas).

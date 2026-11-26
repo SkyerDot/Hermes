@@ -4,7 +4,7 @@
 // `grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4` to
 // `grid-cols-2 md:grid-cols-3 xl:grid-cols-4`, dropping the mobile (<768px)
 // single-column fallback that every other card-grid in the dashboard still
-// has (ProviderQuotaWidget.tsx, EvalsTab.tsx, MediaPageClient.tsx,
+// has (ProviderQuotaWidget.tsx, MediaPageClient.tsx,
 // SystemStorageTab.tsx). Forcing 2 columns even on phone widths squeezes
 // each QuotaCard, and since QuotaCard's outer Card uses `overflow-hidden`,
 // the overflowing button/label text is clipped instead of wrapping.

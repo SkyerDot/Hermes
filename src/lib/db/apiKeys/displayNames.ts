@@ -1,7 +1,7 @@
 import { getDbInstance } from "../core";
 
 // Bind slots per IN(...) query — keeps the largest caller batch (a 200-row
-// leaderboard page) in one statement while staying far below SQLite's default
+// ranking view) in one statement while staying far below SQLite's default
 // 999-variable limit for pathological lists.
 const DISPLAY_NAME_LOOKUP_CHUNK = 200;
 
@@ -14,7 +14,7 @@ interface DisplayNameRow {
  * Display names for a set of API key ids, keyed by id.
  *
  * Reads only `id` and `name` — never `key`, `key_hash`, `key_prefix` or any
- * policy column — so a caller can label a key (leaderboards, audit views)
+ * policy column — so a caller can label a key (ranking views, audit views)
  * without receiving a full key record that would need masking. Unknown ids and
  * blank names are simply absent from the result.
  */

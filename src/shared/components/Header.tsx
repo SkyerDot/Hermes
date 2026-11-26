@@ -100,7 +100,6 @@ const HEADER_DESCRIPTIONS: Partial<
   "search-tools": "searchToolsDescription",
   logs: "logsDescription",
   audit: "auditDescription",
-  webhooks: "webhooksDescription",
   health: "healthDescription",
   proxy: "proxyDescription",
   changelog: "changelogDescription",
@@ -109,7 +108,6 @@ const HEADER_DESCRIPTIONS: Partial<
   // Agents & AI sub-pages
   "batch-files": "batchFilesDescription",
   // Analytics sub-pages
-  "analytics-evals": "analyticsEvalsDescription",
   "analytics-search": "analyticsSearchDescription",
   "analytics-utilization": "analyticsUtilizationDescription",
   "analytics-combo-health": "analyticsComboHealthDescription",

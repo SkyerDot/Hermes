@@ -32,7 +32,6 @@ import {
 } from "./pinRecovery.ts";
 import { collectQuotaWindowExclusions, formatQuotaSkipMessage } from "./quotaSkipDiagnostics.ts";
 import { recordComboRequest } from "../comboMetrics.ts";
-import { notifyWebhookEvent } from "../../../src/lib/webhookDispatcher.ts";
 import { parseModel } from "../model.ts";
 import {
   formatComboOutcomes,
@@ -614,12 +613,6 @@ export async function dispatchWithCooldownRetry(opts: {
             strategy: deps.strategy,
           });
         }
-        notifyWebhookEvent("request.failed", {
-          combo: deps.combo.name,
-          reason: "COMBO_TIMEOUT",
-          latencyMs,
-          fallbackCount: state.fallbackCount,
-        });
         return errorResponseWithComboDiagnostics(
           504,
           msg,
@@ -756,12 +749,6 @@ export async function dispatchWithCooldownRetry(opts: {
               return compatFallbackResult;
             }
           }
-          notifyWebhookEvent("request.failed", {
-            combo: deps.combo.name,
-            reason: "ALL_TARGETS_SKIPPED",
-            latencyMs,
-            fallbackCount: state.fallbackCount,
-          });
           // Every target sat behind an OPEN breaker: say so, with the providers and
           // the time until the next probe, instead of the generic skip whose recovery
           // hint points at quota and top-ups the breaker has nothing to do with.
@@ -811,12 +798,6 @@ export async function dispatchWithCooldownRetry(opts: {
             state.observedFailure ? state.allObservedFailuresQuota : null
           );
         }
-        notifyWebhookEvent("request.failed", {
-          combo: deps.combo.name,
-          reason: "ALL_ACCOUNTS_INACTIVE",
-          latencyMs,
-          fallbackCount: state.fallbackCount,
-        });
         recordComboFailure(deps.effectiveSessionId, deps.combo.name);
         const inactiveRateLimitedUntil = await computeEarliestSkippedRateLimitedUntil(
           state.orderedTargets

@@ -81,7 +81,6 @@ function createWorld(options: WorldOptions = {}) {
     redeem: [] as { provider: Provider; id: string; key: string; creditId: string }[],
   };
   const audit: AuditEntry[] = [];
-  const webhooks: { event: string; data: Record<string, unknown> }[] = [];
   const world = {
     feature: options.feature,
     connections: options.connections ?? [{ id: "conn-a", provider: "codex" as Provider }],
@@ -145,13 +144,11 @@ function createWorld(options: WorldOptions = {}) {
           timestamp: iso(NOW),
         });
       },
-      notifyWebhookEvent: (event: string, data: Record<string, unknown>) =>
-        webhooks.push({ event, data }),
     },
   };
   const state = job.createBankedResetAutoApplyState();
   const tick = (now = NOW) => job.runBankedResetAutoApplyTick(deps, state, () => now);
-  return { world, deps, state, calls, audit, webhooks, tick };
+  return { world, deps, state, calls, audit, tick };
 }
 
 const EAGER = { enabled: true, mode: "eager", minSpacingMinutes: 0 };
@@ -163,7 +160,7 @@ test("disabled → zero calls beyond reading the settings", async () => {
     assert.equal(w.calls.settings, 1);
     assert.equal(w.calls.connections + w.calls.windows + w.calls.lease + w.calls.rows, 0);
     assert.equal(w.calls.throttle + w.calls.list.length + w.calls.redeem.length, 0);
-    assert.equal(w.audit.length + w.webhooks.length, 0);
+    assert.equal(w.audit.length, 0);
   }
 });
 
@@ -209,8 +206,6 @@ test("only walled accounts get their credits listed; the soonest-expiring credit
       reason: "walled-session",
     },
   });
-  assert.equal(w.webhooks.length, 1);
-  assert.equal(w.webhooks[0].event, "provider.reset_redeemed");
   assert.equal(JSON.stringify(w.audit).includes("credit-soon"), false, "no credit ids in audit");
 });
 
@@ -315,7 +310,6 @@ test("a failed redemption is audited without secrets and backs the account off f
     "codex_reset_credit_upstream_error"
   );
   assert.equal(JSON.stringify(w.audit).includes("sk-secret-token"), false);
-  assert.equal(w.webhooks.length, 0, "webhook only on success");
 
   await w.tick(NOW + 10 * MINUTE_MS);
   await w.tick(NOW + 59 * MINUTE_MS);
@@ -377,7 +371,6 @@ test("a redemption whose outcome is unknown is recorded as unknown and counts to
     const label = String((error as { code?: unknown }).code ?? (error as Error).name);
     assert.equal(w.audit.length, 1, label);
     assert.equal(w.audit[0].status, "unknown", label);
-    assert.equal(w.webhooks.length, 0, `${label}: webhook only on success`);
     assert.equal(w.calls.redeem.length, 1, `${label}: the unknown outcome holds the daily cap`);
   }
 });
@@ -426,7 +419,6 @@ test("dry-run lists and records a dry-run row but never redeems", async () => {
   assert.equal(w.calls.redeem.length, 0);
   assert.equal(w.audit.length, 1);
   assert.equal(w.audit[0].status, "dry-run");
-  assert.equal(w.webhooks.length, 0);
 
   // The dry-run row counts toward the per-account cap while in dry-run mode.
   await w.tick(NOW + 5 * MINUTE_MS);

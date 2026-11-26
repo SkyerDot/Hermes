@@ -10,8 +10,8 @@
  *
  * As a result `X-OmniRoute-Selected-Connection-Id` was absent on every
  * successful response for a dynamically-selected (unpinned) connection, so
- * combo.ts's consumers (success-decay, provider cooldown recovery, webhook
- * attribution, session stickiness, LKGP) fell back to the target's static
+ * combo.ts's consumers (success-decay, provider cooldown recovery, session
+ * stickiness, LKGP) fell back to the target's static
  * `connectionId`, which is empty for provider-level combo targets like
  * `openai/o3-mini`.
  */

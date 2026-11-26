@@ -476,7 +476,7 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     key: "OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS",
     label: "Allow Private Provider URLs",
     description:
-      "Turns off the outbound URL guard's host checks, cloud-metadata block included, on provider URL validation, model discovery, provider-node base URLs, and the proxy-fallback test, and allows private webhook targets. Local and LAN URLs already pass on the validation, discovery, and provider-node paths by default; the proxy-fallback test and webhook targets check only this flag",
+      "Turns off the outbound URL guard's host checks, cloud-metadata block included, on provider URL validation, model discovery, provider-node base URLs, and the proxy-fallback test. Local and LAN URLs already pass on the validation, discovery, and provider-node paths by default; the proxy-fallback test checks only this flag",
     descriptionI18nKey: "featureFlagOmnirouteAllowPrivateProviderUrlsDescription",
     category: "network",
     defaultValue: "false",

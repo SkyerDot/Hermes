@@ -15,8 +15,8 @@
  * history is re-read and the decision re-made, and the slot is reserved in that same
  * synchronous step (reserveBankedResetSlot, shared with the Claude request-path gate), so
  * a claim made while the listing was in flight is respected. A failed listing or
- * redemption backs the account off for 1 h. Outcomes go to the audit log (and the webhook
- * on success) through bankedResetAudit.ts; skip decisions are only logged at debug level.
+ * redemption backs the account off for 1 h. Outcomes go to the audit log through
+ * bankedResetAudit.ts; skip decisions are only logged at debug level.
  *
  * Every external effect is behind an injectable `deps` object and the tick takes an
  * injectable `now()` clock, so tests run without timers, DB or network (same shape as

@@ -61,7 +61,7 @@ function isCloudMetadataIpv4(host: string): boolean {
 
 /**
  * Cloud-metadata and IPv4 link-local (169.254.0.0/16) endpoints are the classic
- * SSRF→IAM-credential pivot and have no legitimate webhook/automation use case. They are
+ * SSRF→IAM-credential pivot and have no legitimate automation use case. They are
  * blocked UNCONDITIONALLY — even when private targets are explicitly opted in. (#3269)
  */
 export function isCloudMetadataHost(hostname: string): boolean {
@@ -142,7 +142,7 @@ export function parseAndValidateNonMetadataUrl(input: string | URL) {
 }
 
 // NOTE (#7682): `arePrivateProviderUrlsAllowed`, `areLocalProviderUrlsAllowed`,
-// `getProviderOutboundGuard`, `getProviderValidationGuard`, and `parseAndValidateWebhookUrl`
+// `getProviderOutboundGuard` and `getProviderValidationGuard`
 // live in the sibling `./outboundUrlGuardPolicy.ts` module, NOT here. Those helpers need
 // `@/shared/utils/featureFlags` (which transitively pulls in the DB layer), and this file is
 // loaded by the packaged CLI (`omniroute setup-opencode` → cli-helper/config-generator/

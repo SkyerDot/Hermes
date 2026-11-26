@@ -297,7 +297,7 @@ function buildDispatchErrorResult(
  * Dispatch to OmniRoute's own /v1/chat/completions handler for a given
  * provider+model — in-process, via a synthetic Request handed directly to the
  * route's POST handler. No network hop, no port dependency. Mirrors the
- * established pattern in src/lib/batches/dispatch.ts and src/lib/evals/runtime.ts
+ * established in-process dispatch pattern in src/lib/batches/dispatch.ts
  * (which the codebase's outbound-self-call convention requires — see #6679 review).
  */
 async function dispatchToModel(

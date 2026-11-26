@@ -11,7 +11,7 @@ import {
 import { getProviderOutboundGuard } from "@/shared/network/outboundUrlGuardPolicy";
 import { resolveProxyForRequest } from "./proxyFetch.ts";
 // #12569: `createPinnedFetch` now lives in the shared `dnsPinnedFetch.ts` module so the
-// webhook outbound-URL guard can reuse the exact same connection-pinning mechanism instead of
+// outbound-URL guard can reuse the exact same connection-pinning mechanism instead of
 // duplicating it. Re-exported here for backward compatibility with existing importers of
 // `@/shared/network/remoteImageFetch`.
 import { createPinnedFetch } from "@/shared/network/dnsPinnedFetch";

@@ -32,7 +32,6 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "discovery",
   // OmniProxy > Integrations
   "api-endpoints",
-  "webhooks",
   "log-export",
   // OmniProxy — proxy tools
   "mitm-proxy",
@@ -45,7 +44,6 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "cache",
   "analytics-compression",
   "analytics-search",
-  "analytics-evals",
   "provider-stats",
   // Monitoring — flat
   "activity",
@@ -80,11 +78,6 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "agent-skills",
   "chaos-config",
   "plugins",
-  // Gamification
-  "leaderboard",
-  "profile",
-  "tokens",
-  "gamification-admin",
   // Other Features — flat
   "media",
   // Other Features > Batch

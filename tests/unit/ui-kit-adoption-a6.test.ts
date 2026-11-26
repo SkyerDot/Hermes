@@ -4,7 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-// Adoption of the new CI UI Kit, slice A6: the context, playground, webhooks, translator,
+// Adoption of the new CI UI Kit, slice A6: the context, playground, translator,
 // media-providers, compression, search-tools and memory screens. Each test
 // keeps one hand-made pattern from coming back to these folders once the kit API replaced
 // it. A kept occurrence is listed with its reason; a listed one that no longer exists fails
@@ -15,7 +15,6 @@ const DASH = "src/app/(dashboard)/dashboard";
 const AREAS = [
   "context",
   "playground",
-  "webhooks",
   "translator",
   "media-providers",
   "compression",
@@ -100,8 +99,8 @@ function assertOnlyKept(hits: Tag[], kept: Kept[], message: string): void {
   assert.deepEqual(stale, [], "stale kept entries: remove them");
 }
 
-test("the slice scans the eight A6 areas", () => {
-  assert.ok(SOURCES.length > 150, `only ${SOURCES.length} files found`);
+test("the slice scans the retained A6 areas", () => {
+  assert.ok(SOURCES.length > 125, `only ${SOURCES.length} files found`);
   for (const area of AREAS)
     assert.ok(
       SOURCES.some((s) => s.file.startsWith(`${area}/`)),
@@ -292,8 +291,6 @@ test("C: a neutral panel nested in a card is Card.Section, not a hand-made box",
   const kept: Kept[] = [
     ...(
       [
-        ["webhooks/components/HowItWorksSidebar.tsx", "<aside"],
-        ["webhooks/components/WebhookCard.tsx", "rounded-xl border border-border bg-surface"],
         ["media-providers/components/LlmChatCard.tsx", '"flex flex-col gap-3"'],
         ["compression/studio/CompressionCockpit.tsx", "px-3 py-2 rounded-lg"],
         ["compression/studio/CompressionCockpit.tsx", "flex-1 min-h-0 overflow-auto"],

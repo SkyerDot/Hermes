@@ -53,7 +53,7 @@ function makeSections(): Section[] {
       id: "configuration",
       children: [
         { id: "settings", label: "Settings" },
-        { id: "webhooks", label: "Webhooks" },
+        { id: "audit", label: "Audit" },
       ],
     },
   ];
@@ -99,7 +99,7 @@ test("drops a group entirely when none of its items match", () => {
 });
 
 test("drops sections that have no matching children at all", () => {
-  const result = filterSidebarSectionsByQuery(makeSections(), "webhooks");
+  const result = filterSidebarSectionsByQuery(makeSections(), "audit");
   assert.equal(result.length, 1);
   assert.equal(result[0].id, "configuration");
 });

@@ -50,7 +50,6 @@ describe("Breadcrumbs: no link to a route prefix without a page", () => {
     ["/dashboard/resilience/connections", "/dashboard/resilience", en.breadcrumbs.resilience],
     ["/dashboard/system/proxy", "/dashboard/system", en.sidebar.systemGroup],
     ["/dashboard/tools/agent-bridge", "/dashboard/tools", en.breadcrumbs.tools],
-    ["/dashboard/gamification/admin", "/dashboard/gamification", en.breadcrumbs.gamification],
     ["/dashboard/api-manager/key-1/access", "/dashboard/api-manager/key-1", "Key-1"],
     ["/dashboard/plugins/my-plugin/config", "/dashboard/plugins/my-plugin", "My-plugin"],
   ])("%s: the %s crumb is text, not a link", (pathname, deadHref, label) => {

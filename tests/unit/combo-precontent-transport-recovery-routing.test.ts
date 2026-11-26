@@ -27,7 +27,6 @@ const { acquire, buildAccountSemaphoreKey, resetAll } =
   await import("../../open-sse/services/accountSemaphore.ts");
 const { closeCallLogSaves } = await import("../../src/lib/usage/callLogs.ts");
 const { resetDbInstance } = await import("../../src/lib/db/core.ts");
-const { dispatchEvent } = await import("../../src/lib/webhookDispatcher.ts");
 const pinConnection = await createProviderConnection({
   provider: "transport-a",
   authType: "apikey",
@@ -222,7 +221,6 @@ test.beforeEach(() => {
   resetAll();
 });
 test.after(async () => {
-  await dispatchEvent("request.completed", {});
   await closeCallLogSaves(2000);
   resetAll();
   resetDbInstance();
