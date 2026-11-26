@@ -9,7 +9,8 @@ process.env.DATA_DIR = directory;
 process.env.API_KEY_SECRET = "combo-family-policy-fixture-only";
 const { handleComboChat } = await import("../../open-sse/services/combo.ts");
 const { enforceApiKeyPolicy } = await import("../../src/shared/utils/apiKeyPolicy.ts");
-const { withPathTokenApiKey } = await import("../../src/lib/vscode/tokenizedRequest.ts");
+const { withPathTokenApiKey } =
+  await import("../../src/app/api/v1/vscode/[token]/tokenizedRequest.ts");
 const keys = await import("../../src/lib/db/apiKeys.ts");
 const combos = await import("../../src/lib/db/combos.ts");
 const providers = await import("../../src/lib/db/providers.ts");

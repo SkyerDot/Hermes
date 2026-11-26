@@ -10,10 +10,7 @@ import {
   applyThemeColor,
   themeColorBootValue,
 } from "@/shared/utils/themeColorMeta";
-import {
-  CLASSIC_PAGE_BACKGROUND,
-  EDITIONS_PAGE_BACKGROUND,
-} from "@/shared/constants/pwaThemeColors";
+import { CLASSIC_PAGE_BACKGROUND, EDITIONS_PAGE_BACKGROUND } from "@/shared/constants/themeColors";
 
 // #19066 block 2: with a stored palette the page ended up with 4 `<meta name="theme-color">` tags
 // instead of the 2 the server renders. React 19 adopts the server's <meta> tags at hydration by

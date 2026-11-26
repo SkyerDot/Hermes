@@ -690,16 +690,6 @@
       "count": 1
     }
   },
-  "src/app/(dashboard)/dashboard/tools/agent-bridge/components/AgentList.tsx": {
-    "no-restricted-syntax": {
-      "count": 3
-    }
-  },
-  "src/app/(dashboard)/dashboard/tools/traffic-inspector/components/TopBarControls.tsx": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
   "src/app/(dashboard)/dashboard/translator/components/ResultNarrated.tsx": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
@@ -820,11 +810,6 @@
       "count": 1
     }
   },
-  "src/app/api/tools/traffic-inspector/ws/route.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
   "src/app/api/v1/audio/speech/route.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
@@ -938,16 +923,6 @@
   "src/lib/compliance/index.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
-    }
-  },
-  "src/lib/copilot/engine.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 2
-    }
-  },
-  "src/lib/copilot/tools.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 2
     }
   },
   "src/lib/db/apiKeys.ts": {
@@ -1140,11 +1115,6 @@
       "count": 1
     }
   },
-  "src/lib/tailscaleTunnel.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
   "src/lib/usage/apiKeyUsageLimits.ts": {
     "no-restricted-syntax": {
       "count": 1
@@ -1181,21 +1151,6 @@
   "src/lib/zed-oauth/keychain-reader.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
-    }
-  },
-  "src/mitm/cert/install.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 3
-    }
-  },
-  "src/mitm/dns/provision.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
-  "src/mitm/manager.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 2
     }
   },
   "src/shared/components/KiroAuthModal.tsx": {
@@ -1438,7 +1393,7 @@
   },
   "tests/integration/api-routes-critical.test.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 39
+      "count": 34
     },
     "@typescript-eslint/no-unused-vars": {
       "count": 1
@@ -1580,11 +1535,6 @@
       "count": 3
     }
   },
-  "tests/integration/traffic-inspector-error-sanitization.test.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
   "tests/integration/upstream-cli-smoke.int.test.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
@@ -1664,11 +1614,6 @@
     },
     "@typescript-eslint/no-unused-vars": {
       "count": 3
-    }
-  },
-  "tests/unit/agent-bridge-mappings-sync-8656.test.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
     }
   },
   "tests/unit/agentrouter-quota-visibility.test.ts": {
@@ -2018,7 +1963,7 @@
   },
   "tests/unit/cli-process-supervisor.test.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 6
+      "count": 5
     },
     "@typescript-eslint/no-unused-vars": {
       "count": 2
@@ -2185,11 +2130,6 @@
       "count": 3
     }
   },
-  "tests/unit/commandClassification.test.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
   "tests/unit/compliance-audit-route.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 1
@@ -2310,21 +2250,6 @@
       "count": 1
     }
   },
-  "tests/unit/db-agent-bridge-bypass.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 1
-    }
-  },
-  "tests/unit/db-agent-bridge-mappings.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 1
-    }
-  },
-  "tests/unit/db-agent-bridge-state.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 1
-    }
-  },
   "tests/unit/db-combos-crud.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 9
@@ -2371,16 +2296,6 @@
   "tests/unit/db-health-route.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 7
-    }
-  },
-  "tests/unit/db-inspector-custom-hosts.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 1
-    }
-  },
-  "tests/unit/db-inspector-sessions.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 1
     }
   },
   "tests/unit/db-migration-runner.test.ts": {
@@ -2495,11 +2410,6 @@
       "count": 4
     }
   },
-  "tests/unit/dns-config-generic.test.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
   "tests/unit/domain-branch-hardening.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 1
@@ -2534,16 +2444,6 @@
     },
     "@typescript-eslint/no-unused-vars": {
       "count": 1
-    }
-  },
-  "tests/unit/electron-main.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 2
-    }
-  },
-  "tests/unit/electron-preload.test.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 2
     }
   },
   "tests/unit/embedding-cooldown-integration-10347.test.ts": {
@@ -2761,11 +2661,6 @@
   "tests/unit/injection-guard-nonchat-route-logging.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 1
-    }
-  },
-  "tests/unit/inspector-agent-bridge-hook.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 3
     }
   },
   "tests/unit/json-size-exactness.test.ts": {
@@ -3266,31 +3161,6 @@
   "tests/unit/quota-summed-budget.test.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
-    }
-  },
-  "tests/unit/radar-api-routes.test.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 2
-    }
-  },
-  "tests/unit/radar-apply-feed.test.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
-  "tests/unit/radar-db.test.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 5
-    }
-  },
-  "tests/unit/radar-referrals-sync.test.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 2
-    }
-  },
-  "tests/unit/radar-sync.test.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 2
     }
   },
   "tests/unit/rate-limit-enhanced.test.ts": {
@@ -3863,11 +3733,6 @@
     }
   },
   "tests/unit/ui/use-stream-metrics.test.tsx": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
-  "tests/unit/ui/use-traffic-stream.test.tsx": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
     }

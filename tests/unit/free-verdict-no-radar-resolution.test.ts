@@ -5,16 +5,17 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 /**
- * Two regimes answer "is this model free?", and they read different sources on
- * purpose: counting/displaying MAY use the Radar-overlaid catalog, deciding
- * (model import, `auto/*` routing, `GET /v1/models`, the browser previews)
- * reads only the shipped baseline. `src/shared/utils/freeModels.ts` states the
- * contract in its header; this test holds it on the server arc.
+ * One catalog answers "is this model?": the shipped, release-frozen baseline.
+ * Counting/displaying (`GET /api/free-tier/summary`) additionally reads the
+ * operator's local usage from SQLite, but deciding (model import, `auto/*`
+ * routing, `GET /v1/models`, the browser previews) reads ONLY the baseline.
+ * `src/shared/utils/freeModels.ts` states the contract in its header; this
+ * test holds it on the server arc.
  *
  * `client-bundle-no-server-only-10692.test.ts` already holds the browser arc
  * (every `"use client"` file must not reach server-only code). Nothing held the
  * server arc: wiring the import route, the published catalog or the paid-model
- * filter onto `getRadarCatalog` would make the modal's preview disagree with
+ * filter onto a DB-backed read would make the modal's preview disagree with
  * the import that runs on click, and no check would turn red. That is the
  * regression class #10692 paid sixty red builds for, and whose docstring says
  * a comment cannot fail a build.
@@ -29,10 +30,9 @@ const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..
 /** The module that answers the question: every consumer of it decides. */
 const VERDICT_MODULE = "src/shared/utils/freeModels.ts";
 
-/** DB-backed catalog resolution. Deciding must never reach these. */
+/** DB-backed state. Deciding must never reach these. */
 const DB_BACKED_RESOLUTION = new Set([
-  "src/lib/radar/index.ts", // getRadarCatalog
-  "src/lib/db/radar.ts", // getRadarCache & co, reads radar_*_cache
+  "src/lib/db/usageSummary.ts", // operator usage read by the counting endpoint
 ]);
 
 /**
@@ -81,7 +81,10 @@ function isTypeOnlyClause(clause: string): boolean {
   if (!named) return false;
   const outsideBraces = clause.replace(/\{[^}]*\}/, "").trim();
   if (/[A-Za-z_$*]/.test(outsideBraces)) return false;
-  const bindings = named[1].split(",").map((b) => b.trim()).filter(Boolean);
+  const bindings = named[1]
+    .split(",")
+    .map((b) => b.trim())
+    .filter(Boolean);
   return bindings.length > 0 && bindings.every((b) => /^type\s/.test(b));
 }
 
@@ -194,24 +197,24 @@ test("no deciding surface statically reaches DB-backed catalog resolution", () =
     [],
     "Deciding must read the shipped catalog only:\n" +
       offenders.map((o) => `  ${o.trail.join("\n    → ")}`).join("\n\n") +
-      "\nBreak the chain — deciding reads FREE_MODEL_BUDGETS, never getRadarCatalog. " +
-      "If the wiring is intentional, update the contract header on freeModels.ts and " +
-      "FREE_TIERS.md first; if the file counts as well as decides, add it to " +
+      "\nBreak the chain — deciding reads FREE_MODEL_BUDGETS, never a DB-backed " +
+      "usage or catalog read. If the wiring is intentional, update the contract " +
+      "header on freeModels.ts first; if the file counts as well as decides, add it to " +
       "COUNTING_SURFACES with the reason."
   );
 });
 
 test("the guard detects a real crossing: the counting surface is caught", () => {
   // Positive control on a real file. The free-tier summary route is a counting
-  // surface: it legitimately imports getRadarCatalog. Running the same walk over
-  // it proves the parser, the alias resolution and the BFS all still work — a
-  // check that only ever passes is a check that has stopped looking.
+  // surface: it legitimately reads the operator's usage from SQLite. Running the
+  // same walk over it proves the parser, the alias resolution and the BFS all
+  // still work — a check that only ever passes is a check that has stopped looking.
   const countingSurface = "src/app/api/free-tier/summary/route.ts";
   const trail = findResolutionPath(countingSurface);
 
   assert.ok(
     trail !== null,
-    `${countingSurface} resolves the Radar catalog, so the walk must reach it — ` +
+    `${countingSurface} reads DB-backed usage, so the walk must reach it — ` +
       "if this fails, the import scan or the alias resolution is broken, not the code"
   );
   assert.ok(

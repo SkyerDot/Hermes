@@ -218,20 +218,6 @@ const TOOLS_GROUP: SidebarItemGroup = {
   titleFallback: "Tools",
   items: [
     {
-      id: "agent-bridge",
-      href: "/dashboard/tools/agent-bridge",
-      i18nKey: "agentBridge",
-      subtitleKey: "agentBridgeSubtitle",
-      icon: "link",
-    },
-    {
-      id: "traffic-inspector",
-      href: "/dashboard/tools/traffic-inspector",
-      i18nKey: "trafficInspector",
-      subtitleKey: "trafficInspectorSubtitle",
-      icon: "network_check",
-    },
-    {
       id: "discovery",
       href: "/dashboard/discovery",
       i18nKey: "discovery",
@@ -458,15 +444,7 @@ const COSTS_ITEMS: readonly SidebarItemDefinition[] = [
     href: "/dashboard/free-provider-rankings",
     i18nKey: "freeProviderRankings",
     subtitleKey: "freeProviderRankingsSubtitle",
-    icon: "leaderboard",
-  },
-  {
-    id: "radar",
-    href: "/dashboard/radar",
-    i18nKey: "radar",
-    subtitleKey: "radarSubtitle",
-    icon: "radar",
-    featureFlagKey: "RADAR_ENABLED",
+    icon: "bar_chart",
   },
 ];
 

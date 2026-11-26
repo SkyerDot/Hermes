@@ -3,7 +3,6 @@ export { COMPRESSION_CONTEXT_GROUP, SIDEBAR_SECTIONS } from "./sidebarVisibility
 
 import { SIDEBAR_SECTIONS } from "./sidebarVisibility/sections";
 import { HIDEABLE_SIDEBAR_ITEM_IDS } from "./sidebarVisibility/types";
-import { parseRadarAdminUrl } from "../validation/radarAdminUrl";
 import type {
   HideableSidebarItemId,
   SidebarItemId,
@@ -13,21 +12,6 @@ import type {
   SidebarSectionDefinition,
   SidebarPresetDefinition,
 } from "./sidebarVisibility/types";
-
-/**
- * Decide whether a sidebar item should be shown given a resolved feature-flag
- * map. Items without `featureFlagKey` are always visible. Fails OPEN when the
- * flag isn't present in the map (e.g. `/api/settings` hasn't returned yet, or
- * an older server response predates the flag) — a missing entry must never
- * hide an unrelated item.
- */
-export function isSidebarItemVisibleForFlags(
-  item: Pick<SidebarItemDefinition, "featureFlagKey">,
-  flags: Record<string, boolean>
-): boolean {
-  if (!item.featureFlagKey) return true;
-  return flags[item.featureFlagKey] !== false;
-}
 
 export function getSectionItems(
   section: SidebarSectionDefinition | { children: readonly SidebarSectionChild[] }
@@ -106,45 +90,15 @@ export function toggleSidebarSectionVisibility(
   return next;
 }
 
-const RADAR_ADMIN_ITEM: SidebarItemDefinition = {
-  id: "radar-admin",
-  href: "",
-  i18nKey: "radarAdmin",
-  labelFallback: "Radar Admin ↗",
-  subtitleKey: "radarAdminSubtitle",
-  subtitleFallback: "Private operations panel",
-  icon: "admin_panel_settings",
-  external: true,
-};
-
 /**
- * Materialize owner-only entries resolved at request time. The canonical
- * catalog never embeds the private URL; an absent or invalid authenticated
- * settings value returns the original sections without the admin item.
+ * Return a stable shallow copy of the canonical sidebar sections. Kept as a
+ * function so callers share one normalization point for future runtime-driven
+ * sections without embedding private or removed surfaces in the catalog.
  */
 export function resolveRuntimeSidebarSections(
-  sections: readonly SidebarSectionDefinition[],
-  runtime: { radarAdminUrl?: unknown }
+  sections: readonly SidebarSectionDefinition[]
 ): SidebarSectionDefinition[] {
-  const radarAdminUrl = parseRadarAdminUrl(runtime.radarAdminUrl);
-  if (!radarAdminUrl) return [...sections];
-
-  return sections.map((section) => {
-    if (section.id !== "costs") return section;
-
-    const children = section.children.filter(
-      (child) => !("id" in child && child.id === RADAR_ADMIN_ITEM.id)
-    );
-    const radarIndex = children.findIndex((child) => !("type" in child) && child.id === "radar");
-    const insertionIndex = radarIndex >= 0 ? radarIndex + 1 : children.length;
-    const resolvedChildren = [...children];
-    resolvedChildren.splice(insertionIndex, 0, {
-      ...RADAR_ADMIN_ITEM,
-      href: radarAdminUrl,
-    });
-
-    return { ...section, children: resolvedChildren };
-  });
+  return [...sections];
 }
 
 // ─── Ordering & preset setting keys ──────────────────────────────────────────
@@ -243,7 +197,6 @@ const ADMIN_SHOWN: ReadonlySet<HideableSidebarItemId> = new Set([
   "costs-budget",
   "costs-quota-share",
   "costs-teams",
-  "radar-admin",
   "cache",
   "logs",
   "activity",

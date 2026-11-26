@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 // #17915: the palette kept sidebar order for every match, so for "log" the Integrations
-// item "Log export" and the Costs item "Radar Catalog" (substring in "Catalog") came before
+// item "Log export" and unrelated substring hits came before
 // the Monitoring page "Logs". Results are now ranked: exact label, then label prefix or a
 // word prefix, then a label substring, then matches in the subtitle or section names.
 // The kit Command still decides which rows show; ranking only orders them.
@@ -87,7 +87,7 @@ describe("CommandPalette ranking (#17915)", () => {
         ["logs", "Logs"],
         ["log export", "Log export"],
         ["proxy logs", "Proxy Logs"],
-        ["radar", "Radar Catalog"],
+        ["cache", "Cache"],
       ];
       for (const [query, first] of expectations) {
         const options = await optionsFor(input, query);
@@ -96,9 +96,7 @@ describe("CommandPalette ranking (#17915)", () => {
         if (query === "log") {
           const labels = options.map(labelOf);
           expect(labels).toContain("Log export");
-          expect(labels).toContain("Radar Catalog");
           expect(labels.indexOf("Logs")).toBeLessThan(labels.indexOf("Log export"));
-          expect(labels.indexOf("Logs")).toBeLessThan(labels.indexOf("Radar Catalog"));
         }
       }
     }
@@ -134,12 +132,12 @@ describe("CommandPalette ranking (#17915)", () => {
 
   it("ranks a label typed without its accents above a subtitle match", async () => {
     sidebarOverrides.current = {
-      radar: "Catálogo Radar",
+      modelCatalog: "Catálogo de modelos",
       settingsCacheSubtitle: "Catálogo de modelos e cache de respostas",
     };
     const input = await openPalette();
     const labels = (await optionsFor(input, "catalogo")).map(labelOf);
-    expect(labels).toEqual(["Catálogo Radar", "Cache"]);
+    expect(labels).toEqual(["Catálogo de modelos", "Cache"]);
   });
 
   it("keeps rows the kit finds across fields even though no field holds the whole query", async () => {

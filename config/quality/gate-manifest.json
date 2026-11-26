@@ -354,11 +354,6 @@
       "disposition": "separately-invoked"
     },
     {
-      "name": "check:radar-sentinels",
-      "command": "node scripts/check/check-radar-sentinels.mjs",
-      "disposition": "separately-invoked"
-    },
-    {
       "name": "check:ratchet-bank",
       "command": "node scripts/quality/verify-ratchet-bank.mjs",
       "disposition": "separately-invoked"
@@ -801,11 +796,6 @@
     {
       "name": "audit:deps",
       "command": "node scripts/quality/audit-dependencies.mjs",
-      "disposition": "separately-invoked"
-    },
-    {
-      "name": "audit:electron",
-      "command": "npm --prefix electron audit --audit-level=critical && (npm --prefix electron audit --audit-level=high || echo '::warning::electron high-severity advisories present (non-blocking)')",
       "disposition": "separately-invoked"
     },
     {

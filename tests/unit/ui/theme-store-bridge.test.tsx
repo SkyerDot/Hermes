@@ -182,7 +182,7 @@ describe("themeStore → live theme-color (browser chrome follows the palette)",
     serverHead();
     const { default: useThemeStore } = await loadStore();
     const { CLASSIC_PAGE_BACKGROUND: C, EDITIONS_PAGE_BACKGROUND: E } =
-      await import("@/shared/constants/pwaThemeColors");
+      await import("@/shared/constants/themeColors");
     const store = useThemeStore.getState();
     store.setTheme("light");
     expect(themeColors()).toEqual({ [LIGHT_MEDIA]: E.light, [DARK_MEDIA]: E.light });
@@ -199,7 +199,7 @@ describe("themeStore → live theme-color (browser chrome follows the palette)",
   it("the system theme keeps one colour per scheme, so an OS flip still works natively", async () => {
     serverHead(true);
     const { default: useThemeStore } = await loadStore();
-    const { CLASSIC_PAGE_BACKGROUND: C } = await import("@/shared/constants/pwaThemeColors");
+    const { CLASSIC_PAGE_BACKGROUND: C } = await import("@/shared/constants/themeColors");
     useThemeStore.getState().setTheme("system");
     useThemeStore.getState().setPalette("classic");
     expect(themeColors()).toEqual({ [LIGHT_MEDIA]: C.light, [DARK_MEDIA]: C.dark });
@@ -212,7 +212,7 @@ describe("themeStore → live theme-color (browser chrome follows the palette)",
       JSON.stringify({ state: { theme: "dark", palette: "classic" }, version: 0 })
     );
     const { default: useThemeStore } = await loadStore();
-    const { CLASSIC_PAGE_BACKGROUND: C } = await import("@/shared/constants/pwaThemeColors");
+    const { CLASSIC_PAGE_BACKGROUND: C } = await import("@/shared/constants/themeColors");
     await useThemeStore.persist.rehydrate();
     useThemeStore.getState().initTheme();
     expect(themeColors()).toEqual({ [LIGHT_MEDIA]: C.dark, [DARK_MEDIA]: C.dark });
@@ -222,7 +222,7 @@ describe("themeStore → live theme-color (browser chrome follows the palette)",
     serverHead();
     document.head.innerHTML = "";
     const { default: useThemeStore } = await loadStore();
-    const { CLASSIC_PAGE_BACKGROUND: C } = await import("@/shared/constants/pwaThemeColors");
+    const { CLASSIC_PAGE_BACKGROUND: C } = await import("@/shared/constants/themeColors");
     useThemeStore.getState().setTheme("dark");
     useThemeStore.getState().setPalette("classic");
     expect(themeColors()).toEqual({ "": C.dark });
@@ -240,7 +240,7 @@ describe("themeStore → live theme-color (browser chrome follows the palette)",
     fallback.content = "#000000";
     document.head.prepend(fallback);
     const { default: useThemeStore } = await loadStore();
-    const { CLASSIC_PAGE_BACKGROUND: C } = await import("@/shared/constants/pwaThemeColors");
+    const { CLASSIC_PAGE_BACKGROUND: C } = await import("@/shared/constants/themeColors");
     useThemeStore.getState().setTheme("system");
     useThemeStore.getState().setPalette("classic");
     expect(document.querySelector("meta[data-theme-color-fallback]")).toBeNull();

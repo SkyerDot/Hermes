@@ -559,8 +559,8 @@ function appendQuotaBlock(
 
 /**
  * Structured form of the usage command — what {@link buildUsageCommandText}
- * renders as text, exposed as data for API consumers (the OmniCopilot panel
- * asks for it via `?format=json`). Text and JSON share the exact same
+ * renders as text, exposed as data for API consumers (Copilot panels ask for
+ * it via `?format=json`). Text and JSON share the exact same
  * collectors, so the two can never disagree about a number.
  *
  * NOTE on percentage semantics (#15530):

@@ -7,8 +7,6 @@ import React, { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { CostTrendCard } from "@/app/(dashboard)/dashboard/costs/components/CostCharts";
-import StatsCharts from "@/app/(dashboard)/dashboard/tools/traffic-inspector/components/tabs/StatsCharts";
-import type { InterceptedRequest } from "@/mitm/inspector/types";
 
 vi.mock("next-intl", () => ({ useTranslations: () => (key: string) => key }));
 
@@ -63,23 +61,5 @@ describe("kit line charts", () => {
     );
     expect(container.querySelector("figure")?.getAttribute("aria-label")).toBe("Cost trend");
     expect(points(container)).toEqual(["10-01: Cost trend $1.50", "10-02: Cost trend $0.00"]);
-  });
-
-  it("StatsCharts reads the latency of each request in order, in milliseconds", () => {
-    const requests = [
-      { id: "a", status: 200, totalLatencyMs: 120 },
-      { id: "b", status: 200, totalLatencyMs: null },
-      { id: "c", status: 500, totalLatencyMs: 80 },
-    ] as unknown as InterceptedRequest[];
-    const container = render(<StatsCharts requests={requests} />);
-    expect(points(container)).toEqual(["1: statsLatency 120ms", "2: statsLatency 80ms"]);
-  });
-
-  it("StatsCharts hides the latency chart until there are two measurements to join", () => {
-    const requests = [{ id: "a", status: 200, totalLatencyMs: 120 }];
-    const container = render(
-      <StatsCharts requests={requests as unknown as InterceptedRequest[]} />
-    );
-    expect(points(container)).toEqual([]);
   });
 });

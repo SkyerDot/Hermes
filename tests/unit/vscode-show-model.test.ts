@@ -1,6 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { buildShowPayload, getRequestedModelName } from "../../src/lib/vscode/showModel.ts";
+import {
+  buildShowPayload,
+  getRequestedModelName,
+} from "../../src/app/api/v1/vscode/[token]/showModel.ts";
 
 test("show payload preserves the caller's published id and display name", () => {
   const model = {

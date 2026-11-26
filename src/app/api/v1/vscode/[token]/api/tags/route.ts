@@ -1,11 +1,7 @@
-import {
-  selectPreferredModels,
-  toOllamaTagModel,
-  type OpenAiCatalogModel,
-} from "@/lib/vscode/tagModels";
+import { selectPreferredModels, toOllamaTagModel, type OpenAiCatalogModel } from "../../tagModels";
 import { getUnifiedModelsResponse } from "@/app/api/v1/models/catalog";
 import { CORS_HEADERS, handleCorsOptions } from "@/shared/utils/cors";
-import { getReasoningVariantBaseModelId } from "@/lib/vscode/reasoningMetadata";
+import { getReasoningVariantBaseModelId } from "../../reasoningMetadata";
 import { getVscodeModelGroupingKey } from "@/app/api/v1/vscode/[token]/modelPresentation";
 import {
   expandVscodeServiceTierModels,

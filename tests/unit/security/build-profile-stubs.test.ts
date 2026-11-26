@@ -17,14 +17,6 @@ test("featureDisabledError carries the featureName", async () => {
   assert.equal("IS_MINIMAL_BUILD" in mod, false);
 });
 
-test("install.stub.ts: installCert / uninstallCert throw FeatureDisabledError", async () => {
-  const stub = await import("../../../src/mitm/cert/install.stub.ts");
-  await assert.rejects(() => stub.installCert("pw", "/tmp/x"), /mitm-cert-install/);
-  await assert.rejects(() => stub.uninstallCert("pw", "/tmp/x"), /mitm-cert-install/);
-  // checkCertInstalled returns false (does not throw — used by render paths)
-  assert.equal(await stub.checkCertInstalled("/tmp/x"), false);
-});
-
 test("keychain-reader.stub.ts: discoverZedCredentials / getZedCredential throw", async () => {
   const stub = await import("../../../src/lib/zed-oauth/keychain-reader.stub.ts");
   await assert.rejects(() => stub.discoverZedCredentials(), /zed-keychain-import/);

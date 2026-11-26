@@ -104,11 +104,11 @@ for (const pathname of ["/dashboard/endpoint", "/dashboard/resilience/connection
     assert.equal(seen.get(AUTHZ_HEADER_PEER_LOCALITY), "remote");
     const access = resolveDashboardLocalAccess(seen);
     assert.equal(access.locality, "remote");
-    // Spawn-capable reads stay blocked for a remote session…
+    // The remaining un-bypassed local-only read stays blocked for a remote session…
     assert.ok(access.remoteBlockedPaths.includes("/api/db/health"));
-    assert.ok(access.remoteBlockedPaths.includes("/api/tools/traffic-inspector/capture-modes"));
-    // …while a read the guard exempts is never reported as blocked.
+    // …while reads the guard exempts (GET or manage-scope bypass) are not reported.
     assert.equal(access.remoteBlockedPaths.includes("/api/system/version"), false);
+    assert.equal(access.remoteBlockedPaths.includes("/api/resilience/connections"), false);
   });
 }
 

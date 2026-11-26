@@ -7,11 +7,13 @@ import { promisify } from "util";
 import { getSettings, updateSettings } from "@/lib/db/settings";
 import { resolveDataDir } from "@/lib/dataPaths";
 import { getRuntimePorts } from "@/lib/runtime/ports";
-import { getCachedPassword, setCachedPassword } from "@/mitm/manager";
-import { execFileWithPassword } from "@/mitm/systemCommands";
 import { getConsistentMachineId } from "@/shared/utils/machineId";
 
 const execFileAsync = promisify(execFile);
+
+import { execFileWithPassword, getCachedPassword, setCachedPassword } from "@/lib/tailscaleSudo";
+
+export { clearCachedPassword, getCachedPassword, setCachedPassword } from "@/lib/tailscaleSudo";
 
 const WINDOWS_TAILSCALE_BIN = "C:\\Program Files\\Tailscale\\tailscale.exe";
 const WINDOWS_TAILSCALED_BIN = "C:\\Program Files\\Tailscale\\tailscaled.exe";
@@ -369,21 +371,6 @@ async function buildTailscaleArgs(...args: string[]) {
   if (getCurrentPlatform() === "win32") return args;
   const socket = await getActiveSocketPath();
   return ["--socket", socket, ...args];
-}
-
-/** Synchronous variant for places that cannot await */
-function buildTailscaleArgsSync(...args: string[]) {
-  if (getCurrentPlatform() === "win32") return args;
-  // Use cached socket or default to system socket if available
-  const platform = getCurrentPlatform();
-  const socket =
-    _cachedActiveSocket ||
-    (isSystemDaemonAvailable()
-      ? platform === "linux"
-        ? SYSTEM_SOCKET_LINUX
-        : SYSTEM_SOCKET_MAC
-      : getTailscaleSocketPath());
-  return ["--socket", socket!, ...args];
 }
 
 async function readJsonCommand(binaryPath: string, args: string[], timeout = 5000) {

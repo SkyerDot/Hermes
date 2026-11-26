@@ -3,9 +3,9 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import JsonTree from "@/shared/components/JsonTree";
-import { ChatBubble } from "@/app/(dashboard)/dashboard/tools/traffic-inspector/components/chat/ChatBubble";
-import { buildRequestTurns, buildResponseTurns } from "@/mitm/inspector/conversationNormalizer";
-import type { InterceptedRequest, NormalizedTurn } from "@/mitm/inspector/types";
+import { ChatBubble } from "@/shared/components/conversation/ChatBubble";
+import { buildRequestTurns, buildResponseTurns } from "@/shared/utils/conversation/normalizer";
+import type { InterceptedRequest, NormalizedTurn } from "@/shared/utils/conversation/types";
 import { useTimestampTitles } from "@/shared/hooks/useTimestampTitles";
 import { JsonTreeExpandControls } from "@/shared/components/JsonTreeExpandControls";
 import { useJsonTreeExpandLevel } from "@/store/jsonTreeExpandStore";
@@ -185,8 +185,8 @@ export function PayloadSection({
 
 // ─── Conversation context section ───────────────────────────────────────────
 // Renders THIS request's own context (its request body's messages/input, plus
-// its response) — a plain single-request normalization, same shape as the
-// traffic-inspector's ConversationTab, no cross-request reconstruction. While
+// its response) — a plain single-request normalization with no cross-request
+// reconstruction. While
 // the request is still generating (detail.active === true) the response side
 // shows the partial text captured so far, refreshed on a short poll scoped to
 // just this section.
@@ -195,7 +195,7 @@ const CONVERSATION_ACTIVE_POLL_INTERVAL_MS = 1200;
 function asInterceptedResponseBody(responseBody: unknown): InterceptedRequest {
   return {
     id: "",
-    source: "custom-host",
+    source: "call-log",
     timestamp: "",
     method: "POST",
     host: "",

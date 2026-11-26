@@ -22,12 +22,7 @@ const PANEL_PATH_PATTERNS: readonly RegExp[] = [
   /^\/v1\/me\/usage$/,
   /^\/_next\/static\/[^/\\]/,
 ];
-const PANEL_EXACT_PATHS: ReadonlySet<string> = new Set([
-  "/favicon.ico",
-  "/favicon.svg",
-  "/icon-512.png",
-  "/apple-touch-icon.png",
-]);
+const PANEL_EXACT_PATHS: ReadonlySet<string> = new Set(["/favicon.ico", "/favicon.svg"]);
 const PRINTABLE_ASCII_TARGET = /^[\x21-\x7e]+$/;
 
 /**

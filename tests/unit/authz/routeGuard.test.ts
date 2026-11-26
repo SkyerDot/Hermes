@@ -22,20 +22,27 @@ test("isLocalOnlyPath: /api/cli-tools/runtime/ is local-only", () => {
   assert.equal(isLocalOnlyPath("/api/cli-tools/runtime/claude"), true);
 });
 
-test("isLocalOnlyPath: MITM management routes are local-only (GHSA-x7vm-hp44-9p79)", () => {
-  // The "Enable MITM" flow installs a system-wide trusted root CA and writes
-  // /etc/hosts DNS overrides (src/mitm/*) — host-level TLS interception. Both
-  // routes were MANAGEMENT-classified only, so requireLogin=false left them
-  // remotely reachable. They belong to the same loopback tier as
-  // /api/tools/agent-bridge/ (also MITM + DNS).
-  assert.equal(isLocalOnlyPath("/api/settings/mitm"), true);
-  assert.equal(isLocalOnlyPath("/api/cli-tools/antigravity-mitm"), true);
-  assert.equal(isLocalOnlyPath("/api/cli-tools/antigravity-mitm/alias"), true);
+test("Task 11 removed MITM/AgentBridge routes no longer inherit local-only classifications", () => {
+  // The former "Enable MITM" flow installed a system-wide trusted root CA and wrote
+  // /etc/hosts DNS overrides via src/mitm/* (GHSA-x7vm-hp44-9p79). Task 11 deleted the
+  // surface itself, so the guard entries must be removed with it — no orphan
+  // classification may remain for a route that no longer exists.
+  for (const route of [
+    "/api/settings/mitm",
+    "/api/cli-tools/antigravity-mitm",
+    "/api/cli-tools/antigravity-mitm/alias",
+    "/api/tools/agent-bridge/",
+    "/api/tools/traffic-inspector/",
+  ]) {
+    assert.equal(isLocalOnlyPath(route, "GET"), false, route);
+    assert.equal(isLocalOnlyPath(route, "POST"), false, route);
+  }
 });
 
-test("isLocalOnlyBypassableByManageScope: MITM routes are NOT bypassable (GHSA-x7vm-hp44-9p79)", () => {
-  assert.equal(isLocalOnlyBypassableByManageScope("/api/settings/mitm"), false);
-  assert.equal(isLocalOnlyBypassableByManageScope("/api/cli-tools/antigravity-mitm"), false);
+test("Task 11 removed MITM routes no longer appear in the manage-scope bypass tier", () => {
+  for (const route of ["/api/settings/mitm", "/api/cli-tools/antigravity-mitm"]) {
+    assert.equal(isLocalOnlyBypassableByManageScope(route), false, route);
+  }
 });
 
 test("isLocalOnlyPath: regular management routes are not local-only", () => {

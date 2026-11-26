@@ -47,33 +47,6 @@ function persistCrashRecord(summary, lines = []) {
   }
 }
 
-const TRAY_FAILURE_PHASES = new Set(["import", "constructor", "install"]);
-const TRAY_FAILURE_CODES = new Set([
-  "ERR_MODULE_NOT_FOUND",
-  "MODULE_NOT_FOUND",
-  "ERR_UNSUPPORTED_DIR_IMPORT",
-  "ERR_DLOPEN_FAILED",
-  "EACCES",
-  "EPERM",
-  "ENOENT",
-]);
-
-// Detached workers discard stderr. Use the same durable record doctor already
-// reads, with fixed categories only: upstream error messages may contain secrets.
-export function persistTrayFailure(phase, error) {
-  let category = "Error";
-  try {
-    const code = error?.code;
-    if (TRAY_FAILURE_CODES.has(code)) category = code;
-    else if (error instanceof TypeError) category = "TypeError";
-    else if (error instanceof SyntaxError) category = "SyntaxError";
-  } catch {
-    // Even hostile error getters must not break an optional tray startup.
-  }
-  const safePhase = TRAY_FAILURE_PHASES.has(phase) ? phase : "startup";
-  persistCrashRecord(`Tray startup failed during ${safePhase} (${category}).`);
-}
-
 const PACKAGE_ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 // Bun needs the Node-compat polyfill preloaded (#9761). The file ships at the
 // package root via package.json "files" (see scripts/build/pack-artifact-policy.ts)
@@ -242,21 +215,12 @@ export class ServerSupervisor {
       const summary = `Server crashed ${this.maxRestarts} times in <30s.`;
       console.error(`\n⚠ ${summary}`);
       if (this.onCrashCallback) {
-        const action = this.onCrashCallback(this.crashLog);
-        if (action === "disable-mitm-and-retry") {
-          console.error("⚠ Disabling MITM and retrying...\n");
-          this.restartCount = 0;
-          this.start();
-          return;
-        }
+        this.onCrashCallback(this.crashLog);
       }
       this.dumpCrashLog();
       // #13538: the give-up path used to only console.error() this diagnostic.
-      // In `--tray`/`--tray-worker` mode this process is launched detached with
-      // stdio:"ignore" (bin/cli/tray/detachedTray.mjs buildTrayLaunch()), so
-      // that console output is discarded by the OS and nothing ever explains
-      // why the tray + gateway disappeared together. Best-effort persist a
-      // durable record next to the existing per-service PID file convention
+      // Detached supervisors discard stderr, so best-effort persist a durable
+      // record next to the existing per-service PID file convention
       // (bin/cli/utils/pid.mjs) so it survives the process exit below.
       this.persistCrashLog(summary);
       process.exit(exitCode ?? 1);
@@ -312,10 +276,4 @@ export class ServerSupervisor {
     }
     killAllSubprocesses();
   }
-}
-
-export function detectMitmCrash(crashLog) {
-  const text = crashLog.join("\n").toLowerCase();
-  const signals = ["mitm", "tls socket", "certificate", "hosts", "eaccess"];
-  return signals.filter((s) => text.includes(s)).length >= 2;
 }

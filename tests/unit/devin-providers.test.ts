@@ -149,10 +149,9 @@ test("OAuth modal Desktop branch gives honest import guidance without public Win
 });
 
 test("Devin public errors and token refresh logs do not expose the retired provider", async () => {
-  const [executorSource, tokenRefreshSource, copilotSource] = await Promise.all([
+  const [executorSource, tokenRefreshSource] = await Promise.all([
     readFile(new URL("../../open-sse/executors/devin-desktop.ts", import.meta.url), "utf8"),
     readFile(new URL("../../open-sse/services/tokenRefresh.ts", import.meta.url), "utf8"),
-    readFile(new URL("../../src/lib/copilot/engine.ts", import.meta.url), "utf8"),
   ]);
 
   assert.doesNotMatch(
@@ -163,5 +162,4 @@ test("Devin public errors and token refresh logs do not expose the retired provi
     tokenRefreshSource,
     /No refresh token stored for Windsurf|refresh(?:ed|ing)? Windsurf Firebase token|Windsurf Firebase token is permanently invalid|refreshing Windsurf token/
   );
-  assert.doesNotMatch(copilotSource, /Kimi Coding, Windsurf/);
 });

@@ -1,19 +1,15 @@
 // @vitest-environment jsdom
 /**
- * #18077 — lote 9 review nits:
+ * #18077 — lote 9 review nits retained after the desktop/traffic-inspector pruning:
  *  - N4: BreakerTimeline labelled its window group with a static id, so two timelines on one
  *    page shared `id="breaker-timeline-window"`.
- *  - N5: TrafficInspectorPageClient passed `subtitle && …` as the PageHeader description, which
- *    hands PageHeader an empty string (an empty <p>) when there is no subtitle.
  *  - N6: the changelog release date was a <span>; NewsViewer already uses <time dateTime>.
+ *
+ * The former N5 case covered the removed TrafficInspectorPageClient and is intentionally gone.
  */
-import fs from "node:fs";
-import path from "node:path";
 import React, { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-
-const DASHBOARD = path.resolve(__dirname, "../../../src/app/(dashboard)/dashboard");
 
 let BreakerTimeline: typeof import("../../../src/app/(dashboard)/dashboard/resilience/connections/components/BreakerTimeline").default;
 let ChangelogViewer: typeof import("../../../src/app/(dashboard)/dashboard/changelog/components/ChangelogViewer").default;
@@ -62,17 +58,6 @@ describe("BreakerTimeline window group (N4)", () => {
       // Each group still points at a label element that exists.
       expect(document.getElementById(id as string)?.textContent).toBeTruthy();
     }
-  });
-});
-
-describe("TrafficInspectorPageClient header (N5)", () => {
-  it("passes no description when the subtitle is empty", () => {
-    const src = fs.readFileSync(
-      path.join(DASHBOARD, "tools/traffic-inspector/TrafficInspectorPageClient.tsx"),
-      "utf8"
-    );
-    expect(src).not.toMatch(/description=\{subtitle &&/);
-    expect(src).toMatch(/description=\{subtitle \? <span>\{subtitle\}<\/span> : undefined\}/);
   });
 });
 

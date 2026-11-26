@@ -83,7 +83,9 @@ const {
 // CLAUDE_CODE_LOCAL_{COMMAND_PREFIX,SUGGESTION,FILEPATHS}_ENABLED (Claude Code local helper replies, default off) take it to 133.
 // PROXY_REEGRESS_ON_QUOTA_429 (pool re-send after a per-IP 429, default off) takes it to 134.
 // Task 7 removed two gamification/webhook flags and Task 8 removed PLUGIN_PERMISSION_MODEL_ENABLED.
-const EXPECTED_FEATURE_FLAG_COUNT = 132;
+// Task 11 removed RADAR_ENABLED and MITM_DISABLE_TLS_VERIFY (132 -> 130). The
+// documented catalog total is still refreshed by Task 13, not by this task.
+const EXPECTED_FEATURE_FLAG_COUNT = 130;
 // tool_call wrapper repair, default on) to 86; OPENCODE_V2_CLIENT_FINGERPRINT_ENABLED
 // (#16571, OpenCode v2 client fingerprint, default off) to 87.
 // tool_call wrapper repair, default on) to 86; CLAUDE_OAUTH_SUMMARIZED_THINKING_UNREDACTED
@@ -133,7 +135,7 @@ describe("featureFlagDefinitions", () => {
       138,
       "docs/ref FEATURE_FLAGS.md is refreshed by Task 13, not by Task 8"
     );
-    assert.equal(FEATURE_FLAG_DEFINITIONS.length, 132);
+    assert.equal(FEATURE_FLAG_DEFINITIONS.length, EXPECTED_FEATURE_FLAG_COUNT);
   });
 
   it("resolves the unpriced budget policy description from every locale", () => {
@@ -587,8 +589,8 @@ describe("resolveFeatureFlag", () => {
     });
 
     it("returns true for '1'", () => {
-      setFeatureFlagOverride("RADAR_ENABLED", "1");
-      assert.ok(isFeatureFlagEnabled("RADAR_ENABLED"));
+      setFeatureFlagOverride("REQUIRE_API_KEY", "1");
+      assert.ok(isFeatureFlagEnabled("REQUIRE_API_KEY"));
     });
 
     it("returns true for 'yes'", () => {

@@ -460,17 +460,6 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     warningLevel: "caution",
   },
   {
-    key: "MITM_DISABLE_TLS_VERIFY",
-    label: "Disable TLS Verify (MITM)",
-    description: "Disable TLS certificate verification for MITM proxy",
-    descriptionI18nKey: "featureFlagMitmDisableTlsVerifyDescription",
-    category: "network",
-    defaultValue: "false",
-    type: "boolean",
-    requiresRestart: true,
-    warningLevel: "danger",
-  },
-  {
     key: "OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS",
     label: "Allow Private Provider URLs",
     description:
@@ -578,18 +567,6 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     type: "boolean",
     requiresRestart: false,
     warningLevel: "caution",
-  },
-  {
-    key: "RADAR_ENABLED",
-    label: "Radar",
-    description:
-      "Enable the OmniRoute Radar module (catalog feed screens and sync). Off by default; enabling only unlocks the UI — data sync remains a separate opt-in.",
-    descriptionI18nKey: "featureFlagRadarEnabledDescription",
-    category: "policies",
-    defaultValue: "false",
-    type: "boolean",
-    requiresRestart: false,
-    warningLevel: "info",
   },
   {
     key: "MODEL_ENDPOINT_CAPABILITY_GATE_ENABLED",

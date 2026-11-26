@@ -34,11 +34,7 @@ const IGNORE = [
 //
 // Format for stale-enforcement: entries must match the string produced by
 // the checkers below (i.e. the raw apiPath or prefix string, not the file+arrow).
-const KNOWN_MISSING = new Set([
-  // src/app/(dashboard)/…/AgentBridgePageClient.tsx calls bypass with PUT but
-  // the route only exports GET/POST/DELETE — real method miss, tracked for fix.
-  "/api/tools/agent-bridge/bypass::PUT",
-]);
+const KNOWN_MISSING = new Set([]);
 
 // ─── filesystem helpers ───────────────────────────────────────────────────────
 

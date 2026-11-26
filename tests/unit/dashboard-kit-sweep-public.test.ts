@@ -198,10 +198,6 @@ const RGB_HSL_ALLOWED: Allow = {
     max: 3,
     reason: `grey rgba() track behind the quota bars (bg-bg-subtle) — ${TRACKED}`,
   },
-  "src/app/(dashboard)/dashboard/tools/traffic-inspector/components/shared/ContextColorBar.tsx": {
-    max: 1,
-    reason: `hsl(hash) context colour (categoricalSlotFor) — ${TRACKED}`,
-  },
   "src/shared/components/NavigationProgress.tsx": {
     max: 2,
     reason: `old indigo/coral glow of the route progress bar (block 2) — ${TRACKED}`,
@@ -253,10 +249,10 @@ const CONSTANTS_HEX_ALLOWED: Allow = {
     max: 1,
     reason: `CLI tool brand colour (catalog identity data) — ${TRACKED}`,
   },
-  "src/shared/constants/pwaThemeColors.ts": {
+  "src/shared/constants/themeColors.ts": {
     max: 2,
     reason:
-      "the one mirror of the Editions page background for viewport metadata and the manifest (no CSS there), pinned to ci-editions.css by pwa-theme-colors.test.ts",
+      "the one mirror of the Editions page background for viewport metadata and the manifest (no CSS there), pinned to ci-editions.css by theme-boot-script-palette.test.ts",
   },
 };
 

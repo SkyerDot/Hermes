@@ -100,12 +100,3 @@ test("the same rule holds for %APPDATA% on Windows", () => {
     }
   });
 });
-
-// electron/main.js is CJS and needs the Electron runtime, so pin its contract at the source.
-test("electron main.js resolveDataDir looks for the database before preferring the legacy dir", () => {
-  const src = fs.readFileSync(path.join(process.cwd(), "electron/main.js"), "utf8");
-  const start = src.indexOf("function resolveDataDir(overridePath, env = process.env) {");
-  assert.notEqual(start, -1);
-  const fn = src.slice(start, src.indexOf("\n}\n", start));
-  assert.match(fn, /hasDatabase\(/);
-});

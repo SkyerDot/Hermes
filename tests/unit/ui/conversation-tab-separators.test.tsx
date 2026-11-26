@@ -5,13 +5,13 @@
  */
 import { describe, it } from "vitest";
 import assert from "node:assert/strict";
-import { normalizeConversation } from "../../../src/mitm/inspector/conversationNormalizer.ts";
-import type { InterceptedRequest } from "../../../src/mitm/inspector/types.ts";
+import { normalizeConversation } from "../../../src/shared/utils/conversation/normalizer.ts";
+import type { InterceptedRequest } from "../../../src/shared/utils/conversation/types.ts";
 
 function makeRequest(overrides: Partial<InterceptedRequest> = {}): InterceptedRequest {
   return {
     id: "test-id",
-    source: "agent-bridge",
+    source: "proxy",
     timestamp: new Date().toISOString(),
     method: "POST",
     host: "api.openai.com",
@@ -127,9 +127,7 @@ describe("ConversationTab separators rendering logic", () => {
   });
 
   it("allTurns still accounts for correct total across both sections", () => {
-    const request = [
-      { role: "user" as const, content: "Hi", contentType: "text" as const },
-    ];
+    const request = [{ role: "user" as const, content: "Hi", contentType: "text" as const }];
     const response = [
       { role: "assistant" as const, content: "Hello!", contentType: "text" as const },
     ];

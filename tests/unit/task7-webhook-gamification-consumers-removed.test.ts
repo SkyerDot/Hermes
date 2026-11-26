@@ -33,7 +33,7 @@ test("retained request-path consumers no longer emit gamification events", () =>
     "open-sse/handlers/chatCore.ts",
     "open-sse/handlers/chatCore/nonStreamingResponse.ts",
     "open-sse/handlers/chatCore/streamingTail.ts",
-    "src/lib/radar/intelSync.ts",
+    "src/lib/arenaEloSync.ts",
   ];
   for (const file of files) {
     assert.doesNotMatch(source(file), GAMIFICATION_IMPORT, `${file} still emits gamification`);

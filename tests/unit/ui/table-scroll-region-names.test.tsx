@@ -13,7 +13,6 @@ import en from "../../../src/i18n/messages/en.json";
 import { EncoderComparisonTable } from "@/app/(dashboard)/dashboard/compression/studio/EncoderComparisonTable";
 import CursorModelUsageTable from "@/app/(dashboard)/dashboard/usage/components/ProviderLimits/CursorModelUsageTable";
 import MarkdownMessage from "@/app/(dashboard)/dashboard/playground/components/MarkdownMessage";
-import { HeaderTable } from "@/app/(dashboard)/dashboard/tools/traffic-inspector/components/shared/HeaderTable";
 
 let container: HTMLElement;
 let root: Root;
@@ -49,11 +48,6 @@ function expectNamedScrollRegion(scroller: HTMLElement, name: string) {
 }
 
 describe("hand-assembled kit tables name their overflowing scroll container", () => {
-  it("a table that already had a translated scrollbar label reuses it", () => {
-    const scroller = renderScroller(<HeaderTable headers={{ accept: "application/json" }} />);
-    expectNamedScrollRegion(scroller, en.trafficInspector.headersTable);
-  });
-
   it("the encoder comparison is named by its heading", () => {
     const scroller = renderScroller(
       <EncoderComparisonTable

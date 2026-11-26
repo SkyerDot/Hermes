@@ -3,7 +3,6 @@ import { createMDX } from "fumadocs-mdx/next";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { betterSqlite3AliasFor } from "./scripts/build/better-sqlite3-stub-flag.mjs";
-import { mitmManagerAliasFor } from "./scripts/build/mitm-stub-flag.mjs";
 import { normalizeBasePath } from "./scripts/build/normalizeBasePath.mjs";
 import { macosDevExperimentalOverrides } from "./scripts/build/macosDevWorkaround.mjs";
 import {
@@ -85,7 +84,6 @@ const dashboardEmbedMode = resolveDashboardEmbedMode(process.env);
 
 const minimalBuildAliases = isMinimalBuild
   ? {
-      "@/mitm/cert/install": "./src/mitm/cert/install.stub.ts",
       "@/lib/zed-oauth/keychain-reader": "./src/lib/zed-oauth/keychain-reader.stub.ts",
       "@/lib/cloudSync": "./src/lib/cloudSync.stub.ts",
       "@/lib/services/installers/ninerouter": "./src/lib/services/installers/ninerouter.stub.ts",
@@ -123,26 +121,12 @@ const nextConfig = {
   // examples. Empty by default (root deploys unchanged).
   env: {
     NEXT_PUBLIC_OMNIROUTE_BASE_PATH: normalizeBasePath(process.env.OMNIROUTE_BASE_PATH),
-    // Deployment identity for the PWA service worker URL (PwaRegister):
-    // a browser holding a worker from an older deployment must see a
-    // different /sw.js?v=<id> URL so the browser treats it as an update
-    // instead of keeping the old generation in control. Falls back to a
-    // value that is unique per build run when git is absent (CI tarball).
-    NEXT_PUBLIC_SW_BUILD_ID:
-      process.env.OMNIROUTE_SW_BUILD_ID || process.env.SOURCE_VERSION || `${Date.now()}`,
   },
   distDir,
   // Turbopack config: redirect native modules to stubs at build time
   turbopack: {
     root: projectRoot,
     resolveAlias: {
-      // @/mitm/manager → stub ONLY where the runtime can't run the MITM stack
-      // (Docker sets OMNIROUTE_MITM_STUB=1 — #3390 graceful degradation). The
-      // alias used to be unconditional, which was fine while Docker was the
-      // only Turbopack consumer — but the v3.8.45 bundler-default flip shipped
-      // the stub to every npm/Electron/VPS artifact and broke Agent Bridge
-      // start for all non-Docker users (#6344). See scripts/build/mitm-stub-flag.mjs.
-      ...mitmManagerAliasFor(process.env),
       // better-sqlite3 → build-time stub ONLY where the build worker actually
       // aborts while tracing the native addon (SIGABRT at worker teardown,
       // #10060); opt in with OMNIROUTE_BETTER_SQLITE3_STUB=1. The alias used to
@@ -275,7 +259,6 @@ const nextConfig = {
       "**/.slim/**",
       "**/packages/**",
       "**/.tmp/**",
-      "**/electron/**",
       "**/docs/**",
     ],
   },

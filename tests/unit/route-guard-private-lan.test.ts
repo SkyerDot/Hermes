@@ -80,8 +80,8 @@ test("classifyHostLocality: loopback / lan / remote, with fail-closed null", () 
   assert.equal(classifyHostLocality(null), "remote", "unknown peer must fail closed");
 });
 
-test("traffic-inspector remains a LOCAL_ONLY path", () => {
-  assert.equal(isLocalOnlyPath("/api/tools/traffic-inspector/sessions"), true);
+test("the removed traffic-inspector path no longer holds a LOCAL_ONLY classification", () => {
+  assert.equal(isLocalOnlyPath("/api/tools/traffic-inspector/sessions"), false);
 });
 
 test("management policy must NOT derive locality from the spoofable Host header", () => {

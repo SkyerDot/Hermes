@@ -1,5 +1,5 @@
 import { normalizeAppearancePalette } from "@/shared/constants/appearancePalette";
-import { PAGE_BACKGROUND_BY_PALETTE } from "@/shared/constants/pwaThemeColors";
+import { PAGE_BACKGROUND_BY_PALETTE } from "@/shared/constants/themeColors";
 
 /**
  * Live `<meta name="theme-color">` (browser bar / installed-PWA title bar) for the active palette.

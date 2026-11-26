@@ -12,7 +12,7 @@ import {
 import {
   expandVscodeServiceTierModels,
   resolveVscodeServiceTierRequest,
-} from "../../src/lib/vscode/serviceTierVariants.ts";
+} from "../../src/app/api/v1/vscode/[token]/serviceTierVariants.ts";
 
 test("Codex global fast tier recognizes legacy and current setting shapes", () => {
   assert.equal(isCodexGlobalFastServiceTierEnabled({ codexServiceTier: { enabled: true } }), true);

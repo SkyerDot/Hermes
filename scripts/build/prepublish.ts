@@ -27,7 +27,6 @@ import { join, dirname, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { assembleStandalone } from "./assembleStandalone.mjs";
-import { buildMitmUtilities } from "./buildMitm.mjs";
 import { isNativeExecutable, resolveLocalBinEntry } from "./buildToolRunner.mjs";
 import { resolveBundledNpmEntry } from "./resolveNpmEntry.ts";
 import { getPrepublishDistDirRefusal } from "./prepublishPathSafety.ts";
@@ -53,8 +52,8 @@ const NPX_BIN = process.platform === "win32" ? "npx.cmd" : "npx";
 // On Windows the npm/npx entry points are `.cmd` shims, and Node >= 20 refuses to
 // spawn a `.cmd` without a shell (EINVAL, from the CVE-2024-27980 hardening). On
 // Node 24 that makes every `execFileSync(NPX_BIN, ...)` in this script fail, which
-// silently skipped the MITM utilities, the MCP server bundle, the LLMLingua worker
-// and the OpenCode plugin while the build still reported success.
+// silently skipped the MCP server bundle and the LLMLingua worker while the build
+// still reported success.
 //
 // `shell: true` would fix the spawn but disables argument escaping (DEP0190), so it
 // is only the last resort. Preferred order: run the tool's own JS entry point with
@@ -204,7 +203,7 @@ console.log("  ✅ Standalone artifact present:", standaloneServerJs);
 
 // ── Step 3–7: Assemble standalone into dist/ ───────────────
 // All shared copy/sync/sanitize/chunk-patch operations are delegated to
-// assembleStandalone.  npm-UNIQUE steps (MITM, MCP, CLI, sidecars) follow.
+// assembleStandalone.  npm-UNIQUE steps (MCP, CLI, sidecars) follow.
 console.log("  📋 Assembling standalone bundle into dist/...");
 assembleStandalone({
   distDir: join(ROOT, NEXT_DIST),
@@ -229,12 +228,6 @@ if (existsSync(distServer)) {
     console.log("  ✅ Patched dist/server.js with HTTP method guard.");
   }
 }
-
-// ── Step 8: Compile + copy MITM cert utilities ─────────────
-const mitmDest = join(DIST_DIR, "src", "mitm");
-console.log("  🔨 Typechecking and bundling MITM utilities...");
-await buildMitmUtilities({ projectRoot: ROOT, destination: mitmDest });
-console.log("  ✅ MITM utilities compiled to dist/src/mitm/");
 
 // ── Step 8.5: Bundle MCP server ────────────────────────────
 const mcpSrcFile = join(ROOT, "open-sse", "mcp-server", "server.ts");
@@ -470,119 +463,6 @@ if (existsSync(cliSrcFile)) {
   } catch (err: any) {
     console.warn("  ⚠️  CLI bundle error:", err.message);
   }
-}
-
-// ── Step 8.8: Build @omniroute/opencode-plugin ──────────────
-// The plugin ships bundled inside the omniroute npm package (see root
-// package.json "files": ["@omniroute/", ...]). Its built `dist/` MUST be
-// present in the publish tarball so `omniroute setup opencode` can copy it
-// into the user's OpenCode plugin dir. If the build fails we surface the
-// error — shipping without the plugin's dist breaks the documented install
-// flow for every downstream user.
-const opencodePluginSrc = join(ROOT, "@omniroute", "opencode-plugin");
-const opencodePluginDist = join(opencodePluginSrc, "dist", "index.js");
-if (existsSync(opencodePluginSrc) && existsSync(join(opencodePluginSrc, "package.json"))) {
-  // The plugin's tsup config is ESM-only (format: ["esm"]), so a successful
-  // build only ever produces dist/index.js (+ dist/index.d.ts) — never
-  // dist/index.cjs. Gate the skip solely on dist/index.js.
-  const pluginAlreadyBuilt = existsSync(opencodePluginDist);
-  if (!pluginAlreadyBuilt) {
-    console.log("\n  🔨 Building @omniroute/opencode-plugin (tsup)...");
-    try {
-      // The plugin is a standalone package (not an npm workspace), so the root
-      // install never populates its node_modules — and tsup with `dts: true`
-      // needs the plugin's own devDependencies (typescript, @opencode-ai/plugin
-      // types). Without this install a fresh CI publish fails at this step.
-      if (!existsSync(join(opencodePluginSrc, "node_modules"))) {
-        // The plugin's node_modules is gitignored, so a fresh CI checkout
-        // ALWAYS installs here. The registry CDN is intermittently flaky
-        // (onnxruntime-class ETIMEDOUTs to the Microsoft CDN have repeatedly
-        // stalled CI npm steps for 20+ minutes), and npm's unbounded fetch
-        // retries turn a stalled connection into a hang that eats the whole
-        // job budget. Bound the fetch and retry the install a few times:
-        // transient network failures fail fast and recover instead of hanging.
-        const npmEntry = resolveBundledNpmEntry("npm-cli.js");
-        const installArgs = [
-          "install",
-          "--no-audit",
-          "--no-fund",
-          "--fetch-retries=2",
-          "--fetch-retry-mintimeout=2000",
-          "--fetch-retry-maxtimeout=30000",
-          "--fetch-timeout=60000",
-        ];
-        const runPluginInstall = () => {
-          if (npmEntry) {
-            execFileSync(process.execPath, [npmEntry, ...installArgs], {
-              cwd: opencodePluginSrc,
-              stdio: "inherit",
-            });
-          } else if (process.platform !== "win32") {
-            // No bundled npm entry found (non-standard Node layout). Plain `npm` is
-            // safe here — the .cmd-shim hazard #8858 guards against is Windows-only.
-            execFileSync("npm", installArgs, {
-              cwd: opencodePluginSrc,
-              stdio: "inherit",
-            });
-          } else {
-            throw new Error(
-              "npm-cli.js not found next to the running Node binary; cannot install the plugin dependencies without falling back to a .cmd shim."
-            );
-          }
-        };
-        const sleepSync = (ms: number) =>
-          Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
-        let installError: any = null;
-        for (let attempt = 1; attempt <= 3; attempt++) {
-          try {
-            if (attempt > 1) {
-              console.log(
-                `  🔄 @omniroute/opencode-plugin npm install retry (attempt ${attempt}/3)`
-              );
-            }
-            runPluginInstall();
-            installError = null;
-            break;
-          } catch (err: any) {
-            installError = err;
-            if (attempt < 3) {
-              console.warn(
-                `  ⚠️  plugin npm install failed (attempt ${attempt}/3): ${err?.message ?? String(err)} — retrying in 10s`
-              );
-              sleepSync(10_000);
-            }
-          }
-        }
-        if (installError) throw installError;
-      }
-      runBuildTool("tsup", "tsup", [], {
-        cwd: opencodePluginSrc,
-        stdio: "inherit",
-        env: { ...process.env, NODE_ENV: "production" },
-      });
-      console.log("  ✅ @omniroute/opencode-plugin bundled to @omniroute/opencode-plugin/dist/");
-    } catch (err: any) {
-      console.error("  ❌ Failed to build @omniroute/opencode-plugin:", err.message);
-      console.error("     The published package would be missing the plugin dist.");
-      console.error(
-        "     Run `cd @omniroute/opencode-plugin && npm install && npm run build` to debug."
-      );
-      process.exit(1);
-    }
-  } else {
-    console.log("  ✅ @omniroute/opencode-plugin dist/ already present (skipping rebuild)");
-  }
-  // Remove plugin node_modules after build — hard links created by npm install on Linux
-  // (CI runner) end up in the tarball as LINK entries, which npm registry rejects with
-  // E415 "Hard link is not allowed". The node_modules are only needed for the tsup build;
-  // they must not ship in the published package.
-  const pluginNodeModules = join(opencodePluginSrc, "node_modules");
-  if (existsSync(pluginNodeModules)) {
-    rmSync(pluginNodeModules, { recursive: true, force: true });
-    console.log("  🧹 Removed @omniroute/opencode-plugin/node_modules (hard link guard)");
-  }
-} else {
-  console.log("  ⏭️  @omniroute/opencode-plugin not found in workspace (skipping build)");
 }
 
 // ── Step 9: Copy shared utilities needed at runtime ────────

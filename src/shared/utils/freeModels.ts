@@ -16,23 +16,21 @@ import { AI_MODELS } from "@/shared/constants/models";
  *
  * Two regimes answer "is it free?", on purpose, from different sources:
  *
- *  - **Counting / displaying** (free-token totals, dashboards) MAY use the
- *    resolved catalog: the shipped baseline overlaid by the Radar feed
- *    (`getRadarCatalog` in `src/lib/radar/index.ts`). Totals are
- *    informational and may improve when a feed is available.
+ *  - **Counting / displaying** (free-token totals, dashboards) reads the same
+ *    shipped baseline catalog, optionally alongside local operator usage.
  *
  *  - **Deciding** (is this provider/model free? should it be imported? should
  *    `auto/*` route to it? should it appear in `GET /v1/models`?) reads ONLY
  *    the shipped catalog `FREE_MODEL_BUDGETS`
  *    (`open-sse/config/freeModelCatalog.data.ts`) plus the local heuristics
- *    below. It must never reach `getRadarCatalog` / `getRadarCache`.
+ *    below. It must never reach a DB-backed read.
  *
  * Why deciding stays on the shipped catalog: the answer is then identical in
  * the browser and on the server, reproducible offline from the release
  * artifact, and unit-testable without seeding a database. This module runs in
  * both — six `"use client"` components import it — so a DB-backed read here
  * would also drag the SQLite driver into the client bundle. Splitting it
- * instead (server reads the feed, browser keeps the baseline) would make the
+ * instead (server reads local state, browser keeps the baseline) would make the
  * import modal's preview disagree with the import route that runs on click.
  *
  * A provider is considered to "have free models" when it appears in the

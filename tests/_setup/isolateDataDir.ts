@@ -72,6 +72,6 @@ process.env.OMNIROUTE_SKIP_SYSTEM_TRUST = "1";
 // directly by the Firefly unit files only — importing it here would erase that opt-in.
 process.env.ADOBE_FIREFLY_BROWSER_REFRESH ||= "0";
 
-// DNS-write guard: the suite must NEVER mutate /etc/hosts. Tests that exercise
-// the real MITM path call addDNSEntries(); this env var makes it a no-op.
+// DNS-write guard: the suite must NEVER mutate /etc/hosts. Keep the env var set
+// so any retained code path that still consults it stays a no-op.
 process.env.OMNIROUTE_SKIP_DNS_WRITE = "1";

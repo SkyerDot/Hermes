@@ -3,7 +3,7 @@ import {
   APPEARANCE_ATTRIBUTE,
   EDITIONS_APPEARANCE_VALUE,
 } from "@/shared/constants/appearancePalette";
-import { PAGE_BACKGROUND_BY_PALETTE } from "@/shared/constants/pwaThemeColors";
+import { PAGE_BACKGROUND_BY_PALETTE } from "@/shared/constants/themeColors";
 import {
   THEME_COLOR_BOOT_ATTRIBUTE,
   THEME_COLOR_FALLBACK_ATTRIBUTE,

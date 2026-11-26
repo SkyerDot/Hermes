@@ -11,7 +11,7 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
 const DASHBOARD = "src/app/(dashboard)/dashboard";
-const AREAS = ["tools", "cli-agents", "agent-skills", "omni-skills", "runtime", "discovery"];
+const AREAS = ["tools", "runtime", "discovery"];
 
 function walk(dir: string, out: string[] = []): string[] {
   if (!fs.existsSync(dir)) return out;
@@ -73,20 +73,17 @@ const isException = (list: Exception[], tag: Tag) =>
 const where = (tags: Tag[]) => tags.map((t) => `${t.file}:${t.line}`).join("\n");
 
 test("the scan reaches the retained tools areas", () => {
-  assert.ok(FILES.length >= 100, `only ${FILES.length} files scanned`);
+  for (const area of AREAS) {
+    assert.ok(
+      FILES.some((f) => f.file.startsWith(`${DASHBOARD}/${area}/`)),
+      `${area} has files in the scan`
+    );
+  }
 });
 
 // ── B. Buttons: kit dense sizes and muted tone ───────────────────────────────────────────────
 
-const BUTTON_SIZE_EXCEPTIONS: Exception[] = [
-  {
-    file: "tools/traffic-inspector/components/RequestRow.tsx",
-    marker: "onSameContext?.(",
-    reason:
-      "Context chip laid over the second line of a virtualised row of fixed height " +
-      "(useVirtualList measures it): a 24px button would not fit the 16px reserved for it.",
-  },
-];
+const BUTTON_SIZE_EXCEPTIONS: Exception[] = [];
 
 /**
  * A fixed height, a square size or a sub-12px text size written by hand on a button. `h-auto`
@@ -204,38 +201,7 @@ const STATUS_FILL = /(?<![\w:-])bg-(?:success|error|warning|info)(?:\/\d+|-bg)(?
 const BOX_RADIUS = /(?<![\w:-])rounded(?:-[a-z]+)?(?![\w-])/;
 const BOX_PADDING = /(?<![\w:-])p[xy]?-\d/;
 
-const TINTED_BOX_EXCEPTIONS: Exception[] = [
-  {
-    file: "tools/agent-bridge/components/AgentBridgeMaintenanceCard.tsx",
-    marker: 'role="group"',
-    reason: "Inline confirm cluster (question plus Yes/No buttons), not a message.",
-  },
-  {
-    file: "tools/agent-bridge/components/AgentCard.tsx",
-    marker: 'role="group"',
-    reason: "Inline confirm cluster (question plus Yes/No buttons), not a message.",
-  },
-  {
-    file: "tools/traffic-inspector/components/session/SessionRecorderBar.tsx",
-    marker: 'data-testid="session-recorder-bar"',
-    reason: "Recorder toolbar with its controls; the tint is the recording state (e2e selector).",
-  },
-  {
-    file: "tools/traffic-inspector/components/chat/ToolCallBlock.tsx",
-    marker: "bg-warning-bg",
-    reason: "Tool-call block of a conversation transcript: content, not a notice.",
-  },
-  {
-    file: "tools/traffic-inspector/components/chat/ToolResultBlock.tsx",
-    marker: "bg-success-bg",
-    reason: "Tool-result block of a conversation transcript: content, not a notice.",
-  },
-  {
-    file: "tools/traffic-inspector/components/RequestStreamingList.tsx",
-    marker: "bg-info-bg",
-    reason: "Filter strip glued to the top of the request list (no radius), with its clear button.",
-  },
-];
+const TINTED_BOX_EXCEPTIONS: Exception[] = [];
 
 test("G: messages and warnings are the Notice adapter, not a tinted box", () => {
   const offenders = openingTags("div|p|span").filter(
@@ -263,15 +229,7 @@ test("G: no status tint and border pair is kept in a variable for a hand-made bo
   );
 });
 
-const CODE_BOX_EXCEPTIONS: Exception[] = [
-  {
-    file: "cli-code/components/DefaultToolCard.tsx",
-    marker: "flex-1 px-3 py-2",
-    reason:
-      "Command with a copy button that goes through copyToClipboard (execCommand fallback on " +
-      "plain-HTTP origins). The kit CodePreview copies with navigator.clipboard only.",
-  },
-];
+const CODE_BOX_EXCEPTIONS: Exception[] = [];
 
 test("G: code chips are InlineCode and one-line commands are the headerless CodePreview", () => {
   const offenders = openingTags("code").filter(
@@ -283,13 +241,7 @@ test("G: code chips are InlineCode and one-line commands are the headerless Code
   assert.equal(offenders.length, 0, `use InlineCode / CodePreview:\n${where(offenders)}`);
 });
 
-const ICON_SQUARE_EXCEPTIONS: Exception[] = [
-  {
-    file: "tools/agent-bridge/components/SetupWizard.tsx",
-    marker: "i < stepIndex",
-    reason: "Step marker of the wizard: it shows the step number until the step is done.",
-  },
-];
+const ICON_SQUARE_EXCEPTIONS: Exception[] = [];
 
 test("G: an icon in a tinted square is the IconChip adapter", () => {
   const offenders = openingTags("div|span").filter(
@@ -349,18 +301,7 @@ test("F: a heading takes its size from ci-heading data-size, not from a text uti
 
 // ── C. Inner panels: Card.Section ────────────────────────────────────────────────────────────
 
-const PANEL_EXCEPTIONS: Exception[] = [
-  {
-    file: "cli-code/components/CliCompanionPanel.tsx",
-    marker: "aria-labelledby={id}",
-    reason: "Top-level section of the page, not a panel nested in a card.",
-  },
-  {
-    file: "cli-code/components/CliProfileAutoSyncToggles.tsx",
-    marker: "bg-surface/40",
-    reason: "Top-level block of the page, not a panel nested in a card.",
-  },
-];
+const PANEL_EXCEPTIONS: Exception[] = [];
 
 test("C: a bordered panel inside a card is Card.Section", () => {
   const offenders = openingTags("div|section").filter(

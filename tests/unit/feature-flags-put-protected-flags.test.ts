@@ -50,12 +50,12 @@ test.after(() => {
 let manageKey = "";
 let inferenceKey = "";
 
-const UNPROTECTED_FLAG = "RADAR_ENABLED";
+// Task 11 removed RADAR_ENABLED and MITM_DISABLE_TLS_VERIFY with the Radar/MITM
+// surfaces; use another defined, non-protected flag for the open-mode assertions.
+const UNPROTECTED_FLAG = "AUDIO_REMOTE_PROVIDER_NODES";
 const EXTRA_PROTECTED = [
   "OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS",
   "OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS",
-  "MITM_DISABLE_TLS_VERIFY",
-  "OMNIROUTE_MCP_ENFORCE_SCOPES",
 ];
 
 async function sessionCookie(): Promise<string> {

@@ -164,13 +164,6 @@
       "command": "node scripts/check/check-test-discovery.mjs"
     },
     {
-      "id": "check:radar-sentinels",
-      "job": "lint",
-      "args": ["run", "check:radar-sentinels"],
-      "kind": "hard",
-      "command": "node scripts/check/check-radar-sentinels.mjs"
-    },
-    {
       "id": "check:tracked-artifacts",
       "job": "lint",
       "args": ["run", "check:tracked-artifacts"],

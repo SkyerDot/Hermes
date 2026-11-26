@@ -72,15 +72,11 @@ test("SPAWN_CAPABLE_PREFIXES is defined in the server-free constants leaf with t
   // The full deny-list survived the extraction out of routeGuard.ts (Hard Rules #15/#17).
   for (const prefix of [
     "/api/cli-tools/runtime/",
-    "/api/tools/agent-bridge/",
-    "/api/tools/traffic-inspector/",
     "/api/local/",
     "/api/headroom/start",
     "/api/headroom/stop",
     "/api/vnc-session",
     "/api/modality-bridge/video/",
-    "/api/settings/mitm",
-    "/api/cli-tools/antigravity-mitm",
     "/api/tunnels/cloudflared",
     "/api/tunnels/tailscale/disable",
     "/api/tunnels/tailscale/enable",
@@ -132,5 +128,7 @@ test("SPAWN_CAPABLE_PREFIXES is defined in the server-free constants leaf with t
   // Task 5 removed 2 agent-orchestration entries (ACP registry + issue-agent).
   // Task 8 removed 4 embedded-service/plugin/version-manager entries.
   // Task 10 removed 3 retired skills prefixes.
-  assert.equal(SPAWN_CAPABLE_PREFIXES.length, 44);
+  // Task 11 removed 4 desktop/MITM/TrafficInspector prefixes (AgentBridge, MITM settings,
+  // antigravity-mitm, TrafficInspector) together with their routes.
+  assert.equal(SPAWN_CAPABLE_PREFIXES.length, 40);
 });

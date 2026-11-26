@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { toOllamaTagModel } from "../../src/lib/vscode/tagModels.ts";
+import { toOllamaTagModel } from "../../src/app/api/v1/vscode/[token]/tagModels.ts";
 
 test("raw and grouped tags retain their distinct published identifiers", () => {
   const model = { id: "custom/gpt-example", owned_by: "custom", context_length: 8192 };

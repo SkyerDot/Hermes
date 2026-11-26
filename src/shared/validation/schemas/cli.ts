@@ -27,18 +27,17 @@ export const cliMitmStopSchema = z.object({
 
 // A mapping value is either the legacy plain model string, or a structured entry that
 // lets a reasoning-effort override be configured independently of (or without) a model
-// remap. `mitmAliasEntrySchema` is intentionally permissive on `reasoningEffort` (any
-// string) — the canonical-vocabulary check runs at the route boundary via
-// `hasInvalidReasoningEffort` (`@/mitm/aliasConfig`), matching upstream decolua/9router#2584
-// ("validate reasoning values at the API boundary").
-const mitmAliasEntrySchema = z.object({
+// remap. `cliAliasEntrySchema` is intentionally permissive on `reasoningEffort` (any
+// string): the canonical-vocabulary check belonged to the removed MITM alias surface
+// (upstream decolua/9router#2584) and is not part of this retained CLI schema.
+const cliAliasEntrySchema = z.object({
   model: z.string().optional(),
   reasoningEffort: z.string().optional(),
 });
 
 export const cliMitmAliasUpdateSchema = z.object({
   tool: z.string().trim().min(1, "tool and mappings required"),
-  mappings: z.record(z.string(), z.union([z.string(), mitmAliasEntrySchema]).optional()),
+  mappings: z.record(z.string(), z.union([z.string(), cliAliasEntrySchema]).optional()),
 });
 
 export const cliBackupMutationSchema = z

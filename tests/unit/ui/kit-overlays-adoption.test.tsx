@@ -8,16 +8,13 @@
  * tests/unit/hand-positioned-overlays.test.ts.
  */
 import React from "react";
-import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import messages from "../../../src/i18n/messages/en.json";
-import { SessionPicker } from "../../../src/app/(dashboard)/dashboard/tools/traffic-inspector/components/session/SessionPicker";
 import CacheTrends from "../../../src/app/(dashboard)/dashboard/cache/components/CacheTrends";
 import ComboDefaultsTab from "../../../src/app/(dashboard)/dashboard/settings/components/ComboDefaultsTab";
 
 afterEach(cleanup);
-
-const popoverPanel = () => document.querySelector<HTMLElement>('[data-slot="popover-content"]');
 
 /** Radix hands focus back to the trigger one tick after the panel unmounts. */
 async function nextTick() {
@@ -25,57 +22,6 @@ async function nextTick() {
     await new Promise((resolve) => setTimeout(resolve, 0));
   });
 }
-
-describe("SessionPicker", () => {
-  const sessions = [
-    { id: "abcdef123", name: "Checkout flow", requestCount: 3 },
-    { id: "fedcba987", name: undefined, requestCount: 1 },
-  ] as never[];
-
-  it("lists the sessions in a portaled kit Popover and closes after a choice", () => {
-    const onSelect = vi.fn();
-    const { container } = render(
-      <SessionPicker sessions={sessions} onSelect={onSelect} onDelete={() => {}} />
-    );
-    const trigger = screen.getByRole("button", { name: messages.trafficInspector.sessions });
-    fireEvent.click(trigger);
-    const panel = popoverPanel()!;
-    expect(panel).not.toBeNull();
-    expect(container.contains(panel)).toBe(false);
-
-    fireEvent.click(screen.getByRole("button", { name: /Checkout flow/ }));
-    expect(onSelect).toHaveBeenCalledWith("abcdef123");
-    expect(popoverPanel()).toBeNull();
-  });
-
-  it("closes on Escape with focus back on the trigger, and deletes without closing", async () => {
-    const onDelete = vi.fn();
-    const onSelect = vi.fn();
-    render(
-      <SessionPicker
-        sessions={sessions}
-        selectedId="abcdef123"
-        onSelect={onSelect}
-        onDelete={onDelete}
-      />
-    );
-    const trigger = screen.getByRole("button", { name: /Checkout flow/ });
-    fireEvent.click(trigger);
-    const deleteButtons = screen.getAllByRole("button", {
-      name: messages.trafficInspector.deleteSession,
-    });
-    fireEvent.click(deleteButtons[0]);
-    expect(onDelete).toHaveBeenCalledWith("abcdef123");
-    // Deleting the selected session falls back to all traffic.
-    expect(onSelect).toHaveBeenCalledWith(undefined);
-    expect(popoverPanel()).not.toBeNull();
-
-    fireEvent.keyDown(document, { key: "Escape" });
-    expect(popoverPanel()).toBeNull();
-    await nextTick();
-    expect(document.activeElement).toBe(trigger);
-  });
-});
 
 describe("CacheTrends", () => {
   const data = [

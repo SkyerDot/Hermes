@@ -50,10 +50,6 @@ export const SPAWN_CAPABLE_PREFIXES: ReadonlyArray<string> = [
   "/api/tunnels/tailscale/install", // downloads/installs Tailscale and starts its daemon
   "/api/tunnels/tailscale/login", // spawns `tailscale up`
   "/api/tunnels/tailscale/start-daemon", // starts tailscaled/Tailscale service
-  "/api/tools/agent-bridge/", // start/stop MITM server + DNS edits (Hard Rules #15 + #17)
-  "/api/settings/mitm", // installs a system trusted root CA + /etc/hosts DNS overrides via src/mitm/* — must never be whitelistable via manage-scope bypass (GHSA-x7vm-hp44-9p79, Hard Rules #15 + #17)
-  "/api/cli-tools/antigravity-mitm", // same privileged CA-trust + DNS surface as /api/settings/mitm (GHSA-x7vm-hp44-9p79, Hard Rules #15 + #17)
-  "/api/tools/traffic-inspector/", // http-proxy listener + system proxy (Hard Rules #15 + #17)
   "/api/local/", // T-12: 1-click local service launchers (Redis today) — must never be whitelistable via manage-scope bypass (Hard Rules #15 + #17)
   "/api/headroom/start", // spawns headroom-ai python CLI — must never be bypassable (Hard Rules #15 + #17)
   "/api/headroom/stop", // kills tracked PID — must never be bypassable (Hard Rules #15 + #17)

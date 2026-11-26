@@ -440,7 +440,6 @@ export default function SidebarTab() {
   const [activePreset, setActivePreset] = useState<SidebarPresetId | null>(null);
   const [confirmPreset, setConfirmPreset] = useState<SidebarPresetId | null>(null);
   const [showDebug, setShowDebug] = useState(false);
-  const [radarAdminUrl, setRadarAdminUrl] = useState<unknown>(null);
 
   useEffect(() => {
     fetch("/api/settings")
@@ -465,7 +464,6 @@ export default function SidebarTab() {
         );
         setActivePreset(data?.[SIDEBAR_PRESET_KEY] ?? null);
         setShowDebug(data?.debugMode === true);
-        setRadarAdminUrl(data?.radarAdminUrl ?? null);
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -528,9 +526,9 @@ export default function SidebarTab() {
     patch({ [HIDDEN_SIDEBAR_GROUP_LABELS_SETTING_KEY]: next, [SIDEBAR_PRESET_KEY]: null });
   };
 
-  const visibleSections = resolveRuntimeSidebarSections(SIDEBAR_SECTIONS, {
-    radarAdminUrl,
-  }).filter((s) => s.visibility !== "debug" || showDebug);
+  const visibleSections = resolveRuntimeSidebarSections(SIDEBAR_SECTIONS).filter(
+    (s) => s.visibility !== "debug" || showDebug
+  );
 
   const orderedSections = applySectionOrder(visibleSections, sectionOrder).map((s) => ({
     ...s,

@@ -3,13 +3,13 @@
  */
 import { describe, it } from "vitest";
 import assert from "node:assert/strict";
-import { normalizeConversation } from "../../../src/mitm/inspector/conversationNormalizer.ts";
-import type { InterceptedRequest } from "../../../src/mitm/inspector/types.ts";
+import { normalizeConversation } from "../../../src/shared/utils/conversation/normalizer.ts";
+import type { InterceptedRequest } from "../../../src/shared/utils/conversation/types.ts";
 
 function makeRequest(overrides: Partial<InterceptedRequest> = {}): InterceptedRequest {
   return {
     id: "test-id",
-    source: "agent-bridge",
+    source: "proxy",
     timestamp: new Date().toISOString(),
     method: "POST",
     host: "api.openai.com",
@@ -55,7 +55,10 @@ describe("ConversationTab normalizeConversation", () => {
       assert.ok(Array.isArray(result.request), "request should be an array");
       assert.ok(result.request.length >= 1, "should have at least 1 turn");
       const roles = result.request.map((t) => t.role);
-      assert.ok(roles.includes("user") || roles.includes("system"), "should have user or system role");
+      assert.ok(
+        roles.includes("user") || roles.includes("system"),
+        "should have user or system role"
+      );
     }
   });
 

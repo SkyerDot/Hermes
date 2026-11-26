@@ -10,7 +10,7 @@ import { getCodexFastCostMultiplier } from "../../src/lib/usage/costCalculator.t
 import { DEFAULT_CODEX_CLIENT_VERSION } from "../../src/shared/constants/codexClient.ts";
 import { parseUpstreamError } from "../../open-sse/utils/error.ts";
 import { extendCodexGpt56EffortValues } from "../../src/shared/reasoning/effortStandardization.ts";
-import * as reasoningMetadata from "../../src/lib/vscode/reasoningMetadata.ts";
+import * as reasoningMetadata from "../../src/app/api/v1/vscode/[token]/reasoningMetadata.ts";
 
 const MODEL = "gpt-6.1-sol";
 const EFFORTS = ["ultra", "max", "xhigh", "high", "medium", "low"] as const;

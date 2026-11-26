@@ -16,7 +16,6 @@ import QuotaMiniBar from "../../../src/app/(dashboard)/dashboard/usage/component
 import DimensionBar from "../../../src/app/(dashboard)/dashboard/costs/quota-share/components/DimensionBar";
 import StackedAllocationBar from "../../../src/app/(dashboard)/dashboard/costs/quota-share/components/StackedAllocationBar";
 import WeightTotalBar from "../../../src/app/(dashboard)/dashboard/combos/WeightTotalBar";
-import { TimingWaterfall } from "../../../src/app/(dashboard)/dashboard/tools/traffic-inspector/components/shared/TimingWaterfall";
 import { WaterfallInspector } from "../../../src/app/(dashboard)/dashboard/compression/studio/WaterfallInspector";
 import type { CompressionRunModel } from "../../../src/app/(dashboard)/dashboard/compression/studio/compressionFlowModel";
 
@@ -131,31 +130,6 @@ describe("hand-made bars announce themselves as progressbars", () => {
       now: "100",
       text: "120%",
     });
-    await expectNamedProgressbars(container);
-  });
-
-  it("TimingWaterfall names each latency bar and gives it the real milliseconds", async () => {
-    const { container } = renderWithIntl(
-      <TimingWaterfall
-        request={{ proxyLatencyMs: 20, upstreamLatencyMs: 180, totalLatencyMs: 200 } as never}
-      />
-    );
-    expect(bars(container).map(range)).toEqual([
-      {
-        name: messages.trafficInspector.timingProxyOverhead,
-        min: "0",
-        max: "200",
-        now: "20",
-        text: "20ms (10.0%)",
-      },
-      {
-        name: messages.trafficInspector.timingUpstreamResponse,
-        min: "0",
-        max: "200",
-        now: "180",
-        text: "180ms (90.0%)",
-      },
-    ]);
     await expectNamedProgressbars(container);
   });
 

@@ -75,8 +75,6 @@ const { default: CodePreview } = await import("@/shared/components/CodePreview")
 const { default: ModalWizard } = await import("@/shared/components/ModalWizard");
 const { ActivityCalendar } = await import("@/shared/components/analytics/ActivityCalendar");
 const { CostTrendCard } = await import("@/app/(dashboard)/dashboard/costs/components/CostCharts");
-const { default: StatsCharts } =
-  await import("@/app/(dashboard)/dashboard/tools/traffic-inspector/components/tabs/StatsCharts");
 
 const REPO_ROOT = process.cwd();
 // Testing Library waits 1 s by default; a loaded runner needs more to mount the shell or a toast.
@@ -322,19 +320,6 @@ describe("charts", () => {
         title="Cost"
         locale="en"
         rows={[{ date: "2026-11-01", cost: 1 } as never, { date: "2026-11-02", cost: 2 } as never]}
-      />
-    );
-    expect(kitProps.lineChart).toHaveLength(1);
-    expect(kitProps.lineChart[0].unavailableLabel).toBe("⟦common.notAvailable⟧");
-  });
-
-  it("LineChart in the traffic inspector stats gets a translated unavailable label", () => {
-    render(
-      <StatsCharts
-        requests={[
-          { status: 200, totalLatencyMs: 10 } as never,
-          { status: 200, totalLatencyMs: 20 } as never,
-        ]}
       />
     );
     expect(kitProps.lineChart).toHaveLength(1);

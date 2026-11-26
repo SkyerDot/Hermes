@@ -15,7 +15,7 @@ import {
 import {
   CLASSIC_PAGE_BACKGROUND,
   EDITIONS_PAGE_BACKGROUND,
-} from "../../src/shared/constants/pwaThemeColors.ts";
+} from "../../src/shared/constants/themeColors.ts";
 import { resolveThemeColor } from "../../src/shared/utils/themeColorMeta.ts";
 
 // The pre-hydration script decides the first paint: Editions (the kit's

@@ -8,22 +8,20 @@ import { pickMessages } from "@/i18n/pickMessages";
 import routeNamespaces from "@/i18n/routeNamespaces.generated.json";
 import { getRootLayoutSettings } from "@/lib/db/rootLayoutSettings";
 import type { Viewport } from "next";
-import { PwaRegister } from "@/shared/components/PwaRegister";
 import { LocaleAutoDetect } from "@/shared/components/LocaleAutoDetect";
 import { HIDDEN_TAB_REVEAL_SCRIPT } from "@/shared/utils/hiddenTabReveal";
 import { BasePathNetworkProvider } from "@/shared/components/BasePathNetworkProvider";
-import { PWA_THEME_COLORS } from "@/shared/constants/pwaThemeColors";
+import { EDITIONS_PAGE_BACKGROUND } from "@/shared/constants/themeColors";
 import { EDITIONS_APPEARANCE_VALUE } from "@/shared/constants/appearancePalette";
 import { THEME_BOOT_SCRIPT } from "@/shared/utils/themeBootScript";
 
 export const viewport: Viewport = {
-  // Page background of the default (Editions) palette per colour scheme (pwaThemeColors.ts).
+  // Page background of the default (Editions) palette per colour scheme (themeColors.ts).
   // THEME_BOOT_SCRIPT and the theme store rewrite these tags to the stored palette and mode.
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: PWA_THEME_COLORS.light },
-    { media: "(prefers-color-scheme: dark)", color: PWA_THEME_COLORS.dark },
+    { media: "(prefers-color-scheme: light)", color: EDITIONS_PAGE_BACKGROUND.light },
+    { media: "(prefers-color-scheme: dark)", color: EDITIONS_PAGE_BACKGROUND.dark },
   ],
-  viewportFit: "cover",
 };
 
 export async function generateMetadata() {
@@ -35,25 +33,14 @@ export async function generateMetadata() {
     title: `${instanceName} — AI Gateway for Multi-Provider LLMs`,
     description:
       "OmniRoute is an AI gateway for multi-provider LLMs. One endpoint for all your AI providers.",
-    manifest: "/manifest.webmanifest",
     applicationName: instanceName,
-    appleWebApp: {
-      capable: true,
-      title: instanceName,
-      statusBarStyle: "black-translucent",
-    },
-    other: {
-      "mobile-web-app-capable": "yes",
-    },
     icons: {
       icon: customFaviconUrl
         ? "/api/settings/favicon"
         : [
             { url: "/favicon.ico", sizes: "any" },
             { url: "/favicon.svg", type: "image/svg+xml" },
-            { url: "/icon-512.png", type: "image/png", sizes: "512x512" },
           ],
-      apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
     },
   };
 }
@@ -154,7 +141,6 @@ export default async function RootLayout({ children }) {
       <body className="font-sans antialiased" suppressHydrationWarning>
         <NextIntlClientProvider locale={locale} messages={messages}>
           <BasePathNetworkProvider>
-            <PwaRegister />
             <LocaleAutoDetect />
             <ThemeProvider>{children}</ThemeProvider>
           </BasePathNetworkProvider>

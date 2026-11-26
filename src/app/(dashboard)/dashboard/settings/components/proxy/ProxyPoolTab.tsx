@@ -4,7 +4,6 @@ import { useTranslations } from "next-intl";
 import ProxyRegistryManager from "../ProxyRegistryManager";
 import VercelRelayModal from "./VercelRelayModal";
 import DenoRelayModal from "./DenoRelayModal";
-import ProxyTrafficPanel from "./ProxyTrafficPanel";
 import type { ProxyItem } from "../proxyRegistryTypes";
 import { useNotificationStore } from "@/store/notificationStore";
 
@@ -28,7 +27,6 @@ export default function ProxyPoolTab() {
 
   return (
     <div className="space-y-4">
-      <ProxyTrafficPanel />
       <ProxyRegistryManager
         onRedeployRelay={handleRedeployRelay}
         showVercelRelay={showVercelRelay}

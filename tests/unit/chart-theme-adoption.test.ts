@@ -9,7 +9,6 @@ import test from "node:test";
 const THEMED_FILES = [
   "src/app/(dashboard)/dashboard/costs/components/CostCharts.tsx",
   "src/app/(dashboard)/dashboard/costs/quota-share/components/BurnRateChartInner.tsx",
-  "src/app/(dashboard)/dashboard/tools/traffic-inspector/components/tabs/StatsCharts.tsx",
 ];
 
 // The provider utilization chart is the kit LineChart (fixed domain, joined gaps): no recharts.
@@ -29,7 +28,7 @@ for (const file of THEMED_FILES) {
 
 test("the charts the kit LineChart covers use it; the ones it cannot draw stay on recharts", () => {
   const kitImport = /import \{ LineChart \} from "@omniroute\/ui-kit\/reporting-charts"/;
-  for (const file of [PROVIDER_CHARTS, THEMED_FILES[0], THEMED_FILES[2]]) {
+  for (const file of [PROVIDER_CHARTS, THEMED_FILES[0]]) {
     assert.match(readFileSync(file, "utf8"), kitImport, file);
   }
   // Fixed 0–100 domain and gaps joined across missing samples: kit props, no recharts by hand.

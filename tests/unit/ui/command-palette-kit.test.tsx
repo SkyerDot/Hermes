@@ -178,15 +178,6 @@ describe("CommandPalette on the kit Dialog", () => {
     "opens external rows in a new tab and marks them in the shortcut slot",
     { timeout: 20_000 },
     async () => {
-      vi.stubGlobal(
-        "fetch",
-        vi.fn(
-          async () =>
-            new Response(JSON.stringify({ radarAdminUrl: "https://radar.example.com/admin" }), {
-              headers: { "content-type": "application/json" },
-            })
-        )
-      );
       const open = vi.spyOn(window, "open").mockReturnValue(null);
       const onClose = vi.fn();
       render(<CommandPalette isOpen onClose={onClose} />);
@@ -194,12 +185,12 @@ describe("CommandPalette on the kit Dialog", () => {
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
       });
-      fireEvent.change(input, { target: { value: "Private operations panel" } });
+      fireEvent.change(input, { target: { value: "Issues" } });
       const [row] = await screen.findAllByRole("option");
       expect(row.querySelector(".ci-command__shortcut svg")).not.toBeNull();
       fireEvent.keyDown(input, { key: "Enter" });
       expect(open).toHaveBeenCalledWith(
-        "https://radar.example.com/admin",
+        "https://github.com/cheaper-inference/OmniRoute/issues",
         "_blank",
         "noopener,noreferrer"
       );

@@ -1,7 +1,7 @@
 import { spawn } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { fileURLToPath } from "node:url";
 import { platform, totalmem } from "node:os";
 import {
   writePidFile,
@@ -11,11 +11,7 @@ import {
   probePortFree,
   resolveReadyTimeoutMs,
 } from "./cli/utils/pid.mjs";
-import {
-  ServerSupervisor,
-  detectMitmCrash,
-  BUN_PRELOAD_PATH,
-} from "./cli/runtime/processSupervisor.mjs";
+import { ServerSupervisor, BUN_PRELOAD_PATH } from "./cli/runtime/processSupervisor.mjs";
 import { isTermux } from "../scripts/build/postinstallSupport.mjs";
 import {
   ensureAndroidCacheDir,
@@ -435,19 +431,6 @@ async function runWithSupervisor(
     env,
     memoryLimit,
     maxRestarts,
-    onCrashCallback: async (crashLog) => {
-      if (detectMitmCrash(crashLog)) {
-        try {
-          const PROJECT_ROOT = ROOT;
-          const { updateSettings } = await import(
-            pathToFileURL(join(PROJECT_ROOT, "src/lib/db/settings.ts")).href
-          );
-          updateSettings({ mitmEnabled: false });
-        } catch {}
-        return "disable-mitm-and-retry";
-      }
-      return null;
-    },
   });
 
   supervisor.start();

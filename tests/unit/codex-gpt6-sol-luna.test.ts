@@ -7,7 +7,7 @@ import { openaiToOpenAIResponsesRequest } from "../../open-sse/translator/reques
 import { getPricingForModel } from "../../src/shared/constants/pricing.ts";
 import { getCodexFastCostMultiplier } from "../../src/lib/usage/costCalculator.ts";
 import { extendCodexGpt56EffortValues } from "../../src/shared/reasoning/effortStandardization.ts";
-import * as reasoningMetadata from "../../src/lib/vscode/reasoningMetadata.ts";
+import * as reasoningMetadata from "../../src/app/api/v1/vscode/[token]/reasoningMetadata.ts";
 
 // The live Codex catalog (client 0.155.1) advertises Sol at low..ultra and Luna at
 // low..max, mirroring the GPT-5.6 Sol/Luna split.

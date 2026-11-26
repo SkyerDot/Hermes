@@ -36,11 +36,8 @@ interface ProviderPageHeaderProps {
   onOpenTutorial: () => void;
   t: ProviderMessageTranslator;
   /**
-   * True when `providerInfo.website` was overridden with a Radar default
-   * referral link (D28 — referral links / free credits), rather than the
-   * static catalog `website`. Reuses the same discreet "Partner link" note
-   * as the pre-existing Kimi partnership link — both are the same kind of
-   * "this link supports OmniRoute" disclosure.
+   * Kept for call-site compatibility after the Radar referral source was pruned;
+   * `resolveProviderHeaderLink` now always returns `false` here.
    */
   isReferralLink?: boolean;
 }
@@ -62,8 +59,8 @@ export default function ProviderPageHeader({
   // reads as a monetized link, not just "visit provider website" like every
   // other card. UI-only — never affects routing/fallback (featuredProviders.ts).
   const isKimiPartnerLink = isKimiPartnerProviderId(providerInfo.id);
-  // D28: any Radar-driven default referral gets the exact same discreet
-  // disclosure treatment as the Kimi partner link.
+  // The (now always false) referral flag keeps the same discreet disclosure
+  // treatment as the Kimi partner link for any future caller-supplied link.
   const showPartnerNote = isKimiPartnerLink || isReferralLink;
   const kimiPartnerLinkNote = providerText(
     t,

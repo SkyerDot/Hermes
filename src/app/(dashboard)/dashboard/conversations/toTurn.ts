@@ -1,4 +1,4 @@
-import type { NormalizedBlock, NormalizedTurn } from "@/mitm/inspector/types";
+import type { NormalizedBlock, NormalizedTurn } from "@/shared/utils/conversation/types";
 
 export interface ConversationTurn {
   seq: number;

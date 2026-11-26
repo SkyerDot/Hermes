@@ -3,7 +3,7 @@ import {
   getRequestedModelName,
   matchesRequestedModel,
   type OpenAiCatalogModel,
-} from "@/lib/vscode/showModel";
+} from "../../showModel";
 import { getUnifiedModelsResponse } from "@/app/api/v1/models/catalog";
 import { getVscodeRawModelDisplayName } from "@/app/api/v1/vscode/[token]/models/route";
 import { CORS_HEADERS, handleCorsOptions } from "@/shared/utils/cors";

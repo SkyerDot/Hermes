@@ -4,7 +4,6 @@ import HomePageClient from "../dashboard/HomePageClient";
 import BootstrapBanner from "../dashboard/BootstrapBanner";
 import KimiSponsorBanner from "../dashboard/KimiSponsorBanner";
 import CheaperInferenceSponsorBanner from "../dashboard/CheaperInferenceSponsorBanner";
-import VscodeCopilotBanner from "../dashboard/VscodeCopilotBanner";
 import NewsBanner from "../dashboard/NewsBanner";
 import FirstRunReadinessCard from "../dashboard/FirstRunReadinessCard";
 import HomePageHeader from "./HomePageHeader";
@@ -25,7 +24,6 @@ export default async function HomePage() {
       <UnpricedUsageBanner />
       <KimiSponsorBanner />
       <CheaperInferenceSponsorBanner />
-      <VscodeCopilotBanner />
       <NewsBanner />
       <div className="mb-4">
         <HomeSystemMetricsCards />

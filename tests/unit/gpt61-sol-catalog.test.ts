@@ -12,8 +12,8 @@ import {
 } from "../../src/lib/usage/costCalculator.ts";
 import { extendCodexGpt56EffortValues } from "../../src/shared/reasoning/effortStandardization.ts";
 import { isCodexExtendedEffortBaseModel } from "../../src/shared/reasoning/codexExtendedEffort.ts";
-import * as reasoningMetadata from "../../src/lib/vscode/reasoningMetadata.ts";
-import { supportsVscodeServiceTierVariants } from "../../src/lib/vscode/serviceTierVariants.ts";
+import * as reasoningMetadata from "../../src/app/api/v1/vscode/[token]/reasoningMetadata.ts";
+import { supportsVscodeServiceTierVariants } from "../../src/app/api/v1/vscode/[token]/serviceTierVariants.ts";
 import {
   getResolvedModelCapabilitiesWithLimitSources,
   type ModelCapabilityResolutionSnapshot,
