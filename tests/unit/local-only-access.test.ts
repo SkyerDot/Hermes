@@ -76,8 +76,11 @@ describe("resolveDashboardLocalAccess (server)", () => {
 
     const access = resolveDashboardLocalAccess(pageHeaders("remote"));
 
-    // GET /api/system/version sits in LOCAL_ONLY_API_GET_EXEMPTIONS.
+    // GET /api/system/version is the live read exemption; a write to the same
+    // path stays local-only. (/api/tunnels/cloudflared is also listed but its
+    // route was pruned, so it cannot stand in for a live surface.)
     assert.equal(isLocalOnlyPath("/api/system/version", "GET"), false);
+    assert.equal(isLocalOnlyPath("/api/system/version", "POST"), true);
     assert.equal(access.remoteBlockedPaths.includes("/api/system/version"), false);
   });
 
@@ -156,30 +159,30 @@ describe("LOCAL_ONLY rejection detection (client)", () => {
 });
 
 describe("isLocalOnlyPathBlocked (client)", () => {
-  const blockedPaths = ["/api/resilience/connections", "/api/db/health"];
+  // Synthetic snapshot: /api/db/health is the path the real server reports;
+  // /api/test/blocked stands in for a registered path so the client logic is
+  // exercised without contradicting the server's manage-scope bypass.
+  const blockedPaths = ["/api/db/health", "/api/test/blocked"];
 
   test("a remote session is blocked up front, before any request", () => {
     const access = { locality: "remote" as const, remoteBlockedPaths: blockedPaths };
-    assert.equal(isLocalOnlyPathBlocked(access, "/api/resilience/connections"), true);
+    assert.equal(isLocalOnlyPathBlocked(access, "/api/test/blocked"), true);
     assert.equal(isLocalOnlyPathBlocked(access, "/api/system/version"), false);
   });
 
   test("local and unknown sessions are not blocked up front", () => {
     for (const locality of ["local", "unknown"] as const) {
       const access = { locality, remoteBlockedPaths: blockedPaths };
-      assert.equal(isLocalOnlyPathBlocked(access, "/api/resilience/connections"), false);
+      assert.equal(isLocalOnlyPathBlocked(access, "/api/test/blocked"), false);
     }
   });
 
   test("the first rejection blocks that path and every other registered path", async () => {
     const access = { locality: "unknown" as const, remoteBlockedPaths: blockedPaths };
 
-    assert.equal(
-      await detectLocalOnlyRejection(localOnlyResponse(), "/api/resilience/connections"),
-      true
-    );
+    assert.equal(await detectLocalOnlyRejection(localOnlyResponse(), "/api/test/blocked"), true);
 
-    assert.equal(isLocalOnlyPathBlocked(access, "/api/resilience/connections"), true);
+    assert.equal(isLocalOnlyPathBlocked(access, "/api/test/blocked"), true);
     assert.equal(isLocalOnlyPathBlocked(access, "/api/db/health"), true);
     assert.equal(isLocalOnlyPathBlocked(access, "/api/system/version"), false);
   });
@@ -189,7 +192,7 @@ describe("isLocalOnlyPathBlocked (client)", () => {
     const path = "/api/settings";
     reportLocalOnlyRejection(path);
     assert.equal(isLocalOnlyPathBlocked(access, path), true);
-    assert.equal(isLocalOnlyPathBlocked(access, "/api/resilience/connections"), false);
+    assert.equal(isLocalOnlyPathBlocked(access, "/api/system/version"), false);
   });
 
   test("a response that is not a local-only rejection changes nothing", async () => {

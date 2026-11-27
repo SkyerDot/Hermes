@@ -244,7 +244,6 @@ import {
   writeCompressionAnalytics,
   writeCompressionSkip,
 } from "./chatCore/compressionAnalyticsWrite.ts";
-import { runPluginRequestGate } from "./chatCore/pluginRequestGate.ts";
 import { recordContextEditingTelemetryHook } from "./chatCore/contextEditingTelemetry.ts";
 import { recordCompressionCacheStats } from "./chatCore/compressionCacheStats.ts";
 import { writeCavemanOutputAnalytics } from "./chatCore/cavemanOutputAnalytics.ts";
@@ -591,19 +590,8 @@ async function handleChatCoreInner({
   // Extracted to chatCore/customSystemPrompt.ts (chatCore slice 2); reads cachedSettings when the
   // combo/chat layer passed it in, so the hot path does no extra DB read.
   body = applyCustomSystemPrompt(body, cachedSettings ?? (await getCachedSettings()), log);
-  // ── Plugin onRequest hook ── extracted to chatCore/pluginRequestGate.ts (chatCore slice 2):
-  // a block becomes the labelled 403 `plugin_block` result; a rewrite replaces the body.
-  const pluginGate = await runPluginRequestGate({
-    requestId: traceId,
-    body,
-    model,
-    provider,
-    apiKeyInfo,
-    headers: clientRawRequest?.headers,
-    log,
-  });
-  if (pluginGate.blocked === true) return pluginGate.result;
-  body = pluginGate.body;
+  // The plugin runtime was pruned (Task 8); the fail-open onRequest seam has no
+  // caller left, so chatCore no longer runs a gate that can only pass through.
   // Per-API-key device/connection tracking (port of upstream 9router#931,
   // thanks @mugnimaestra). In-memory only, never blocks the request path.
   trackRequestDevice({

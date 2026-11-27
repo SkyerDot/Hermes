@@ -29,8 +29,6 @@ type NextApp = ReturnType<typeof next> & {
 function createNextStandIn(httpServer?: unknown) {
   const app = next({ dev: false, dir: root, ...(httpServer ? { httpServer } : {}) } as never);
   const upgrades: string[] = [];
-  let standInUpgradeHandler: ((req: http.IncomingMessage, socket: Duplex) => Promise<void>) | null =
-    null;
   (app as NextApp).init = {
     requestHandler: async (_req: http.IncomingMessage, res: http.ServerResponse) => {
       res.end("ok");
@@ -43,39 +41,35 @@ function createNextStandIn(httpServer?: unknown) {
       socket.end();
     },
   };
-  // Expose the stand-in upgrade handler for tests
-  (app as NextApp).getStandInUpgradeHandler = () => standInUpgradeHandler;
   return { app: app as NextApp, upgrades };
 }
+
+const okFetch = (async () =>
+  new Response(JSON.stringify({ path: "/v1/responses", originChecked: true }), {
+    status: 200,
+    headers: { "content-type": "application/json" },
+  })) as typeof fetch;
 
 async function startServer(withRelay: boolean, withResponsesProxy: boolean) {
   const relay = withRelay ? createNextUpgradeRelay() : null;
   const { app, upgrades } = createNextStandIn(relay?.target);
   const requestHandler = app.getRequestHandler();
-  const standInUpgradeHandler =
-    (
-      app as NextApp & {
-        getStandInUpgradeHandler?: () =>
-          ((req: http.IncomingMessage, socket: Duplex) => Promise<void>) | null;
-      }
-    ).getStandInUpgradeHandler?.() ?? null;
   const responsesWsProxy = withResponsesProxy
     ? createResponsesWsProxy({
-        baseUrl: "http://127.0.0.1:20128",
+        baseUrl: "http://127.0.0.1:1",
         bridgeSecret: "test-secret",
+        fetchImpl: okFetch,
+        wsFactory: () => {
+          throw new Error("no upstream in this test");
+        },
       })
     : null;
   const server = http.createServer((req, res) => void requestHandler(req, res));
-  // Same dispatch order as scripts/dev/run-next.mjs.
   server.on("upgrade", async (req, socket, head) => {
+    // Same order as scripts/dev/run-next.mjs: the proxy claims /v1/responses
+    // before the relay hands everything else to Next (dev HMR).
+    if (responsesWsProxy && (await responsesWsProxy.handleUpgrade(req, socket, head))) return;
     if (relay?.forward(req, socket, head)) return;
-    if (responsesWsProxy) {
-      const handled = await responsesWsProxy.handleUpgrade(req, socket, head);
-      if (handled) return;
-    }
-    if (standInUpgradeHandler) {
-      await standInUpgradeHandler(req, socket);
-    }
   });
   await new Promise<void>((r) => server.listen(0, "127.0.0.1", () => r()));
   const port = (server.address() as AddressInfo).port;
@@ -112,48 +106,29 @@ function holdSession(port: number, wsPath: string, holdMs = 300): Promise<Held> 
   });
 }
 
-test("control: Next's auto-attached upgrade listener ends unclaimed upgrade sockets", async () => {
-  const { server, port, upgrades, stop } = await startServer(false, true);
+test("control: Next's auto-attached upgrade listener ends unclaimed /v1/responses", async () => {
+  const { server, port, upgrades, stop } = await startServer(false, false);
   try {
     assert.equal(server.listenerCount("upgrade"), 2, "next() attached a second upgrade listener");
-    for (const wsPath of ["/v1/responses"]) {
-      const r = await holdSession(port, wsPath);
-      assert.equal(r.closedBy, "server", `${wsPath} was cut before the client closed it`);
-      assert.equal(r.code, 1006, `${wsPath}: abnormal closure, no close frame`);
-    }
-    assert.deepEqual(upgrades, ["/v1/responses"], "Next saw the claimed upgrades");
+    const r = await holdSession(port, "/v1/responses");
+    assert.equal(r.closedBy, "server", "/v1/responses was cut before the client closed it");
+    assert.equal(r.code, 1006, "/v1/responses: abnormal closure, no close frame");
+    assert.deepEqual(upgrades, ["/v1/responses"], "Next saw the unclaimed upgrade");
   } finally {
     await stop();
   }
 });
 
-test("with the relay and responsesWsProxy, /v1/responses is claimed by the proxy (handleUpgrade returns true)", async () => {
-  const { _server, _port, upgrades, stop, responsesWsProxy } = await startServer(true, true);
+test("with the relay, the real /v1/responses socket is claimed by the proxy and lives until the client closes it", async () => {
+  const { server, port, upgrades, stop } = await startServer(true, true);
   try {
-    assert.ok(responsesWsProxy, "responsesWsProxy should be created");
-    // Create a mock upgrade request for /v1/responses
-    const mockReq = {
-      url: "/v1/responses",
-      headers: {
-        upgrade: "websocket",
-        "sec-websocket-key": "dGhlIHNhbXBsZSBub25jZQ==",
-        "sec-websocket-version": "13",
-      },
-      socket: { remoteAddress: "127.0.0.1" },
-    } as unknown as http.IncomingMessage;
-    const mockSocket = {
-      writable: true,
-      destroyed: false,
-      write: () => true,
-      end: () => {},
-      destroy: () => {},
-      on: () => {},
-    } as unknown as Duplex;
-    const mockHead = Buffer.alloc(0);
-
-    const handled = await responsesWsProxy!.handleUpgrade(mockReq, mockSocket, mockHead);
-    assert.equal(handled, true, "responsesWsProxy should claim /v1/responses upgrades");
-    assert.deepEqual(upgrades, [], "Next should not see the upgrade when proxy claims it");
+    assert.equal(server.listenerCount("upgrade"), 1, "the dispatcher is the only upgrade listener");
+    assert.deepEqual(
+      await holdSession(port, "/v1/responses"),
+      { opened: true, code: 1000, closedBy: "client" },
+      "the proxy's /v1/responses socket was not cut by Next"
+    );
+    assert.deepEqual(upgrades, [], "Next never saw the claimed upgrade");
   } finally {
     await stop();
   }

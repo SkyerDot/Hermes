@@ -33,6 +33,18 @@ test("Task 8 removed modules and routes stay absent", () => {
   }
 });
 
+test("the plugin onRequest gate and its empty seam are gone from chatCore", () => {
+  for (const file of [
+    "open-sse/handlers/chatCore/pluginRequestGate.ts",
+    "open-sse/handlers/chatCore/pluginOnRequest.ts",
+  ]) {
+    assert.equal(exists(file), false, `${file} must not exist`);
+  }
+  const chatCore = read("open-sse/handlers/chatCore.ts");
+  assert.ok(!chatCore.includes("runPluginRequestGate"), "chatCore must not call a removed gate");
+  assert.ok(!chatCore.includes("runPluginOnRequestHook"), "no empty hook call may remain");
+});
+
 test("Task 8 removed nav ids and flag are gone from retained registries", () => {
   const sections = read("src/shared/constants/sidebarVisibility/sections.ts");
   const types = read("src/shared/constants/sidebarVisibility/types.ts");
@@ -64,7 +76,6 @@ test("Task 8 cloudflare relay deploy UI and schema are gone", () => {
 
 test("Task 8 retained inference consumers no longer import removed local machinery", () => {
   for (const file of [
-    "open-sse/handlers/chatCore/pluginOnRequest.ts",
     "open-sse/handlers/chatCore/pluginOnResponse.ts",
     "open-sse/handlers/chatCore/requestTranslationError.ts",
     "src/shared/services/bifrost/bifrostRouting.ts",

@@ -206,10 +206,13 @@ test("v1 retained routes parity — count matches 118 from surface-map.md", () =
   }
 
   const totalRouteFiles = countRouteFiles(V1_ROUTES_DIR);
-  // 118 retained per surface-map.md (124 total - 6 discarded)
-  assert.ok(
-    totalRouteFiles >= 118,
-    `Total v1 route.ts files should be >= 118 (118 retained + 6 discarded = 124 baseline), got ${totalRouteFiles}`
+  // 118 retained per surface-map.md (124 total - 6 discarded). Exact equality
+  // catches a seventh discarded route being reintroduced; the absence guard
+  // covers the six named ones.
+  assert.strictEqual(
+    totalRouteFiles,
+    RETAINED_V1_ROUTES.length,
+    `Total v1 route.ts files must stay at ${RETAINED_V1_ROUTES.length}, got ${totalRouteFiles}`
   );
   assert.strictEqual(
     RETAINED_V1_ROUTES.length,

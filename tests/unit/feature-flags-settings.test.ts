@@ -83,8 +83,8 @@ const {
 // CLAUDE_CODE_LOCAL_{COMMAND_PREFIX,SUGGESTION,FILEPATHS}_ENABLED (Claude Code local helper replies, default off) take it to 133.
 // PROXY_REEGRESS_ON_QUOTA_429 (pool re-send after a per-IP 429, default off) takes it to 134.
 // Task 7 removed two gamification/webhook flags and Task 8 removed PLUGIN_PERMISSION_MODEL_ENABLED.
-// Task 11 removed RADAR_ENABLED and MITM_DISABLE_TLS_VERIFY (132 -> 130). The
-// documented catalog total is still refreshed by Task 13, not by this task.
+// Task 11 removed RADAR_ENABLED and MITM_DISABLE_TLS_VERIFY (132 -> 130); the
+// catalog doc was aligned with the registry in the post-audit slop fix.
 const EXPECTED_FEATURE_FLAG_COUNT = 130;
 // tool_call wrapper repair, default on) to 86; OPENCODE_V2_CLIENT_FINGERPRINT_ENABLED
 // (#16571, OpenCode v2 client fingerprint, default off) to 87.
@@ -121,21 +121,24 @@ describe("featureFlagDefinitions", () => {
     assert.strictEqual(FEATURE_FLAG_DEFINITIONS.length, EXPECTED_FEATURE_FLAG_COUNT);
   });
 
-  it("keeps the documented catalog total deferred until Task 13", () => {
+  it("keeps the documented catalog total in sync with the registry", () => {
     const catalog = fs.readFileSync(
       new URL("../../docs/reference/FEATURE_FLAGS.md", import.meta.url),
       "utf8"
     );
     const count = catalog.match(/^(\d+) flags across \d+ categories\./m);
     assert.ok(count, "Feature Flags catalog must declare its total");
-    // Task 8 removed PLUGIN_PERMISSION_MODEL_ENABLED but docs are a Task 13
-    // surface; this guard records the known-stale total instead of editing docs.
     assert.equal(
       Number(count[1]),
-      138,
-      "docs/ref FEATURE_FLAGS.md is refreshed by Task 13, not by Task 8"
+      FEATURE_FLAG_DEFINITIONS.length,
+      "docs/ref FEATURE_FLAGS.md total must match the registry"
     );
-    assert.equal(FEATURE_FLAG_DEFINITIONS.length, EXPECTED_FEATURE_FLAG_COUNT);
+    const documented = [...catalog.matchAll(/^\| `([A-Z0-9_]+)`/gm)].map((m) => m[1]);
+    assert.deepEqual(
+      documented.sort(),
+      FEATURE_FLAG_DEFINITIONS.map((d) => d.key).sort(),
+      "catalog must list exactly the registry keys, once each"
+    );
   });
 
   it("resolves the unpriced budget policy description from every locale", () => {
@@ -454,18 +457,18 @@ describe("featureFlagDefinitions", () => {
     assert.strictEqual(def.requiresRestart, false);
   });
 
-  it("defines CLI profile auto-sync flags as CLI booleans disabled by default", () => {
+  it("no longer defines the removed CLI profile auto-sync flags", () => {
+    // Task 9 removed the operational CLI that consumed these flags; asserting
+    // absence keeps the registry honest instead of pinning dead toggles.
     for (const key of [
       "OMNIROUTE_AUTO_SYNC_CODEX_PROFILES",
       "OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES",
     ]) {
-      const def = FEATURE_FLAG_DEFINITIONS.find((d) => d.key === key);
-      assert.ok(def, `${key} should exist`);
-      assert.strictEqual(def.category, "cli");
-      assert.strictEqual(def.type, "boolean");
-      assert.strictEqual(def.defaultValue, "false");
-      assert.strictEqual(def.requiresRestart, false);
-      assert.strictEqual(def.warningLevel, "caution");
+      assert.equal(
+        FEATURE_FLAG_DEFINITIONS.find((d) => d.key === key),
+        undefined,
+        `${key} should be gone with the operational CLI`
+      );
     }
   });
 
